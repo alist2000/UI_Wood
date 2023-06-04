@@ -27,12 +27,15 @@ class secondTabWidget(QWidget):
         for i in range(self.level_number):
             tab = QWidget()
             self.tab_widget.addTab(tab, f"Story {i + 1}")
-            # ADD GRID LINES
-            self.grid = grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing)
 
             # ADD POST BUTTON
             post_instance = PostButton(tab)
             post_item = post_instance.post
+
+            # ADD GRID LINES
+            grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance)
+
+
 
             # LAYOUT
             v_layout = QHBoxLayout()
