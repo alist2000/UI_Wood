@@ -4,10 +4,13 @@ from PySide6.QtWidgets import QGraphicsScene, QGraphicsView
 
 from mouse import SelectableLineItem
 from post import PostArea
+from joist import JoistArea
 
+# from main import magnification_factor
+from post import magnification_factor
 
 class GridWidget(QGraphicsView):
-    def __init__(self, h_grid, v_grid, y, x, post, parent=None):
+    def __init__(self, h_grid, v_grid, y, x, post, joist, parent=None):
         super().__init__(parent)
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
@@ -35,20 +38,8 @@ class GridWidget(QGraphicsView):
 
         self.setRenderHint(QPainter.Antialiasing)
 
+        Joist_area_instance = JoistArea(x_list, y_list, self.x, self.y, self.scene, joist)
         post_area_instance = PostArea(x_list, y_list, self.x, self.y, self.scene, post)
-        # self.allowed_clickable_areas = post_area_instance.allowed_clickable_areas
-
-    # def mousePressEvent(self, event):
-    #     if self.clickable_area_enabled:
-    #         clicked_position = event.position().toPoint()
-    #         print(clicked_position)
-    #         for area in self.allowed_clickable_areas:
-    #             if area.contains(clicked_position):
-    #                 print(area)
-    #                 # Perform your desired action here
-    #                 print(f"Clicked within the allowed clickable area: {clicked_position}")
-    #                 break
-    #     super().mousePressEvent(event)
 
     def edit_spacing(self):
         x = self.x
@@ -65,12 +56,12 @@ class GridWidget(QGraphicsView):
     def control_inputs(self):
         if self.x:
             # better appearance
-            self.x = [i * 20 for i in self.x]
+            self.x = [i * magnification_factor for i in self.x]
         else:
             self.x = [400]  # 20 ft or 20 m
         if self.y:
             # better appearance
-            self.y = [i * 20 for i in self.y]
+            self.y = [i * magnification_factor for i in self.y]
         else:
             self.y = [400]  # 20 ft or 20 m
 

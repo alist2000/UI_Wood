@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QPu
 from grid import GridWidget
 
 from post import PostButton
+from joist import JoistButton
 
 
 class secondTabWidget(QWidget):
@@ -32,16 +33,24 @@ class secondTabWidget(QWidget):
             post_instance = PostButton(tab)
             post_item = post_instance.post
 
+            # ADD JOIST BUTTON
+            joist_instance = JoistButton(tab)
+            joist_item = joist_instance.joist
+
             # ADD GRID LINES
-            grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance)
-
-
+            grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
+                              joist_instance)
 
             # LAYOUT
-            v_layout = QHBoxLayout()
-            v_layout.addWidget(grid, 15)
-            v_layout.addWidget(post_item, 1)
-            tab.setLayout(v_layout)
+            h_layout = QHBoxLayout()
+            h_layout.addWidget(grid, 15)
+            v_layout = QVBoxLayout()
+            v_layout.addWidget(post_item)
+            v_layout.addWidget(joist_item)
+
+            h_layout.addLayout(v_layout, 1)
+
+            tab.setLayout(h_layout)
 
         # Show the QTabWidget
         self.tab_widget.show()
