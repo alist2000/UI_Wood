@@ -1,12 +1,13 @@
-from PySide6.QtCore import Qt
+import itertools
+
+from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 
-import itertools
-
-from post import magnification_factor
 from area_centroid_calculator import calculate_centroid_and_area
+from post import magnification_factor
+from image import image_control
 
 
 class JoistButton(QWidget):
@@ -37,8 +38,11 @@ class JoistArea:
             rect.setRect(j[0], j[1], j[2], j[3])
             rect.setBrush(QBrush(QColor("#F99B7D")))
             rect.setPen(QPen(Qt.black))
+
+            # add Joist Direction Image
+            image = image_control(i[0], i[1], i[2], i[3], rect)
             scene.addItem(rect)
-            click_detector1 = ClickableRectItem(i[0], i[1], i[2], i[3], rect, joist_select, Joist_Position)
+            click_detector1 = ClickableRectItem(i[0], i[1], i[2], i[3], rect, joist_select, Joist_Position, image)
             click_detector1.setBrush(QBrush(Qt.transparent))
             click_detector1.setPen(QPen(Qt.transparent))
             scene.addItem(click_detector1)
@@ -47,13 +51,16 @@ class JoistArea:
 
 
 class ClickableRectItem(QGraphicsRectItem):
-    def __init__(self, x, y, width, height, associated_rect, joist, Joist_Position):
+    def __init__(self, x, y, width, height, associated_rect, joist, Joist_Position, image):
         super().__init__(x, y, width, height)
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.associated_rect = associated_rect
         self.associated_rect.setVisible(False)
         self.joist_select = False
         joist.joist.clicked.connect(self.joist_selector)
+
+        # IMAGE
+        self.image = image
 
         self.Joist_Center_Position = Joist_Position
 
@@ -76,7 +83,8 @@ class ClickableRectItem(QGraphicsRectItem):
             height = self.associated_rect.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
             width = self.associated_rect.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
             joist_joint_coordinates = find_coordinate(center[0], center[1], width, height)
-            self.joist_properties_page = JoistProperties(center, joist_joint_coordinates, self.Joist_Center_Position)
+            self.joist_properties_page = JoistProperties(center, joist_joint_coordinates, self.Joist_Center_Position,
+                                                         self.image, self.scene())
             self.joist_properties_page.show()
         else:  # select/deselect
             # self.associated_rect.setVisible(not self.associated_rect.isVisible())
@@ -91,7 +99,7 @@ class ClickableRectItem(QGraphicsRectItem):
 
 
 class JoistProperties(QDialog):
-    def __init__(self, center_position, joint_coordinate, Joist_Position, parent=None):
+    def __init__(self, center_position, joint_coordinate, Joist_Position, image, scene, parent=None):
         super().__init__(parent)
         self.direction = None
         self.default = "N-S"
@@ -99,6 +107,11 @@ class JoistProperties(QDialog):
         self.joint_coordinate = joint_coordinate
         self.position = center_position
         self.Joist_position_list = Joist_Position
+
+        # IMAGE
+        self.image = image
+        self.scene = scene
+
         self.setWindowTitle("Joist Properties")
         self.setMinimumSize(200, 400)
 
@@ -131,6 +144,12 @@ class JoistProperties(QDialog):
         self.accept()
         print(self.default)
         self.final_direction = self.default
+        if self.final_direction == "N-S":
+            picture_path = "images/n_s.png"
+        else:
+            picture_path = "images/e_w.png"
+        print(picture_path)
+        self.image.change_image(picture_path, self.scene)
 
     def create_geometry_tab(self):
         point1 = tuple([i / magnification_factor for i in self.joint_coordinate[0]])
