@@ -1,7 +1,6 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPen, QPainter
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView
-
+from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import QPen, QPainter, QBrush
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem
 from mouse import SelectableLineItem
 from post import PostArea, signal_handler
 from joist import JoistArea
@@ -12,7 +11,7 @@ from post import magnification_factor
 
 
 class GridWidget(QGraphicsView):
-    def __init__(self, h_grid, v_grid, y, x, post, joist, parent=None):
+    def __init__(self, h_grid, v_grid, y, x, post, joist, beam, parent=None):
         super().__init__(parent)
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
@@ -20,8 +19,15 @@ class GridWidget(QGraphicsView):
         self.clickable_area_enabled = True
         self.x = x
         self.y = y
+
+        # self.beam = beam
+
+        self.current_rect = None
+        self.start_pos = None
+
         # control inputs
         self.x, self.y = self.control_inputs()
+        self.grid_size = min(min(self.x), min(self.y)) / 10  # Set the grid size
 
         width_manual = sum(self.x)
         height_manual = sum(self.y)
@@ -42,9 +48,16 @@ class GridWidget(QGraphicsView):
 
         Joist_area_instance = JoistArea(x_list, y_list, self.x, self.y, self.scene, joist)
         post_area_instance = PostArea(x_list, y_list, self.x, self.y, self.scene, post)
-        a = beamDrawing(post_area_instance, post)
-        signal_handler.button_clicked.connect(a.myFunction)
+        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, post_area_instance)
+        beam.beam.clicked.connect(self.beam_instance.beam_selector)
 
+    def mousePressEvent(self, event):
+        if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
+            self.beam_instance.draw_beam_mousePress(self, event)
+
+    def mouseMoveEvent(self, event):
+        if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
+            self.beam_instance.draw_beam_mouseMove(self, event)
 
     def edit_spacing(self):
         x = self.x
@@ -71,3 +84,10 @@ class GridWidget(QGraphicsView):
             self.y = [400]  # 20 ft or 20 m
 
         return self.x, self.y
+
+
+class Rectangle(QGraphicsRectItem):
+    def __init__(self, x, y):
+        super().__init__(x, y, 0, 0)
+        self.setPen(QPen(Qt.blue, 2))  # Set the border color to blue
+        self.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))  # Set the fill color to transparent

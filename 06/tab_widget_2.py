@@ -6,6 +6,7 @@ from grid import GridWidget
 
 from post import PostButton
 from joist import JoistButton
+from Beam import BeamButton
 
 
 class secondTabWidget(QTabWidget):
@@ -43,9 +44,13 @@ class secondTabWidget(QTabWidget):
             joist_instance = JoistButton(tab)
             joist_item = joist_instance.joist
 
+            # ADD BEAM BUTTON
+            beam_instance = BeamButton(tab)
+            beam_item = beam_instance.beam
+
             # ADD GRID LINES
             grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
-                              joist_instance)
+                              joist_instance, beam_instance)
 
             # LAYOUT
             h_layout = QHBoxLayout()
@@ -53,6 +58,7 @@ class secondTabWidget(QTabWidget):
             v_layout = QVBoxLayout()
             v_layout.addWidget(post_item)
             v_layout.addWidget(joist_item)
+            v_layout.addWidget(beam_item)
 
             h_layout.addLayout(v_layout, 1)
 

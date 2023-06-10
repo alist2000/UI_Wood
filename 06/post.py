@@ -55,13 +55,15 @@ class PostArea:
         # ]
         self.coordinate = values
         self.Post_Position = Post_Position = set()
+        self.post_label = post_label = set()
+
         for i in values:
             rect = QGraphicsRectItem()
             rect.setRect(i[0], i[1], i[2], i[3])
             rect.setBrush(QBrush(QColor("#E76161")))
             rect.setPen(QPen(Qt.black))
             scene.addItem(rect)
-            click_detector1 = ClickableRectItem(i[0], i[1], i[2], i[3], rect, post_select, Post_Position)
+            click_detector1 = ClickableRectItem(i[0], i[1], i[2], i[3], rect, post_select, Post_Position, post_label)
             click_detector1.setBrush(QBrush(Qt.transparent))
             click_detector1.setPen(QPen(Qt.transparent))
             scene.addItem(click_detector1)
@@ -70,7 +72,7 @@ class PostArea:
 
 
 class ClickableRectItem(QGraphicsRectItem):
-    def __init__(self, x, y, width, height, associated_rect, post, Post_Position):
+    def __init__(self, x, y, width, height, associated_rect, post, Post_Position, post_label):
         super().__init__(x, y, width, height)
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.associated_rect = associated_rect
@@ -81,6 +83,7 @@ class ClickableRectItem(QGraphicsRectItem):
         # post.post.clicked.connect(self.post_selector)
 
         self.Post_Position = Post_Position
+        self.post_label = post_label
 
         self.post_properties_page = None
 
@@ -104,20 +107,28 @@ class ClickableRectItem(QGraphicsRectItem):
         pos = self.associated_rect.boundingRect().center().toTuple()
         # properties page open
         if event.button() == Qt.RightButton:
-            self.post_properties_page = PostProperties(pos, self.Post_Position)
+            self.post_properties_page = PostProperties(pos, self.Post_Position, self.post_label)
             self.post_properties_page.show()
         else:  # select/deselect
             # self.associated_rect.setVisible(not self.associated_rect.isVisible())
             if self.post_select:
+                print(self.post_select)
                 visibility = True if self.post_select == 1 else False
                 self.associated_rect.setVisible(visibility)
                 if self.post_select == 1:
                     self.Post_Position.add(pos)
+                    # self.post_label.add(f"P{len(self.Post_Position)}")
+                    self.post_label.add(f"P{pos}")
+                    print(self.post_label)
                 else:
+                    print(pos)
+                    print(self.Post_Position)
                     try:
+                        self.post_label.remove(f"P{pos}")
                         self.Post_Position.remove(pos)
+
                     except:
-                        pass
+                        print("remove fail")
     # def mouseDoubleClickEvent(self, event):
     #     pos = self.associated_rect.boundingRect().center().toTuple()
     #     self.post_properties_page = PostProperties(pos, self.Post_Position)
@@ -125,10 +136,11 @@ class ClickableRectItem(QGraphicsRectItem):
 
 
 class PostProperties(QDialog):
-    def __init__(self, position, Post_Position, parent=None):
+    def __init__(self, position, Post_Position, post_label, parent=None):
         super().__init__(parent)
         self.position = position
         self.Post_position_list = Post_Position
+        self.post_label = post_label
         self.setWindowTitle("Post Properties")
         self.setMinimumSize(200, 400)
 
@@ -153,6 +165,7 @@ class PostProperties(QDialog):
     def create_geometry_tab(self):
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
+
         label1 = QLabel("Global X")
         x = QLabel(f"{self.position[0] / magnification_factor}")
         label2 = QLabel("Global Y")
@@ -163,10 +176,18 @@ class PostProperties(QDialog):
         # control post existence
         if self.position in self.Post_position_list:
             post_exist = QLabel("Yes")
+            label = QLabel("Post Label")
+            post_label = QLabel(list(self.post_label)[list(self.Post_position_list).index(self.position)])
+            # post_label = QLabel(f"P{list(self.Post_position_list).index(self.position) + 1}")
         else:
             post_exist = QLabel("No")
+            label = QLabel("Post Label")
+            post_label = QLabel("-")
 
         # LAYOUT
+        h_layout0 = QHBoxLayout()
+        h_layout0.addWidget(label)
+        h_layout0.addWidget(post_label)
         h_layout1 = QHBoxLayout()
         h_layout1.addWidget(label1)
         h_layout1.addWidget(x)
@@ -177,6 +198,7 @@ class PostProperties(QDialog):
         h_layout3.addWidget(label3)
         h_layout3.addWidget(post_exist)
         v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout0)
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
         v_layout.addLayout(h_layout3)
