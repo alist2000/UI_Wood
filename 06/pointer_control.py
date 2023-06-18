@@ -53,21 +53,26 @@ def range_post(post_position, post_dimension):
 def selectable_beam_range(beam_position, beam_width):
     beam_selectable_range = []
     for beam in beam_position:
+        print(beam)
         start = beam[0]
         end = beam[1]
         x1 = start[0]
         y1 = start[1]
         x2 = end[0]
         y2 = end[1]
+        x1_main = min(x1, x2)
+        x2_main = max(x1, x2)
+        y1_main = min(y1, y2)
+        y2_main = max(y1, y2)
         width = x2 - x1
         height = y2 - y1
         # horizontally beam
         if abs(width) > abs(height):
-            range_x = (x1, x2)
+            range_x = (x1_main, x2_main)
             range_y = (y1 - beam_width / 2, y1 + beam_width / 2)
         else:
             range_x = (x1 - beam_width / 2, x1 + beam_width / 2)
-            range_y = (y1, y2)
+            range_y = (y1_main, y2_main)
         beam_selectable_range.append([range_x, range_y])
     return beam_selectable_range
 
@@ -82,7 +87,8 @@ def control_post_range(post_range, x, y):
 
 
 def control_selectable_beam_range(beam_range, x, y):
-    print(beam_range)
+    # print(beam_range)
+    # print(x, y)
     for item in beam_range:
         status, x_final, y_final = set_point(item[0], item[1], x, y, "beam")
         if status:

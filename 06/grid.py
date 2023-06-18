@@ -52,7 +52,7 @@ class GridWidget(QGraphicsView):
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
 
     def mousePressEvent(self, event):
-        if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
+        if self.beam_instance.beam_select_status:  # CONTROL BEAM -> now beam select can be one (draw mode) and 2(delete mode)
             self.beam_instance.draw_beam_mousePress(self, event)
 
     def mouseMoveEvent(self, event):

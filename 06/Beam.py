@@ -1,4 +1,3 @@
-from PySide6.QtWidgets import QGraphicsRectItem, QWidget, QPushButton
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QGraphicsRectItem, QWidget, QPushButton
@@ -38,39 +37,53 @@ class beamDrawing(QGraphicsRectItem):
         #                round(point.y() / self.beam_width) * self.beam_width)
 
     def draw_beam_mousePress(self, main_self, event):
-        print(self.beam_position)
         if event.button() == Qt.LeftButton:
             pos = main_self.mapToScene(event.position().toPoint())
             snapped_pos = self.snap_to_grid(pos)
-            if self.current_rect:
-                self.finalize_rectangle(snapped_pos)
-                end_point = snapped_pos.toTuple()
-                start_point = self.beam_loc[0]
-                final_end_point = beam_end_point(start_point, end_point)
-                self.beam_loc.append(final_end_point)
-                self.beam_position.add(tuple(self.beam_loc))
-                self.beam_loc.clear()
+            if self.beam_select_status == 2:
+                item = main_self.itemAt(event.position().toPoint())
+                if isinstance(item, Rectangle):  # Finding beam
+                    self.scene.removeItem(item)
+                    # Remove the corresponding beam position from the beam_position set
+                    for beam_loc in self.beam_position.copy():
+                        beam_ranges = selectable_beam_range(self.beam_position, self.beam_width)
+                        status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, snapped_pos.x(),
+                                                                                    snapped_pos.y())
+                        if status_beam:
+                            self.beam_position.remove(beam_loc)
 
             else:
-                point = snapped_pos.toTuple()
-                post_ranges = range_post(self.post_instance.Post_Position, self.post_dimension)
-                beam_ranges = selectable_beam_range(self.beam_position, self.beam_width)
-                status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
-                status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
-                print(status_beam, status_post)
-                if status_post or status_beam:
-                    if status_post:
-                        x, y = x_post, y_post
-                    else:
-                        x, y = x_beam, y_beam
+                if self.current_rect:
+                    self.finalize_rectangle(snapped_pos)
+                    # Create a new rectangle instance
+                    self.start_pos = snapped_pos
+                    if self.beam_loc:  # Add this condition
+                        end_point = snapped_pos.toTuple()
+                        start_point = self.beam_loc[0]
+                        final_end_point = beam_end_point(start_point, end_point)
+                        self.beam_loc.append(final_end_point)
+                        self.beam_position.add(tuple(self.beam_loc))
+                        self.beam_loc.clear()
+                else:
+                    point = snapped_pos.toTuple()
+                    post_ranges = range_post(self.post_instance.Post_Position, self.post_dimension)
+                    beam_ranges = selectable_beam_range(self.beam_position, self.beam_width)
+                    status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
+                    status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
+                    print(status_beam)
+                    if status_post or status_beam:
+                        if status_post:
+                            x, y = x_post, y_post
+                        else:
+                            x, y = x_beam, y_beam
 
-                    self.start_pos = QPointF(x, y)
+                        self.start_pos = QPointF(x, y)
 
-                    self.beam_loc.append(self.start_pos.toTuple())
+                        self.beam_loc.append(self.start_pos.toTuple())
 
-                    self.current_rect = Rectangle(x - self.beam_width / 2,
-                                                  y - self.beam_width / 2)
-                    self.scene.addItem(self.current_rect)
+                        self.current_rect = Rectangle(x - self.beam_width / 2,
+                                                      y - self.beam_width / 2)
+                        self.scene.addItem(self.current_rect)
 
     def draw_beam_mouseMove(self, main_self, event):
         if self.current_rect and self.start_pos:
@@ -95,13 +108,12 @@ class beamDrawing(QGraphicsRectItem):
         height = snapped_pos.y() - self.start_pos.y()
 
         if abs(width) > abs(height):
-            # Move horizontally, keep vertical dimension constant
-            self.current_rect.setRect(self.start_pos.x(), self.start_pos.y() - self.beam_width / 2,
-                                      width, self.beam_width)
+            self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
+                                      self.start_pos.y() - self.beam_width / 2, abs(width), self.beam_width)
         else:
-            # Move vertically, keep horizontal dimension constant
-            self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2, self.start_pos.y(),
-                                      self.beam_width, height)
+            self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2,
+                                      min(self.start_pos.y(), snapped_pos.y()), self.beam_width,
+                                      abs(height))
 
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
