@@ -4,7 +4,10 @@ from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem
 from mouse import SelectableLineItem
 from post import PostArea, signal_handler
 from joist import JoistArea
+from joist_new import joistDrawing
 from Beam import beamDrawing
+
+from snap import SnapLine, SnapPoint
 
 # from main import magnification_factor
 from post import magnification_factor
@@ -27,7 +30,13 @@ class GridWidget(QGraphicsView):
 
         # control inputs
         self.x, self.y = self.control_inputs()
-        self.grid_size = min(min(self.x), min(self.y)) / 10  # Set the grid size
+        self.snap_distance = min(min(self.x), min(self.y)) / 15  # Set the grid size
+
+        # CREATE INSTANCE FOR SNAP
+        snapPoint = SnapPoint()
+        snapPoint.set_snap_distance(self.snap_distance)
+        snapLine = SnapLine()
+        snapLine.set_snap_distance(self.snap_distance)
 
         width_manual = sum(self.x)
         height_manual = sum(self.y)
@@ -37,32 +46,47 @@ class GridWidget(QGraphicsView):
 
         for i in range(h_grid):
             line_horizontal = SelectableLineItem(0, y_list[i], width_manual, y_list[i])
+            # snap
+            snapLine.add_line((0, y_list[i]), (width_manual, y_list[i]))
             line_horizontal.setPen(pen)
             self.scene.addItem(line_horizontal)
         for i in range(v_grid):
             line_vertical = SelectableLineItem(x_list[i], 0, x_list[i], height_manual)
+            # snap
+            snapLine.add_line((x_list[i], 0), (x_list[i], height_manual))
             line_vertical.setPen(pen)
             self.scene.addItem(line_vertical)
 
+        # Add Snap Points (grid joint points)
+        for x in x_list:
+            for y in y_list:
+                snapPoint.add_point(x, y)
+
         self.setRenderHint(QPainter.Antialiasing)
 
-        Joist_area_instance = JoistArea(x_list, y_list, self.x, self.y, self.scene, joist)
+        # self.Joist_area_instance = JoistArea(x_list, y_list, self.x, self.y, self.scene, joist)
+        self.joist_instance = joistDrawing(joist, self.scene, snapPoint, snapLine)
         post_area_instance = PostArea(x_list, y_list, self.x, self.y, self.scene, post)
-        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, post_area_instance)
+        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, post_area_instance, snapPoint, snapLine)
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
+        joist.joist.clicked.connect(self.joist_instance.joist_selector)
 
     def mousePressEvent(self, event):
-        if self.beam_instance.beam_select_status:  # CONTROL BEAM -> now beam select can be one (draw mode) and 2(delete mode)
+        if self.beam_instance.beam_select_status:  # CONTROL BEAM -> now beam select can
+            # one (draw mode) and 2(delete mode)
             self.beam_instance.draw_beam_mousePress(self, event)
+        elif self.joist_instance.joist_status:
+            self.joist_instance.draw_joist_mousePress(self, event)
 
     def mouseMoveEvent(self, event):
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
             self.beam_instance.draw_beam_mouseMove(self, event)
+        elif self.joist_instance.joist_status == 1:
+            self.joist_instance.draw_joist_mouseMove()
 
     def edit_spacing(self):
         x = self.x
         y = self.y
-        print(x, y)
         x_list = [0]
         y_list = [0]
         for i in range(len(x)):

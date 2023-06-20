@@ -34,12 +34,13 @@ class SnapPoint(Snap):
         self.points.append((x, y))
 
     def snap(self, point):
-        # Implement snapping logic for points
-        # Hint user for later drawing and snap to the points if the cursor is close enough
-        for snap_point in self.points:
-            if (abs(point.x() - snap_point[0]) <= self.snap_distance and
-                    abs(point.y() - snap_point[1]) <= self.snap_distance):
-                return QPointF(snap_point[0], snap_point[1])
+        if self.status:
+            # Implement snapping logic for points
+            # Hint user for later drawing and snap to the points if the cursor is close enough
+            for snap_point in self.points:
+                if (abs(point.x() - snap_point[0]) <= self.snap_distance and
+                        abs(point.y() - snap_point[1]) <= self.snap_distance):
+                    return QPointF(snap_point[0], snap_point[1])
         return point
 
     # Snap point on/off
@@ -64,21 +65,22 @@ class SnapLine(Snap):
         self.lines.append((start, end))
 
     def snap(self, point):
-        for snap_line in self.lines:
-            start = snap_line[0]
-            end = snap_line[1]
-            num_points = int(((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2) ** 0.5) + 1
-            x_values = np.linspace(start[0], end[0], num_points)[1:-1]
-            x_values = np.concatenate(([start[0]], x_values[1:]))
-            x_values = np.concatenate((x_values[:-1], [end[0]]))
-            y_values = np.linspace(start[1], end[1], num_points)[1:-1]
-            y_values = np.concatenate(([start[1]], y_values[1:]))
-            y_values = np.concatenate((y_values[:-1], [end[1]]))
-            line_points = list(zip(x_values, y_values))
-            for snap_point in line_points:
-                if (abs(point.x() - snap_point[0]) <= self.snap_distance and
-                        abs(point.y() - snap_point[1]) <= self.snap_distance):
-                    return QPointF(snap_point[0], snap_point[1])
+        if self.status:
+            for snap_line in self.lines:
+                start = snap_line[0]
+                end = snap_line[1]
+                num_points = int(((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2) ** 0.5) + 1
+                x_values = np.linspace(start[0], end[0], num_points)[1:-1]
+                x_values = np.concatenate(([start[0]], x_values[1:]))
+                x_values = np.concatenate((x_values[:-1], [end[0]]))
+                y_values = np.linspace(start[1], end[1], num_points)[1:-1]
+                y_values = np.concatenate(([start[1]], y_values[1:]))
+                y_values = np.concatenate((y_values[:-1], [end[1]]))
+                line_points = list(zip(x_values, y_values))
+                for snap_point in line_points:
+                    if (abs(point.x() - snap_point[0]) <= self.snap_distance and
+                            abs(point.y() - snap_point[1]) <= self.snap_distance):
+                        return QPointF(snap_point[0], snap_point[1])
         return point
 
     # Snap line on/off

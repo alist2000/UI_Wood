@@ -13,11 +13,13 @@ class BeamButton(QWidget):
 
 
 class beamDrawing(QGraphicsRectItem):
-    def __init__(self, beamButton, x, y, scene, post_instance):
+    def __init__(self, beamButton, x, y, scene, post_instance, snapPoint, snapLine):
         super().__init__()
         self.beam = beamButton
         self.scene = scene
         self.post_instance = post_instance
+        self.snapPoint = snapPoint
+        self.snapLine = snapLine
         self.current_rect = None
         self.start_pos = None
         self.beam_select_status = 0  # 0: neutral, 1: select beam, 2: delete beam
@@ -29,31 +31,35 @@ class beamDrawing(QGraphicsRectItem):
         self.beam_position = set()
         self.beam_loc = []  # for every single beam
 
-    # MUST BE DEVELOPED
-    def snap_to_grid(self, point):
-        return QPointF(round(point.x()),
-                       round(point.y()))
-        # return QPointF(round(point.x() / self.beam_width) * self.beam_width,
-        #                round(point.y() / self.beam_width) * self.beam_width)
-
     def draw_beam_mousePress(self, main_self, event):
         if event.button() == Qt.LeftButton:
+
             pos = main_self.mapToScene(event.position().toPoint())
-            snapped_pos = self.snap_to_grid(pos)
+            # snapped_pos = self.snap_to_grid(pos)
+            snapped_pos = self.snapPoint.snap(pos)
+            # if snap to some point we don't need to check with snap line
+            if pos == snapped_pos:
+                snapped_pos = self.snapLine.snap(pos)
             if self.beam_select_status == 2:
                 item = main_self.itemAt(event.position().toPoint())
                 if isinstance(item, Rectangle):  # Finding beam
-                    self.scene.removeItem(item)
                     # Remove the corresponding beam position from the beam_position set
                     for beam_loc in self.beam_position.copy():
-                        beam_ranges = selectable_beam_range(self.beam_position, self.beam_width)
-                        status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, snapped_pos.x(),
-                                                                                    snapped_pos.y())
+                        beam_ranges = selectable_beam_range([beam_loc], self.beam_width)
+                        status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, pos.x(),
+                                                                                    pos.y())
                         if status_beam:
+                            self.scene.removeItem(item)
                             self.beam_position.remove(beam_loc)
+                            self.snapLine.lines.remove((beam_loc[0], beam_loc[1]))
+                            break
 
             else:
                 if self.current_rect:
+                    snapped_pos = self.snapPoint.snap(pos)
+                    # if snap to some point we don't need to check with snap line
+                    if pos == snapped_pos:
+                        snapped_pos = self.snapLine.snap(pos)
                     self.finalize_rectangle(snapped_pos)
                     # Create a new rectangle instance
                     self.start_pos = snapped_pos
@@ -63,14 +69,20 @@ class beamDrawing(QGraphicsRectItem):
                         final_end_point = beam_end_point(start_point, end_point)
                         self.beam_loc.append(final_end_point)
                         self.beam_position.add(tuple(self.beam_loc))
+
+                        # Add Snap Line
+                        self.snapLine.add_line(self.beam_loc[0], self.beam_loc[1])
+
                         self.beam_loc.clear()
+
                 else:
+                    snapped_pos = self.snapPoint.snap(pos)
+                    # Start point just snap to point not line.
                     point = snapped_pos.toTuple()
                     post_ranges = range_post(self.post_instance.Post_Position, self.post_dimension)
                     beam_ranges = selectable_beam_range(self.beam_position, self.beam_width)
                     status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
                     status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
-                    print(status_beam)
                     if status_post or status_beam:
                         if status_post:
                             x, y = x_post, y_post
@@ -88,7 +100,11 @@ class beamDrawing(QGraphicsRectItem):
     def draw_beam_mouseMove(self, main_self, event):
         if self.current_rect and self.start_pos:
             pos = main_self.mapToScene(event.pos())
-            snapped_pos = self.snap_to_grid(pos)
+            # snapped_pos = self.snap_to_grid(pos)
+            snapped_pos = self.snapPoint.snap(pos)
+            # if snap to some point we don't need to check with snap line
+            if pos == snapped_pos:
+                snapped_pos = self.snapLine.snap(pos)
             width = snapped_pos.x() - self.start_pos.x()
             height = snapped_pos.y() - self.start_pos.y()
 
@@ -103,7 +119,10 @@ class beamDrawing(QGraphicsRectItem):
                                           abs(height))
 
     def finalize_rectangle(self, pos):
-        snapped_pos = self.snap_to_grid(pos)
+        snapped_pos = self.snapPoint.snap(pos)
+        # if snap to some point we don't need to check with snap line
+        if pos == snapped_pos:
+            snapped_pos = self.snapLine.snap(pos)
         width = snapped_pos.x() - self.start_pos.x()
         height = snapped_pos.y() - self.start_pos.y()
 
