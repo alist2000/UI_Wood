@@ -1,9 +1,11 @@
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor
-from PySide6.QtWidgets import QGraphicsRectItem, QWidget, QPushButton
+from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
+    QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 
 from pointer_control import control_post_range, range_post, beam_end_point, selectable_beam_range, \
     control_selectable_beam_range
+from post import magnification_factor
 
 
 class BeamButton(QWidget):
@@ -28,7 +30,8 @@ class beamDrawing(QGraphicsRectItem):
 
         # BEAM PROPERTIES
         # START / END
-        self.beam_position = set()
+        self.beam_rect_prop = {}
+        self.beam_number = 1
         self.beam_loc = []  # for every single beam
 
     def draw_beam_mousePress(self, main_self, event):
@@ -43,16 +46,11 @@ class beamDrawing(QGraphicsRectItem):
             if self.beam_select_status == 2:
                 item = main_self.itemAt(event.position().toPoint())
                 if isinstance(item, Rectangle):  # Finding beam
-                    # Remove the corresponding beam position from the beam_position set
-                    for beam_loc in self.beam_position.copy():
-                        beam_ranges = selectable_beam_range([beam_loc], self.beam_width)
-                        status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, pos.x(),
-                                                                                    pos.y())
-                        if status_beam:
-                            self.scene.removeItem(item)
-                            self.beam_position.remove(beam_loc)
-                            self.snapLine.lines.remove((beam_loc[0], beam_loc[1]))
-                            break
+                    # Delete the coordinates of the rectangle
+                    if item in self.beam_rect_prop:
+                        del self.beam_rect_prop[item]
+                    self.scene.removeItem(item)
+
 
             else:
                 if self.current_rect:
@@ -60,7 +58,7 @@ class beamDrawing(QGraphicsRectItem):
                     # if snap to some point we don't need to check with snap line
                     if pos == snapped_pos:
                         snapped_pos = self.snapLine.snap(pos)
-                    self.finalize_rectangle(snapped_pos)
+                    self.finalize_rectangle(pos)
                     # Create a new rectangle instance
                     self.start_pos = snapped_pos
                     if self.beam_loc:  # Add this condition
@@ -68,10 +66,17 @@ class beamDrawing(QGraphicsRectItem):
                         start_point = self.beam_loc[0]
                         final_end_point = beam_end_point(start_point, end_point)
                         self.beam_loc.append(final_end_point)
-                        self.beam_position.add(tuple(self.beam_loc))
+                        self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
+                                                                  "coordinate": [start_point, final_end_point]}
+                        self.beam_number += 1
+                        self.current_rect = None
 
                         # Add Snap Line
                         self.snapLine.add_line(self.beam_loc[0], self.beam_loc[1])
+
+                        # Add Start and End beam point to Snap Point
+                        self.snapPoint.add_point(self.beam_loc[0][0], self.beam_loc[0][1])
+                        self.snapPoint.add_point(self.beam_loc[1][0], self.beam_loc[1][1])
 
                         self.beam_loc.clear()
 
@@ -80,7 +85,7 @@ class beamDrawing(QGraphicsRectItem):
                     # Start point just snap to point not line.
                     point = snapped_pos.toTuple()
                     post_ranges = range_post(self.post_instance.Post_Position, self.post_dimension)
-                    beam_ranges = selectable_beam_range(self.beam_position, self.beam_width)
+                    beam_ranges = selectable_beam_range(self.beam_rect_prop, self.beam_width)
                     status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
                     status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
                     if status_post or status_beam:
@@ -94,11 +99,11 @@ class beamDrawing(QGraphicsRectItem):
                         self.beam_loc.append(self.start_pos.toTuple())
 
                         self.current_rect = Rectangle(x - self.beam_width / 2,
-                                                      y - self.beam_width / 2)
+                                                      y - self.beam_width / 2, self.beam_rect_prop)
                         self.scene.addItem(self.current_rect)
 
     def draw_beam_mouseMove(self, main_self, event):
-        if self.current_rect and self.start_pos:
+        if self.current_rect and (self.start_pos or self.start_pos == QPointF(0.000000, 0.000000)):
             pos = main_self.mapToScene(event.pos())
             # snapped_pos = self.snap_to_grid(pos)
             snapped_pos = self.snapPoint.snap(pos)
@@ -120,10 +125,16 @@ class beamDrawing(QGraphicsRectItem):
 
     def finalize_rectangle(self, pos):
         snapped_pos = self.snapPoint.snap(pos)
+        print(snapped_pos)
         # if snap to some point we don't need to check with snap line
+        print(pos)
         if pos == snapped_pos:
             snapped_pos = self.snapLine.snap(pos)
+            print("hello")
         width = snapped_pos.x() - self.start_pos.x()
+        print(self.start_pos)
+        print(snapped_pos)
+        print(width)
         height = snapped_pos.y() - self.start_pos.y()
 
         if abs(width) > abs(height):
@@ -136,7 +147,7 @@ class beamDrawing(QGraphicsRectItem):
 
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-        self.current_rect = None
+        # self.current_rect = None
         self.start_pos = None
 
     # SLOT
@@ -162,7 +173,124 @@ class beamDrawing(QGraphicsRectItem):
 
 
 class Rectangle(QGraphicsRectItem):
-    def __init__(self, x, y):
+    def __init__(self, x, y, rect_prop):
         super().__init__(x, y, 0, 0)
         self.setPen(QPen(Qt.blue, 2))  # Set the border color to blue
         self.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))  # Set the fill color to transparent
+
+        self.rect_prop = rect_prop
+        self.beam_properties_page = None
+
+    # CONTROL ON BEAM
+    def mousePressEvent(self, event):
+        center = self.boundingRect().center().toTuple()
+        # properties page open
+        if event.button() == Qt.RightButton:  # beam Properties page
+            height = self.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
+            width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
+            self.beam_properties_page = BeamProperties(self, self.rect_prop,
+                                                       self.scene())
+            self.beam_properties_page.show()
+
+
+class BeamProperties(QDialog):
+    def __init__(self, rectItem, rect_prop, scene, parent=None):
+        super().__init__(parent)
+        self.direction = None
+        self.rectItem = rectItem
+        self.rect_prop = rect_prop
+
+        # IMAGE
+        self.scene = scene
+
+        self.setWindowTitle("Beam Properties")
+        self.setMinimumSize(200, 400)
+
+        v_layout = QVBoxLayout()
+
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setWindowTitle("Object Data")
+        self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.create_geometry_tab()
+        # self.create_direction_tab()
+        # self.direction = self.create_direction_tab()
+
+        v_layout.addWidget(self.tab_widget)
+        v_layout.addWidget(button_box)
+        self.setLayout(v_layout)  # Change from dialog.setLayout to self.setLayout
+
+    # Rest of the code remains the same
+
+    # dialog.show()
+
+    def accept_control(self):
+        print(self.rect_prop)
+
+    def create_geometry_tab(self):
+        start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][0]])
+        end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][1]])
+        tab = QWidget()
+        self.tab_widget.addTab(tab, f"Geometry")
+        label0 = QLabel("Label")
+        joistLabel = QLabel(self.rect_prop[self.rectItem]["label"])
+        label1 = QLabel("Start")
+        start_point = QLabel(f"{start}")
+        label2 = QLabel("End")
+        end_point = QLabel(f"{end}")
+
+        # calc length
+        l = self.length(start, end)
+        label3 = QLabel("Length")
+        length = QLabel(f"{l}")
+
+        # LAYOUT
+        h_layout0 = QHBoxLayout()
+        h_layout0.addWidget(label0)
+        h_layout0.addWidget(joistLabel)
+        h_layout1 = QHBoxLayout()
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(start_point)
+        h_layout2 = QHBoxLayout()
+        h_layout2.addWidget(label2)
+        h_layout2.addWidget(end_point)
+        h_layout3 = QHBoxLayout()
+        h_layout3.addWidget(label3)
+        h_layout3.addWidget(length)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout0)
+        v_layout.addLayout(h_layout1)
+        v_layout.addLayout(h_layout2)
+        v_layout.addLayout(h_layout3)
+        tab.setLayout(v_layout)
+
+    def create_direction_tab(self):
+        tab = QWidget()
+        self.tab_widget.addTab(tab, f"Direction")
+        label1 = QLabel("Joist Direction")
+        self.direction = direction = QComboBox()
+        direction.addItems(["N-S", "E-W"])
+        self.direction.setCurrentText(self.final_direction)
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.direction.currentTextChanged.connect(self.direction_control)
+
+        # LAYOUT
+        h_layout1 = QHBoxLayout()
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(direction)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout1)
+
+        tab.setLayout(v_layout)
+        # return self.direction
+
+
+    def length(self, start, end):
+        x1 = start[0]
+        x2 = end[0]
+        y1 = start[1]
+        y2 = end[1]
+        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+        return l

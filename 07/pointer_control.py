@@ -52,8 +52,8 @@ def range_post(post_position, post_dimension):
 
 def selectable_beam_range(beam_position, beam_width):
     beam_selectable_range = []
-    for beam in beam_position:
-        print(beam)
+    for beamItem in beam_position.values():
+        beam = beamItem["coordinate"]
         start = beam[0]
         end = beam[1]
         x1 = start[0]

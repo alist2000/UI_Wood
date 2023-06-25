@@ -3,6 +3,7 @@ from PySide6.QtGui import QPen, QPainter, QBrush
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem
 from mouse import SelectableLineItem
 from post import PostArea, signal_handler
+from post_new import PostDrawing
 from joist import JoistArea
 from joist_new import joistDrawing
 from Beam import beamDrawing
@@ -64,12 +65,19 @@ class GridWidget(QGraphicsView):
 
         self.setRenderHint(QPainter.Antialiasing)
 
-        # self.Joist_area_instance = JoistArea(x_list, y_list, self.x, self.y, self.scene, joist)
         self.joist_instance = joistDrawing(joist, self.scene, snapPoint, snapLine)
-        post_area_instance = PostArea(x_list, y_list, self.x, self.y, self.scene, post)
-        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, post_area_instance, snapPoint, snapLine)
+        self.post_instance = PostDrawing(post, self.x, self.y,  self.scene, snapPoint, snapLine)
+        # post_area_instance = PostArea(x_list, y_list, self.x, self.y, self.scene, post)
+        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, snapPoint, snapLine)
+        # self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, post_area_instance, snapPoint, snapLine)
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
         joist.joist.clicked.connect(self.joist_instance.joist_selector)
+        post.post.clicked.connect(self.post_instance.post_drawing_control)
+
+    def mouseDoubleClickEvent(self, event):
+        if self.post_instance.post_drawing_mode:  # CONTROL POST
+            # one (draw mode) and 2(delete mode)
+            self.post_instance.draw_post_mousePress(self, event)
 
     def mousePressEvent(self, event):
         if self.beam_instance.beam_select_status:  # CONTROL BEAM -> now beam select can
@@ -78,11 +86,16 @@ class GridWidget(QGraphicsView):
         elif self.joist_instance.joist_status:
             self.joist_instance.draw_joist_mousePress(self, event)
 
+
     def mouseMoveEvent(self, event):
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
             self.beam_instance.draw_beam_mouseMove(self, event)
         elif self.joist_instance.joist_status == 1:
             self.joist_instance.draw_joist_mouseMove()
+        elif self.post_instance.post_drawing_mode:
+            self.post_instance.draw_post_mouseMove(self, event)
+
+
 
     def edit_spacing(self):
         x = self.x

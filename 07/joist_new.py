@@ -1,6 +1,6 @@
 import itertools
 
-from PySide6.QtCore import Qt, QRectF
+from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor, QKeyEvent
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox
@@ -23,6 +23,7 @@ class joistDrawing(QGraphicsRectItem):
         self.scene = scene
         self.snapPoint = snapPoint
         self.snapLine = snapLine
+        self.joist_number = 1
 
         self.scene_pos = None
 
@@ -31,7 +32,7 @@ class joistDrawing(QGraphicsRectItem):
 
         self.joist_status = 0  # 0: neutral, 1: select beam, 2: delete beam
 
-        self.rect_coordinates = {}  # Dictionary to store coordinates of rectangles
+        self.rect_prop = {}  # Dictionary to store coordinates of rectangles
 
         # note spacing x = width, spacing y = height
 
@@ -39,38 +40,43 @@ class joistDrawing(QGraphicsRectItem):
         if event.button() == Qt.LeftButton:
             self.scene_pos = scene_pos = main_self.mapToScene(event.pos())  # Use pos() with QMouseEvent
             if self.joist_status == 1:
-                if not self.first_click:
+                if not self.first_click and self.first_click != QPointF(0.000000, 0.000000):
                     self.first_click = self.snapPoint.snap(scene_pos)  # Snap to a nearby point if close
                     self.temp_rect = QGraphicsRectItem()
                     self.temp_rect.setPen(QPen(Qt.black))
                     self.temp_rect.setBrush(QBrush(Qt.red))
                     self.scene.addItem(self.temp_rect)
-                else:
+                elif self.first_click or self.first_click == QPointF(0.000000, 0.000000):
                     snapped_scene_pos = self.snapPoint.snap(scene_pos)  # Snap to a nearby point if close
                     x1, y1 = self.first_click.x(), self.first_click.y()
                     x2, y2 = snapped_scene_pos.x(), snapped_scene_pos.y()
                     rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
                     self.temp_rect.setRect(rect_x, rect_y, rect_w, rect_h)
 
-                    rect_item = QGraphicsRectItem(rect_x, rect_y, rect_w, rect_h)
+                    rect_item = joistRectangle(rect_x, rect_y, rect_w, rect_h, self.rect_prop)
+                    image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item)
+                    rect_item.image = image
+
                     rect_item.setBrush(QBrush(QColor("#F99B7D")))
                     rect_item.setPen(QPen(Qt.black))
                     self.scene.addItem(rect_item)
                     self.scene.removeItem(self.temp_rect)
 
                     # Save coordinates of the rectangle corners
-                    self.rect_coordinates[rect_item] = [(x1, y1), (x1, y2), (x2, y1), (x2, y2)]
+                    self.rect_prop[rect_item] = {"label": f"J{self.joist_number}",
+                                                 "coordinate": [(x1, y1), (x1, y2), (x2, y1), (x2, y2)],
+                                                 "direction": "N-S"}
+                    self.joist_number += 1
 
                     self.temp_rect = None
                     self.first_click = None
             elif self.joist_status == 2:
                 # item = self.scene.itemAt(scene_pos, main_self.transform())
                 item = main_self.itemAt(event.position().toPoint())
-                print(item)
-                if item and isinstance(item, QGraphicsRectItem):
+                if item and isinstance(item, joistRectangle):
                     # Delete the coordinates of the rectangle
-                    if item in self.rect_coordinates:
-                        del self.rect_coordinates[item]
+                    if item in self.rect_prop:
+                        del self.rect_prop[item]
                     self.scene.removeItem(item)
 
     def draw_joist_mouseMove(self):
@@ -94,94 +100,38 @@ class joistDrawing(QGraphicsRectItem):
             self.joist_status = 0
             self.joist.joist.setText("JOIST")
             self.setCursor(Qt.CursorShape.ArrowCursor)
-    # self.coordinate = values
-    # self.Joist_Position = Joist_Position = set()
-    # for i in show_values:
-    #     rect = QGraphicsRectItem()
-    #     index_show = show_values.index(i)
-    #     j = values[index_show]
-    #     rect.setRect(j[0], j[1], j[2], j[3])
-    #     rect.setBrush(QBrush(QColor("#F99B7D")))
-    #     rect.setPen(QPen(Qt.black))
-    #
-    #     # add Joist Direction Image
-    #     image = image_control(i[0], i[1], i[2], i[3], rect)
-    #     scene.addItem(rect)
-    #     click_detector1 = ClickableRectItem(i[0], i[1], i[2], i[3], rect, joist_status, Joist_Position, image)
-    #     click_detector1.setBrush(QBrush(Qt.transparent))
-    #     click_detector1.setPen(QPen(Qt.transparent))
-    #     scene.addItem(click_detector1)
-    #
-    # self.clickable_area_enabled = True
 
 
-# class ClickableRectItem(QGraphicsRectItem):
-#     def __init__(self, x, y, width, height, associated_rect, joist, Joist_Position, image):
-#         super().__init__(x, y, width, height)
-#         self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
-#         self.associated_rect = associated_rect
-#         self.associated_rect.setVisible(False)
-#         self.joist_status = 0  # 0: neutral, 1: select joist, 2: delete joist
-#         joist.joist.clicked.connect(self.joist_selector)
-#         self.joist = joist
-#
-#         # IMAGE
-#         self.image = image
-#
-#         self.Joist_Center_Position = Joist_Position
-#
-#         self.joist_properties_page = None
-#
-#     # SLOT
-#     def joist_selector(self):
-#         if self.joist_status == 0:
-#             self.joist_status = 1
-#             self.joist.joist.setText("Select Joist")
-#             self.setCursor(Qt.CursorShape.UpArrowCursor)
-#         elif self.joist_status == 1:
-#             self.joist_status = 2
-#             self.joist.joist.setText("Delete Joist")
-#             self.setCursor(Qt.CursorShape.ArrowCursor)
-#         elif self.joist_status == 2:
-#             self.joist_status = 0
-#             self.joist.joist.setText("JOIST")
-#             self.setCursor(Qt.CursorShape.ArrowCursor)
-#
-#         print(self.Joist_Center_Position)
-#
-#     def mousePressEvent(self, event):
-#         center = self.associated_rect.boundingRect().center().toTuple()
-#         # properties page open
-#         if event.button() == Qt.RightButton:
-#             height = self.associated_rect.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
-#             width = self.associated_rect.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
-#             joist_joint_coordinates = find_coordinate(center[0], center[1], width, height)
-#             self.joist_properties_page = JoistProperties(center, joist_joint_coordinates, self.Joist_Center_Position,
-#                                                          self.image, self.scene())
-#             self.joist_properties_page.show()
-#         else:  # select/deselect
-#             # self.associated_rect.setVisible(not self.associated_rect.isVisible())
-#             if self.joist_status:
-#                 visibility = True if self.joist_status == 1 else False
-#                 self.associated_rect.setVisible(visibility)
-#                 if self.joist_status == 1:
-#                     self.Joist_Center_Position.add(center)
-#                 else:
-#                     try:
-#                         self.Joist_Center_Position.remove(center)
-#                     except:
-#                         pass
+class joistRectangle(QGraphicsRectItem):
+    def __init__(self, rect_x, rect_y, rect_w, rect_h, rect_prop):
+        super().__init__(rect_x, rect_y, rect_w, rect_h)
+        self.image = None
+        self.joist_properties_page = None
+        self.rect_prop = rect_prop
+
+    # CONTROL ON JOIST
+    def mousePressEvent(self, event):
+        center = self.boundingRect().center().toTuple()
+        # properties page open
+        if event.button() == Qt.RightButton:  # Joist Properties page
+            height = self.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
+            width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
+            joist_joint_coordinates = find_coordinate(center[0], center[1], width, height)
+            self.joist_properties_page = JoistProperties(self, self.rect_prop, center, joist_joint_coordinates,
+                                                         self.image, self.scene())
+            self.joist_properties_page.show()
 
 
 class JoistProperties(QDialog):
-    def __init__(self, center_position, joint_coordinate, Joist_Position, image, scene, parent=None):
+    def __init__(self, rectItem, rect_prop, center_position, joint_coordinate, image, scene, parent=None):
         super().__init__(parent)
         self.direction = None
         self.default = "N-S"
         self.final_direction = "N-S"
+        self.rectItem = rectItem
+        self.rect_prop = rect_prop
         self.joint_coordinate = joint_coordinate
         self.position = center_position
-        self.Joist_position_list = Joist_Position
 
         # IMAGE
         self.image = image
@@ -199,14 +149,6 @@ class JoistProperties(QDialog):
         self.create_direction_tab()
         # self.direction = self.create_direction_tab()
 
-        # self.button_box =button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        # if button_box == QDialogButtonBox.Ok:
-        #     print(self.default)
-        #     self.direction.textActivated(self.default)
-        # button_box.accepted.connect(self.accept)  # Change from dialog.accept to self.accept
-        # button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        # button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
-
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
         self.setLayout(v_layout)  # Change from dialog.setLayout to self.setLayout
@@ -217,14 +159,14 @@ class JoistProperties(QDialog):
 
     def accept_control(self):
         self.accept()
-        print(self.default)
         self.final_direction = self.default
         if self.final_direction == "N-S":
             picture_path = "images/n_s.png"
         else:
             picture_path = "images/e_w.png"
-        print(picture_path)
         self.image.change_image(picture_path, self.scene)
+        self.rect_prop[self.rectItem]["direction"] = self.final_direction
+        print(self.rect_prop)
 
     def create_geometry_tab(self):
         point1 = tuple([i / magnification_factor for i in self.joint_coordinate[0]])
@@ -234,6 +176,8 @@ class JoistProperties(QDialog):
         xc, yc, area = calculate_centroid_and_area(self.joint_coordinate, magnification_factor)
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
+        label0 = QLabel("Label")
+        joistLabel = QLabel(self.rect_prop[self.rectItem]["label"])
         label1 = QLabel("Joint1")
         joint1 = QLabel(f"{point1}")
         label2 = QLabel("Joint2")
@@ -252,13 +196,18 @@ class JoistProperties(QDialog):
 
         label8 = QLabel("Joist Exist")
 
+        post_exist = QLabel("Yes")
+
         # control post existence
-        if self.position in self.Joist_position_list:
-            post_exist = QLabel("Yes")
-        else:
-            post_exist = QLabel("No")
+        # if self.position in self.Joist_position_list:
+        #     post_exist = QLabel("Yes")
+        # else:
+        #     post_exist = QLabel("No")
 
         # LAYOUT
+        h_layout0 = QHBoxLayout()
+        h_layout0.addWidget(label0)
+        h_layout0.addWidget(joistLabel)
         h_layout1 = QHBoxLayout()
         h_layout1.addWidget(label1)
         h_layout1.addWidget(joint1)
@@ -284,6 +233,7 @@ class JoistProperties(QDialog):
         h_layout8.addWidget(label8)
         h_layout8.addWidget(post_exist)
         v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout0)
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
         v_layout.addLayout(h_layout3)
@@ -319,7 +269,6 @@ class JoistProperties(QDialog):
     # SLOT
     def direction_control(self):
         self.default = self.direction.currentText()
-        print(self.default)
 
 
 def find_coordinate(xc, yc, width, height):
