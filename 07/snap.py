@@ -33,6 +33,9 @@ class SnapPoint(Snap):
     def add_point(self, x, y):
         self.points.append((x, y))
 
+    def remove_point(self, point):
+        self.points.remove(point)
+
     def snap(self, point):
         if self.status:
             # Implement snapping logic for points
@@ -63,6 +66,10 @@ class SnapLine(Snap):
 
     def add_line(self, start, end):
         self.lines.append((start, end))
+
+    def remove_line(self, line):
+        # line: (start, ene)
+        self.lines.remove(line)
 
     def snap(self, point):
         if self.status:

@@ -66,7 +66,7 @@ class GridWidget(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
 
         self.joist_instance = joistDrawing(joist, self.scene, snapPoint, snapLine)
-        self.post_instance = PostDrawing(post, self.x, self.y,  self.scene, snapPoint, snapLine)
+        self.post_instance = PostDrawing(post, self.x, self.y, self.scene, snapPoint, snapLine)
         # post_area_instance = PostArea(x_list, y_list, self.x, self.y, self.scene, post)
         self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, snapPoint, snapLine)
         # self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, post_area_instance, snapPoint, snapLine)
@@ -74,10 +74,10 @@ class GridWidget(QGraphicsView):
         joist.joist.clicked.connect(self.joist_instance.joist_selector)
         post.post.clicked.connect(self.post_instance.post_drawing_control)
 
-    def mouseDoubleClickEvent(self, event):
-        if self.post_instance.post_drawing_mode:  # CONTROL POST
-            # one (draw mode) and 2(delete mode)
-            self.post_instance.draw_post_mousePress(self, event)
+    # def mouseDoubleClickEvent(self, event):
+    #     if self.post_instance.post_drawing_mode:  # CONTROL POST
+    #         # one (draw mode) and 2(delete mode)
+    #         self.post_instance.draw_post_mousePress(self, event)
 
     def mousePressEvent(self, event):
         if self.beam_instance.beam_select_status:  # CONTROL BEAM -> now beam select can
@@ -85,7 +85,9 @@ class GridWidget(QGraphicsView):
             self.beam_instance.draw_beam_mousePress(self, event)
         elif self.joist_instance.joist_status:
             self.joist_instance.draw_joist_mousePress(self, event)
-
+        elif self.post_instance.post_drawing_mode:  # CONTROL POST
+            # one (draw mode) and 2(delete mode)
+            self.post_instance.draw_post_mousePress(self, event)
 
     def mouseMoveEvent(self, event):
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
@@ -94,8 +96,6 @@ class GridWidget(QGraphicsView):
             self.joist_instance.draw_joist_mouseMove()
         elif self.post_instance.post_drawing_mode:
             self.post_instance.draw_post_mouseMove(self, event)
-
-
 
     def edit_spacing(self):
         x = self.x

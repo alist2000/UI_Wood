@@ -68,6 +68,11 @@ class joistDrawing(QGraphicsRectItem):
                                                  "direction": "N-S"}
                     self.joist_number += 1
 
+                    # Add corner points to snap points
+
+                    for point in self.rect_prop[rect_item]["coordinate"]:
+                        self.snapPoint.add_point(point[0], point[1])
+
                     self.temp_rect = None
                     self.first_click = None
             elif self.joist_status == 2:
@@ -76,6 +81,10 @@ class joistDrawing(QGraphicsRectItem):
                 if item and isinstance(item, joistRectangle):
                     # Delete the coordinates of the rectangle
                     if item in self.rect_prop:
+                        # remove corner points to snap points
+                        for point in self.rect_prop[item]["coordinate"]:
+                            self.snapPoint.remove_point(point)
+
                         del self.rect_prop[item]
                     self.scene.removeItem(item)
 
@@ -90,7 +99,7 @@ class joistDrawing(QGraphicsRectItem):
     def joist_selector(self):
         if self.joist_status == 0:
             self.joist_status = 1
-            self.joist.joist.setText("Select Joist")
+            self.joist.joist.setText("Draw Joist")
             self.setCursor(Qt.CursorShape.UpArrowCursor)
         elif self.joist_status == 1:
             self.joist_status = 2

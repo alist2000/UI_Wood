@@ -43,7 +43,8 @@ def set_point(range_x, range_y, x, y, support_type):
 
 def range_post(post_position, post_dimension):
     post_range = []
-    for post in post_position:
+    for postItem in post_position.values():
+        post = postItem["coordinate"]
         range_x = (post[0] - post_dimension, post[0] + post_dimension)
         range_y = (post[1] - post_dimension, post[1] + post_dimension)
         post_range.append([range_x, range_y])

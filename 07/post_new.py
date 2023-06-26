@@ -42,7 +42,6 @@ class PostDrawing(QGraphicsRectItem):
         # Label
         self.post_number = 1
 
-        self.Post_Position = set()
         self.post_prop = {}  # Dictionary to store coordinates of rectangles
 
     def draw_post_mousePress(self, main_self, event):
@@ -50,8 +49,10 @@ class PostDrawing(QGraphicsRectItem):
             pos = main_self.mapToScene(event.pos())
             snapped_pos = self.snapPoint.snap(pos)
             rect = self.add_rectangle(snapped_pos.x(), snapped_pos.y())
-            self.Post_Position.add(snapped_pos.toTuple())
-            self.post_prop[rect] = [snapped_pos.toTuple()]
+            self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": snapped_pos.toTuple()}
+            print(self.post_prop)
+            self.snapPoint.add_point(snapped_pos.x(), snapped_pos.y())
+            self.post_number += 1
             return True
         elif event.button() == Qt.LeftButton and self.post_drawing_mode == 2:
             # item = self.scene.itemAt(scene_pos, main_self.transform())
@@ -59,6 +60,7 @@ class PostDrawing(QGraphicsRectItem):
             if item and isinstance(item, CustomRectItem):
                 # Delete the coordinates of the rectangle
                 if item in self.post_prop:
+                    self.snapPoint.remove_point(self.post_prop[item]["coordinate"])
                     del self.post_prop[item]
                 self.scene.removeItem(item)
 
@@ -71,14 +73,14 @@ class PostDrawing(QGraphicsRectItem):
 
     def add_rectangle(self, x, y):
         rect_width = rect_height = self.post_dimension
-        rect_item = CustomRectItem()
+        rect_item = CustomRectItem(self.post_prop)
         rect_item.setRect(x - rect_width / 2, y - rect_height / 2, rect_width, rect_height)
         self.scene.addItem(rect_item)
         return rect_item
 
     def update_preview_rect(self, x, y):
         if self.preview_rect_item is None:
-            self.preview_rect_item = CustomRectItem()
+            self.preview_rect_item = CustomRectItem(self.post_prop)
             self.preview_rect_item.setOpacity(0.5)
             self.scene.addItem(self.preview_rect_item)
 
@@ -95,7 +97,7 @@ class PostDrawing(QGraphicsRectItem):
     def post_drawing_control(self):
         if self.post_drawing_mode == 0:
             self.post_drawing_mode = 1
-            self.postButton.post.setText("Select Post")
+            self.postButton.post.setText("Draw Post")
             self.setCursor(Qt.CursorShape.CrossCursor)
         elif self.post_drawing_mode == 1:
             self.post_drawing_mode = 2
@@ -143,19 +145,29 @@ class PostDrawing(QGraphicsRectItem):
 
 
 class CustomRectItem(QGraphicsRectItem):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, post_prop, *args, **kwargs):
         super(CustomRectItem, self).__init__(*args, **kwargs)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setBrush(QBrush(QColor("#E76161")))
 
+        # Properties
+        self.post_properties_page = None
+        self.post_prop = post_prop
+
+    def mousePressEvent(self, event):
+        pos = self.boundingRect().center().toTuple()
+        # properties page open
+        if event.button() == Qt.RightButton:
+            self.post_properties_page = PostProperties(self, self.post_prop)
+            self.post_properties_page.show()
+
 
 class PostProperties(QDialog):
-    def __init__(self, position, Post_Position, post_label, parent=None):
+    def __init__(self, rectItem, post_properties, parent=None):
         super().__init__(parent)
-        self.position = position
-        self.Post_position_list = Post_Position
-        self.post_label = post_label
+        self.rect = rectItem
+        self.post_prop = post_properties
         self.setWindowTitle("Post Properties")
         self.setMinimumSize(200, 400)
 
@@ -181,23 +193,31 @@ class PostProperties(QDialog):
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
 
-        label1 = QLabel("Global X")
-        x = QLabel(f"{self.position[0] / magnification_factor}")
-        label2 = QLabel("Global Y")
-        y = QLabel(f"{self.position[1] / magnification_factor}")
+        # Label
+        print(self.post_prop)
+        Post_label = self.post_prop[self.rect]["label"]
+        label = QLabel("Post Label")
+        post_label = QLabel(Post_label)
 
-        label3 = QLabel("Post Exist")
+        # coordinate
+        position = self.post_prop[self.rect]["coordinate"]
+        label1 = QLabel("Global X")
+        x = QLabel(f"{position[0] / magnification_factor}")
+        label2 = QLabel("Global Y")
+        y = QLabel(f"{position[1] / magnification_factor}")
+
+        # label3 = QLabel("Post Exist")
 
         # control post existence
-        if self.position in self.Post_position_list:
-            post_exist = QLabel("Yes")
-            label = QLabel("Post Label")
-            post_label = QLabel(list(self.post_label)[list(self.Post_position_list).index(self.position)])
-            # post_label = QLabel(f"P{list(self.Post_position_list).index(self.position) + 1}")
-        else:
-            post_exist = QLabel("No")
-            label = QLabel("Post Label")
-            post_label = QLabel("-")
+        # if self.position in self.Post_position_list:
+        #     post_exist = QLabel("Yes")
+        #     label = QLabel("Post Label")
+        #     post_label = QLabel(list(self.post_label)[list(self.Post_position_list).index(self.position)])
+        #     # post_label = QLabel(f"P{list(self.Post_position_list).index(self.position) + 1}")
+        # else:
+        #     post_exist = QLabel("No")
+        #     label = QLabel("Post Label")
+        #     post_label = QLabel("-")
 
         # LAYOUT
         h_layout0 = QHBoxLayout()
@@ -209,12 +229,8 @@ class PostProperties(QDialog):
         h_layout2 = QHBoxLayout()
         h_layout2.addWidget(label2)
         h_layout2.addWidget(y)
-        h_layout3 = QHBoxLayout()
-        h_layout3.addWidget(label3)
-        h_layout3.addWidget(post_exist)
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout0)
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
-        v_layout.addLayout(h_layout3)
         tab.setLayout(v_layout)

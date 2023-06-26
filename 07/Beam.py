@@ -48,6 +48,11 @@ class beamDrawing(QGraphicsRectItem):
                 if isinstance(item, Rectangle):  # Finding beam
                     # Delete the coordinates of the rectangle
                     if item in self.beam_rect_prop:
+                        # delete snap points (start & end)
+                        self.snapPoint.remove_point(self.beam_rect_prop[item]["coordinate"][0])
+                        self.snapPoint.remove_point(self.beam_rect_prop[item]["coordinate"][1])
+                        self.snapLine.remove_line(tuple(self.beam_rect_prop[item]["coordinate"]))
+                        # delete item
                         del self.beam_rect_prop[item]
                     self.scene.removeItem(item)
 
@@ -84,7 +89,7 @@ class beamDrawing(QGraphicsRectItem):
                     snapped_pos = self.snapPoint.snap(pos)
                     # Start point just snap to point not line.
                     point = snapped_pos.toTuple()
-                    post_ranges = range_post(self.post_instance.Post_Position, self.post_dimension)
+                    post_ranges = range_post(self.post_instance.post_prop, self.post_dimension)
                     beam_ranges = selectable_beam_range(self.beam_rect_prop, self.beam_width)
                     status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
                     status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
@@ -125,16 +130,10 @@ class beamDrawing(QGraphicsRectItem):
 
     def finalize_rectangle(self, pos):
         snapped_pos = self.snapPoint.snap(pos)
-        print(snapped_pos)
         # if snap to some point we don't need to check with snap line
-        print(pos)
         if pos == snapped_pos:
             snapped_pos = self.snapLine.snap(pos)
-            print("hello")
         width = snapped_pos.x() - self.start_pos.x()
-        print(self.start_pos)
-        print(snapped_pos)
-        print(width)
         height = snapped_pos.y() - self.start_pos.y()
 
         if abs(width) > abs(height):
@@ -211,9 +210,10 @@ class BeamProperties(QDialog):
         self.tab_widget = QTabWidget()
         self.tab_widget.setWindowTitle("Object Data")
         self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+
         self.create_geometry_tab()
-        # self.create_direction_tab()
-        # self.direction = self.create_direction_tab()
 
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
@@ -264,33 +264,11 @@ class BeamProperties(QDialog):
         v_layout.addLayout(h_layout3)
         tab.setLayout(v_layout)
 
-    def create_direction_tab(self):
-        tab = QWidget()
-        self.tab_widget.addTab(tab, f"Direction")
-        label1 = QLabel("Joist Direction")
-        self.direction = direction = QComboBox()
-        direction.addItems(["N-S", "E-W"])
-        self.direction.setCurrentText(self.final_direction)
-        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
-        self.direction.currentTextChanged.connect(self.direction_control)
-
-        # LAYOUT
-        h_layout1 = QHBoxLayout()
-        h_layout1.addWidget(label1)
-        h_layout1.addWidget(direction)
-
-        v_layout = QVBoxLayout()
-        v_layout.addLayout(h_layout1)
-
-        tab.setLayout(v_layout)
-        # return self.direction
-
-
-    def length(self, start, end):
+    @staticmethod
+    def length(start, end):
         x1 = start[0]
         x2 = end[0]
         y1 = start[1]
         y2 = end[1]
         l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
-        return l
+        return round(l, 2)

@@ -54,8 +54,11 @@ class image_control:
 
 def size_image(width, height, rectItem, image):
     # Calculate the new width and height
-    image_aspect_ratio = image.width() / image.height()
-    rect_aspect_ratio = width / height  # THERE IS A PROBLEM HERE!
+    try:
+        image_aspect_ratio = image.width() / image.height()
+        rect_aspect_ratio = width / height  # THERE IS A PROBLEM HERE!
+    except:
+        image_aspect_ratio = rect_aspect_ratio = 1  # JUST FOR PASS
 
     if image_aspect_ratio > rect_aspect_ratio:
         new_width = width
