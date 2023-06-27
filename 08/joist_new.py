@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButto
 from area_centroid_calculator import calculate_centroid_and_area
 from post_new import magnification_factor
 from image import image_control
+from DeActivate import deActive
 
 
 class JoistButton(QWidget):
@@ -31,6 +32,7 @@ class joistDrawing(QGraphicsRectItem):
         self.temp_rect = None
 
         self.joist_status = 0  # 0: neutral, 1: select beam, 2: delete beam
+        self.other_button = None
 
         self.rect_prop = {}  # Dictionary to store coordinates of rectangles
 
@@ -57,7 +59,7 @@ class joistDrawing(QGraphicsRectItem):
                     image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item)
                     rect_item.image = image
 
-                    rect_item.setBrush(QBrush(QColor("#F99B7D")))
+                    rect_item.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
                     rect_item.setPen(QPen(Qt.black))
                     self.scene.addItem(rect_item)
                     self.scene.removeItem(self.temp_rect)
@@ -97,14 +99,24 @@ class joistDrawing(QGraphicsRectItem):
 
     # SLOT
     def joist_selector(self):
+        if self.other_button:
+            post, beam, shearWall, studWall = self.other_button
         if self.joist_status == 0:
             self.joist_status = 1
             self.joist.joist.setText("Draw Joist")
             self.setCursor(Qt.CursorShape.UpArrowCursor)
+
+            # DE ACTIVE OTHER BUTTONS
+            if self.other_button:
+                deActive(self, post, beam, self, shearWall, studWall)
         elif self.joist_status == 1:
             self.joist_status = 2
             self.joist.joist.setText("Delete Joist")
             self.setCursor(Qt.CursorShape.ArrowCursor)
+
+            # DE ACTIVE OTHER BUTTONS
+            if self.other_button:
+                deActive(self, post, beam, self, shearWall, studWall)
         elif self.joist_status == 2:
             self.joist_status = 0
             self.joist.joist.setText("JOIST")

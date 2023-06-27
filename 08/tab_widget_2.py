@@ -8,6 +8,7 @@ from post_new import PostButton
 from joist_new import JoistButton
 from Beam import BeamButton
 from ShearWall import ShearWallButton
+from StudWall import StudWallButton
 
 
 class secondTabWidget(QTabWidget):
@@ -53,9 +54,13 @@ class secondTabWidget(QTabWidget):
             shearWall_instance = ShearWallButton(tab)
             shearWall_item = shearWall_instance.shearWall
 
+            # ADD STUD WALL BUTTON
+            studWall_instance = StudWallButton(tab)
+            studWall_item = studWall_instance.studWall
+
             # ADD GRID LINES
             grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
-                              joist_instance, beam_instance, shearWall_instance)
+                              joist_instance, beam_instance, shearWall_instance, studWall_instance)
 
             # LAYOUT
             h_layout = QHBoxLayout()
@@ -65,6 +70,7 @@ class secondTabWidget(QTabWidget):
             v_layout.addWidget(joist_item)
             v_layout.addWidget(beam_item)
             v_layout.addWidget(shearWall_item)
+            v_layout.addWidget(studWall_item)
 
             h_layout.addLayout(v_layout, 1)
 

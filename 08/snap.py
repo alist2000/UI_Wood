@@ -6,7 +6,7 @@ import unittest
 
 class Snap(ABC):
     def __init__(self):
-        self.snap_distance = 20
+        self.snap_distance = 30
         self.status = True
 
     @abstractmethod

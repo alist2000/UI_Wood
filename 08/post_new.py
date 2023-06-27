@@ -3,6 +3,8 @@ from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem
 
+from DeActivate import deActive
+
 import itertools
 
 magnification_factor = 40
@@ -39,6 +41,7 @@ class PostDrawing(QGraphicsRectItem):
         self.post_drawing_mode = 0
         self.preview_rect_item = None
         self.scene_pos = None
+        self.other_button = None
 
         # Label
         self.post_number = 1
@@ -97,14 +100,24 @@ class PostDrawing(QGraphicsRectItem):
         # SLOT OF POST BUTTON
 
     def post_drawing_control(self):
+        if self.other_button:
+            beam, joist, shearWall, studWall = self.other_button
         if self.post_drawing_mode == 0:
             self.post_drawing_mode = 1
             self.postButton.post.setText("Draw Post")
             self.setCursor(Qt.CursorShape.CrossCursor)
+
+            # DE ACTIVE OTHER BUTTONS
+            if self.other_button:
+                deActive(self, self, beam, joist, shearWall, studWall)
         elif self.post_drawing_mode == 1:
             self.post_drawing_mode = 2
             self.postButton.post.setText("Delete Post")
             self.setCursor(Qt.CursorShape.ArrowCursor)
+
+            # DE ACTIVE OTHER BUTTONS
+            if self.other_button:
+                deActive(self, self, beam, joist, shearWall, studWall)
             self.remove_preview_rect()
         elif self.post_drawing_mode == 2:
             self.post_drawing_mode = 0

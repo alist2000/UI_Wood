@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButto
 
 from pointer_control import beam_end_point, pointer_control_shearWall
 from post_new import magnification_factor
+from DeActivate import deActive
 
 
 class ShearWallButton(QWidget):
@@ -29,6 +30,7 @@ class shearWallDrawing(QGraphicsRectItem):
         self.direction = None
         self.interior_exterior = None
         self.shearWall_select_status = 0  # 0: neutral, 1: select shearWall, 2: delete shearWall
+        self.other_button = None
         self.shearWall_width = magnification_factor  # Set shearWall width, magnification = 1 ft or 1 m
         # self.shearWall_width = min(min(x), min(y)) / 12  # Set shearWall width
         self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
@@ -114,8 +116,6 @@ class shearWallDrawing(QGraphicsRectItem):
                     x, y = point[0], point[1]
                     status, self.direction, self.interior_exterior = pointer_control_shearWall(x, y, self.x_grid,
                                                                                                self.y_grid)
-                    print(x, y, self.x_grid, self.y_grid)
-                    print("status shear wall:   ", status)
                     if status:
                         self.start_pos = QPointF(x, y)
 
@@ -182,6 +182,8 @@ class shearWallDrawing(QGraphicsRectItem):
             # post points
             start_x = min(self.start_pos.toTuple()[0], snapped_pos.toTuple()[0])
             end_x = max(self.start_pos.toTuple()[0], snapped_pos.toTuple()[0])
+            start = (start_x, self.start_pos.toTuple()[1])
+            end = (end_x, self.start_pos.toTuple()[1])
             # magnification_factor / 4 : 1 ft / 4 = 3 in or 1 m / 4 = 25 cm
             post_start = (start_x + magnification_factor / 4, self.start_pos.toTuple()[1])
             post_end = (end_x - magnification_factor / 4, self.start_pos.toTuple()[1])
@@ -195,6 +197,8 @@ class shearWallDrawing(QGraphicsRectItem):
             # post points
             start_y = min(self.start_pos.toTuple()[1], snapped_pos.toTuple()[1])
             end_y = max(self.start_pos.toTuple()[1], snapped_pos.toTuple()[1])
+            start = (self.start_pos.toTuple()[0], start_y)
+            end = (self.start_pos.toTuple()[0], end_y)
             # magnification_factor / 4 : 1 ft / 4 = 3 in or 1 m / 4 = 25 cm
             post_start = (self.start_pos.toTuple()[0], start_y + magnification_factor / 4)
             post_end = (self.start_pos.toTuple()[0], end_y - magnification_factor / 4)
@@ -212,7 +216,7 @@ class shearWallDrawing(QGraphicsRectItem):
         self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
         # After adding start_rect_item and end_rect_item to the scene
         self.shearWall_rect_prop[self.current_rect] = {"label": f"SW{self.shearWall_number}",
-                                                       "coordinate": [self.start_pos.toTuple(), snapped_pos.toTuple()],
+                                                       "coordinate": [start, end],
                                                        "post": {
                                                            "start_rect_item": start_rect_item,
                                                            "end_rect_item": end_rect_item,
@@ -220,7 +224,6 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "end_center": post_end},
                                                        "direction": self.direction,
                                                        "interior_exterior": self.interior_exterior
-
                                                        }
         self.shearWall_number += 1
 
@@ -229,14 +232,24 @@ class shearWallDrawing(QGraphicsRectItem):
 
     # SLOT
     def shearWall_selector(self):
+        if self.other_button:
+            post, beam, joist, studWall = self.other_button
         if self.shearWall_select_status == 0:
             self.shearWall_select_status = 1
             self.shearWall.shearWall.setText("Draw Shear Wall")
             self.setCursor(Qt.CursorShape.UpArrowCursor)
+
+            # DE ACTIVE OTHER BUTTONS
+            if self.other_button:
+                deActive(self, post, beam, joist, self, studWall)
         elif self.shearWall_select_status == 1:
             self.shearWall_select_status = 2
             self.shearWall.shearWall.setText("Delete Shear Wall")
             self.setCursor(Qt.CursorShape.ArrowCursor)
+
+            # DE ACTIVE OTHER BUTTONS
+            if self.other_button:
+                deActive(self, post, beam, joist, self, studWall)
         elif self.shearWall_select_status == 2:
             self.shearWall_select_status = 0
             self.shearWall.shearWall.setText("SHEAR WALL")

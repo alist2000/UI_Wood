@@ -6,6 +6,7 @@ from post_new import PostDrawing
 from joist_new import joistDrawing
 from Beam import beamDrawing
 from ShearWall import shearWallDrawing
+from StudWall import studWallDrawing
 
 from snap import SnapLine, SnapPoint
 
@@ -14,7 +15,7 @@ from post_new import magnification_factor
 
 
 class GridWidget(QGraphicsView):
-    def __init__(self, h_grid, v_grid, y, x, post, joist, beam, shearWall, parent=None):
+    def __init__(self, h_grid, v_grid, y, x, post, joist, beam, shearWall, studWall, parent=None):
         super().__init__(parent)
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
@@ -69,10 +70,25 @@ class GridWidget(QGraphicsView):
         self.shearWall_instance = shearWallDrawing(shearWall, self.x, self.y, self.scene, snapPoint, snapLine)
         self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, self.shearWall_instance,
                                          snapPoint, snapLine)
+        self.studWall_instance = studWallDrawing(studWall, self.x, self.y, self.scene, snapPoint, snapLine)
+
+        # CONTROL ON OTHER BUTTONS
+        self.post_instance.other_button = [self.beam_instance, self.joist_instance, self.shearWall_instance,
+                                           self.studWall_instance]
+        self.beam_instance.other_button = [self.post_instance, self.joist_instance, self.shearWall_instance,
+                                           self.studWall_instance]
+        self.joist_instance.other_button = [self.post_instance, self.beam_instance, self.shearWall_instance,
+                                            self.studWall_instance]
+        self.shearWall_instance.other_button = [self.post_instance, self.beam_instance, self.joist_instance,
+                                                self.studWall_instance]
+        self.studWall_instance.other_button = [self.post_instance, self.beam_instance, self.joist_instance,
+                                               self.shearWall_instance]
+
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
         joist.joist.clicked.connect(self.joist_instance.joist_selector)
         post.post.clicked.connect(self.post_instance.post_drawing_control)
         shearWall.shearWall.clicked.connect(self.shearWall_instance.shearWall_selector)
+        studWall.studWall.clicked.connect(self.studWall_instance.studWall_selector)
 
     def mousePressEvent(self, event):
         if self.beam_instance.beam_select_status:  # CONTROL BEAM
@@ -87,6 +103,9 @@ class GridWidget(QGraphicsView):
         elif self.shearWall_instance.shearWall_select_status:  # CONTROL SHEAR WALL
             # 1 (draw mode) and 2(delete mode)
             self.shearWall_instance.draw_shearWall_mousePress(self, event)
+        elif self.studWall_instance.studWall_select_status:  # CONTROL STUD WALL
+            # 1 (draw mode) and 2(delete mode)
+            self.studWall_instance.draw_studWall_mousePress(self, event)
 
     def mouseMoveEvent(self, event):
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
@@ -95,8 +114,10 @@ class GridWidget(QGraphicsView):
             self.joist_instance.draw_joist_mouseMove()
         elif self.post_instance.post_drawing_mode:
             self.post_instance.draw_post_mouseMove(self, event)
-        if self.shearWall_instance.shearWall_select_status == 1:  # CONTROL BEAM
+        elif self.shearWall_instance.shearWall_select_status == 1:  # CONTROL SHEAR WALL
             self.shearWall_instance.draw_shearWall_mouseMove(self, event)
+        elif self.studWall_instance.studWall_select_status == 1:  # CONTROL STUD WALL
+            self.studWall_instance.draw_studWall_mouseMove(self, event)
 
     def edit_spacing(self):
         x = self.x
