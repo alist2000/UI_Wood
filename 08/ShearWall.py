@@ -29,7 +29,8 @@ class shearWallDrawing(QGraphicsRectItem):
         self.direction = None
         self.interior_exterior = None
         self.shearWall_select_status = 0  # 0: neutral, 1: select shearWall, 2: delete shearWall
-        self.shearWall_width = min(min(x), min(y)) / 12  # Set shearWall width
+        self.shearWall_width = magnification_factor  # Set shearWall width, magnification = 1 ft or 1 m
+        # self.shearWall_width = min(min(x), min(y)) / 12  # Set shearWall width
         self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
 
         # shearWall PROPERTIES
@@ -93,19 +94,12 @@ class shearWallDrawing(QGraphicsRectItem):
                         self.shearWall_loc.append(final_end_point)
                         # self.shearWall_rect_prop[self.current_rect] = {"label": f"B{self.shearWall_number}",
                         #                                                "coordinate": [start_point, final_end_point]}
-                        self.shearWall_number += 1
 
                         # Add Start and End shearWall point to Snap Point
-                        print(self.shearWall_rect_prop[self.current_rect]["post"]["start_center"][0],
-                              self.shearWall_rect_prop[self.current_rect]["post"]["start_center"][1])
-                        print("end")
-                        print(self.shearWall_rect_prop[self.current_rect]["post"]["end_center"][0],
-                              self.shearWall_rect_prop[self.current_rect]["post"]["end_center"][1])
                         self.snapPoint.add_point(self.shearWall_rect_prop[self.current_rect]["post"]["start_center"][0],
                                                  self.shearWall_rect_prop[self.current_rect]["post"]["start_center"][1])
                         self.snapPoint.add_point(self.shearWall_rect_prop[self.current_rect]["post"]["end_center"][0],
                                                  self.shearWall_rect_prop[self.current_rect]["post"]["end_center"][1])
-                        print(self.snapPoint.points)
 
                         self.current_rect = None
                         self.shearWall_loc.clear()
@@ -181,14 +175,29 @@ class shearWallDrawing(QGraphicsRectItem):
         # Calculate the positions and sizes for the start and end rectangles
         if direction == "E-W":
             start_rect_pos = QPoint(center_left.x(), center_left.y() - self.current_rect.boundingRect().height() // 2)
-            end_rect_pos = QPoint(center_right.x() - 30,
+            end_rect_pos = QPoint(center_right.x() - (magnification_factor / 2),
                                   center_right.y() - self.current_rect.boundingRect().height() // 2)
-            rect_size = QSize(30, self.current_rect.boundingRect().height())
+            rect_size = QSize((magnification_factor / 2), self.current_rect.boundingRect().height())
+
+            # post points
+            start_x = min(self.start_pos.toTuple()[0], snapped_pos.toTuple()[0])
+            end_x = max(self.start_pos.toTuple()[0], snapped_pos.toTuple()[0])
+            # magnification_factor / 4 : 1 ft / 4 = 3 in or 1 m / 4 = 25 cm
+            post_start = (start_x + magnification_factor / 4, self.start_pos.toTuple()[1])
+            post_end = (end_x - magnification_factor / 4, self.start_pos.toTuple()[1])
+
         else:
             start_rect_pos = QPoint(center_top.x() - self.current_rect.boundingRect().width() // 2, center_top.y())
             end_rect_pos = QPoint(center_bottom.x() - self.current_rect.boundingRect().width() // 2,
-                                  center_bottom.y() - 30)
-            rect_size = QSize(self.current_rect.boundingRect().width(), 30)
+                                  center_bottom.y() - (magnification_factor / 2))
+            rect_size = QSize(self.current_rect.boundingRect().width(), (magnification_factor / 2))
+
+            # post points
+            start_y = min(self.start_pos.toTuple()[1], snapped_pos.toTuple()[1])
+            end_y = max(self.start_pos.toTuple()[1], snapped_pos.toTuple()[1])
+            # magnification_factor / 4 : 1 ft / 4 = 3 in or 1 m / 4 = 25 cm
+            post_start = (self.start_pos.toTuple()[0], start_y + magnification_factor / 4)
+            post_end = (self.start_pos.toTuple()[0], end_y - magnification_factor / 4)
 
         # Create the start and end rectangles
         start_rect = QRect(start_rect_pos, rect_size)
@@ -207,12 +216,8 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "post": {
                                                            "start_rect_item": start_rect_item,
                                                            "end_rect_item": end_rect_item,
-                                                           "start_center": tuple(
-                                                               [(i + 0.5) for i in
-                                                                start_rect_item.boundingRect().center().toTuple()]),
-                                                           "end_center": tuple(
-                                                               [(i + 0.5) for i in
-                                                                end_rect_item.boundingRect().center().toTuple()])},
+                                                           "start_center": post_start,
+                                                           "end_center": post_end},
                                                        "direction": self.direction,
                                                        "interior_exterior": self.interior_exterior
 
@@ -260,12 +265,12 @@ class Rectangle(QGraphicsRectItem):
         if event.button() == Qt.RightButton:  # shearWall Properties page
             height = self.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
             width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
-            self.shearWall_properties_page = BeamProperties(self, self.rect_prop,
-                                                            self.scene())
+            self.shearWall_properties_page = ShearWallProperties(self, self.rect_prop,
+                                                                 self.scene())
             self.shearWall_properties_page.show()
 
 
-class BeamProperties(QDialog):
+class ShearWallProperties(QDialog):
     def __init__(self, rectItem, rect_prop, scene, parent=None):
         super().__init__(parent)
         self.direction = None
@@ -301,8 +306,10 @@ class BeamProperties(QDialog):
         print(self.rect_prop)
 
     def create_geometry_tab(self):
-        start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["post"]["start_center"]])
-        end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["post"]["end_center"]])
+        start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][0]])
+        end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][1]])
+        Post_start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["post"]["start_center"]])
+        Post_end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["post"]["end_center"]])
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
         label0 = QLabel("Label")
@@ -311,6 +318,12 @@ class BeamProperties(QDialog):
         start_point = QLabel(f"{start}")
         label2 = QLabel("End")
         end_point = QLabel(f"{end}")
+
+        post_start_label = QLabel("Post Start")
+        post_start = QLabel(f'{Post_start}')
+
+        post_end_label = QLabel("Post End")
+        post_end = QLabel(f'{Post_end}')
 
         # calc length
         l = self.length(start, end)
@@ -330,9 +343,15 @@ class BeamProperties(QDialog):
         h_layout1 = QHBoxLayout()
         h_layout1.addWidget(label1)
         h_layout1.addWidget(start_point)
+        h_layout1_1 = QHBoxLayout()
+        h_layout1_1.addWidget(post_start_label)
+        h_layout1_1.addWidget(post_start)
         h_layout2 = QHBoxLayout()
         h_layout2.addWidget(label2)
         h_layout2.addWidget(end_point)
+        h_layout2_2 = QHBoxLayout()
+        h_layout2_2.addWidget(post_end_label)
+        h_layout2_2.addWidget(post_end)
         h_layout3 = QHBoxLayout()
         h_layout3.addWidget(label3)
         h_layout3.addWidget(length)
@@ -347,6 +366,8 @@ class BeamProperties(QDialog):
         v_layout.addLayout(h_layout0)
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
+        v_layout.addLayout(h_layout1_1)
+        v_layout.addLayout(h_layout2_2)
         v_layout.addLayout(h_layout3)
         v_layout.addLayout(h_layout4)
         v_layout.addLayout(h_layout5)

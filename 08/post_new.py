@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButto
 
 import itertools
 
-magnification_factor = 20
+magnification_factor = 40
 
 
 class SignalHandler(QObject):
@@ -33,7 +33,8 @@ class PostDrawing(QGraphicsRectItem):
         self.scene = scene
         self.snapPoint = snapPoint
         self.snapLine = snapLine
-        self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
+        # self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
+        self.post_dimension = magnification_factor  # Set post dimension
 
         self.post_drawing_mode = 0
         self.preview_rect_item = None

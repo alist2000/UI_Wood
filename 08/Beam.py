@@ -15,18 +15,21 @@ class BeamButton(QWidget):
 
 
 class beamDrawing(QGraphicsRectItem):
-    def __init__(self, beamButton, x, y, scene, post_instance, snapPoint, snapLine):
+    def __init__(self, beamButton, x, y, scene, post_instance, shearWall_instance, snapPoint, snapLine):
         super().__init__()
         self.beam = beamButton
         self.scene = scene
         self.post_instance = post_instance
+        self.shearWall_instance = shearWall_instance
         self.snapPoint = snapPoint
         self.snapLine = snapLine
         self.current_rect = None
         self.start_pos = None
         self.beam_select_status = 0  # 0: neutral, 1: select beam, 2: delete beam
-        self.beam_width = min(min(x), min(y)) / 25  # Set beam width
-        self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
+        # self.beam_width = min(min(x), min(y)) / 25  # Set beam width
+        self.beam_width = magnification_factor / 2  # Set beam width
+        # self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
+        self.post_dimension = magnification_factor  # Set post dimension
 
         # BEAM PROPERTIES
         # START / END
@@ -93,11 +96,22 @@ class beamDrawing(QGraphicsRectItem):
                     beam_ranges = selectable_beam_range(self.beam_rect_prop, self.beam_width)
                     status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
                     status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
-                    if status_post or status_beam:
+                    shearWall_posts_start = [i["post"]["start_center"] for i in
+                                             self.shearWall_instance.shearWall_rect_prop.values()]
+                    shearWall_posts_end = [i["post"]["end_center"] for i in
+                                           self.shearWall_instance.shearWall_rect_prop.values()]
+                    shearWall_posts = shearWall_posts_start + shearWall_posts_end
+                    if point in shearWall_posts:
+                        status_shearWall_post = True
+                    else:
+                        status_shearWall_post = False
+                    if status_post or status_beam or status_shearWall_post:
                         if status_post:
                             x, y = x_post, y_post
-                        else:
+                        elif status_beam:
                             x, y = x_beam, y_beam
+                        else:
+                            x, y = point[0], point[1]
 
                         self.start_pos = QPointF(x, y)
 

@@ -66,8 +66,9 @@ class GridWidget(QGraphicsView):
 
         self.joist_instance = joistDrawing(joist, self.scene, snapPoint, snapLine)
         self.post_instance = PostDrawing(post, self.x, self.y, self.scene, snapPoint, snapLine)
-        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, snapPoint, snapLine)
         self.shearWall_instance = shearWallDrawing(shearWall, self.x, self.y, self.scene, snapPoint, snapLine)
+        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, self.shearWall_instance,
+                                         snapPoint, snapLine)
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
         joist.joist.clicked.connect(self.joist_instance.joist_selector)
         post.post.clicked.connect(self.post_instance.post_drawing_control)
