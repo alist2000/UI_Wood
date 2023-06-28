@@ -1,3 +1,6 @@
+from back.beam_control import beam_control
+
+
 class receiver:
     def __init__(self, post, beam, joist, shearWall, studWall):
         self.post = post
@@ -12,15 +15,17 @@ class receiver:
 
         # SUPPORT TYPE 2: BEAM TO BEAM CONNECTION
 
-    def beam_control(self):
-        beam = self.beam
-        beam["direction"] = None
-        beam["support"] = []
-        beam["joist"] = []
+        self.beam_properties = beam_control(beam, post, shearWall)
 
-        # FOR EVERY SUPPORT
-        support_label = None
-        support_type = None
-        support_pos = (None, None)
-        support_item = {"label": support_label, "type": support_type, "position": support_pos}
-        beam["support"].append(support_item)
+    # def beam_control(self):
+    #     beam = self.beam
+    #     beam["direction"] = None
+    #     beam["support"] = []
+    #     beam["joist"] = []
+    #
+    #     # FOR EVERY SUPPORT
+    #     support_label = None
+    #     support_type = None
+    #     support_pos = (None, None)
+    #     support_item = {"label": support_label, "type": support_type, "position": support_pos}
+    #     beam["support"].append(support_item)

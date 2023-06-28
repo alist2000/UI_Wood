@@ -79,6 +79,7 @@ class beamDrawing(QGraphicsRectItem):
                         self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                                   "coordinate": [
                                                                       start_point, final_end_point]}
+                        print(self.beam_rect_prop)
                         self.beam_number += 1
                         self.current_rect = None
 

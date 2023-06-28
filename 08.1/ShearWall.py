@@ -39,6 +39,7 @@ class shearWallDrawing(QGraphicsRectItem):
         # START / END
         self.shearWall_rect_prop = {}
         self.shearWall_number = 1
+        self.shearWall_post_number = 1
         self.shearWall_loc = []  # for every single shearWall
 
     def draw_shearWall_mousePress(self, main_self, event):
@@ -120,9 +121,15 @@ class shearWallDrawing(QGraphicsRectItem):
                         self.start_pos = QPointF(x, y)
 
                         self.shearWall_loc.append(self.start_pos.toTuple())
+                        if self.direction == "E-W":
+                            y_rect = y - self.shearWall_width / 2
+                            x_rect = x
+                        else:
+                            y_rect = y
+                            x_rect = x - self.shearWall_width / 2
 
-                        self.current_rect = Rectangle(x - self.shearWall_width / 2,
-                                                      y - self.shearWall_width / 2, self.shearWall_rect_prop)
+                        self.current_rect = Rectangle(x,
+                                                      y, self.shearWall_rect_prop)
                         self.scene.addItem(self.current_rect)
 
     def draw_shearWall_mouseMove(self, main_self, event):
@@ -218,6 +225,8 @@ class shearWallDrawing(QGraphicsRectItem):
         self.shearWall_rect_prop[self.current_rect] = {"label": f"SW{self.shearWall_number}",
                                                        "coordinate": [start, end],
                                                        "post": {
+                                                           "label_start": f"SWP{self.shearWall_post_number}",
+                                                           "label_end": f"SWP{self.shearWall_post_number + 1}",
                                                            "start_rect_item": start_rect_item,
                                                            "end_rect_item": end_rect_item,
                                                            "start_center": post_start,
@@ -225,7 +234,9 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "direction": self.direction,
                                                        "interior_exterior": self.interior_exterior
                                                        }
+        print(self.shearWall_rect_prop)
         self.shearWall_number += 1
+        self.shearWall_post_number += 2
 
         # self.current_rect = None
         self.start_pos = None

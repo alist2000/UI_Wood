@@ -58,9 +58,12 @@ class secondTabWidget(QTabWidget):
             studWall_instance = StudWallButton(tab)
             studWall_item = studWall_instance.studWall
 
+            # ADD RUN (NOW IT IS FOR TEST)
+            runButton = QPushButton("RUN")
+
             # ADD GRID LINES
             grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
-                              joist_instance, beam_instance, shearWall_instance, studWall_instance)
+                              joist_instance, beam_instance, shearWall_instance, studWall_instance, runButton)
 
             # LAYOUT
             h_layout = QHBoxLayout()
@@ -71,6 +74,7 @@ class secondTabWidget(QTabWidget):
             v_layout.addWidget(beam_item)
             v_layout.addWidget(shearWall_item)
             v_layout.addWidget(studWall_item)
+            v_layout.addWidget(runButton)
 
             h_layout.addLayout(v_layout, 1)
 

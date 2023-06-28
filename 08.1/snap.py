@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from PySide6.QtCore import QPointF
 import numpy as np
+import math
 import unittest
 
 
@@ -72,23 +73,57 @@ class SnapLine(Snap):
         self.lines.remove(line)
 
     def snap(self, point):
-        if self.status:
-            for snap_line in self.lines:
-                start = snap_line[0]
-                end = snap_line[1]
-                num_points = int(((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2) ** 0.5) + 1
-                x_values = np.linspace(start[0], end[0], num_points)[1:-1]
-                x_values = np.concatenate(([start[0]], x_values[1:]))
-                x_values = np.concatenate((x_values[:-1], [end[0]]))
-                y_values = np.linspace(start[1], end[1], num_points)[1:-1]
-                y_values = np.concatenate(([start[1]], y_values[1:]))
-                y_values = np.concatenate((y_values[:-1], [end[1]]))
-                line_points = list(zip(x_values, y_values))
-                for snap_point in line_points:
-                    if (abs(point.x() - snap_point[0]) <= self.snap_distance and
-                            abs(point.y() - snap_point[1]) <= self.snap_distance):
-                        return QPointF(snap_point[0], snap_point[1])
-        return point
+        point = point.toTuple()
+        for snap_line in self.lines:
+            start = snap_line[0]
+            end = snap_line[1]
+            Ax, Ay = start
+            Bx, By = end
+            Cx, Cy = point
+
+            distance = self.calculate_distance(start, end, point)
+            print(distance)
+            if distance < self.snap_distance:
+
+                ## Calculating the slope of the line AB
+                if Bx == Ax:  # AB is a vertical line
+                    return QPointF(Ax, Cy)  # D is directly above or below C on the line AB
+                else:
+                    slope_AB = (By - Ay) / (Bx - Ax)
+
+                    # If AB is a horizontal line
+                    if slope_AB == 0:
+                        return QPointF(Cx, Ay)  # D is directly to the left or right of C on the line AB
+                    else:
+                        # Calculating the slope of the line perpendicular to AB
+                        slope_perpendicular = -1 / slope_AB
+
+                        # Calculating the y-intercept of the line CD
+                        intercept_CD = Cy - slope_perpendicular * Cx
+
+                        # Calculating the y-intercept of the line AB
+                        intercept_AB = Ay - slope_AB * Ax
+
+                        # Calculating the x-coordinate of point D
+                        Dx = (intercept_CD - intercept_AB) / (slope_AB - slope_perpendicular)
+
+                        # Calculating the y-coordinate of point D
+                        Dy = slope_AB * Dx + intercept_AB
+
+                        return QPointF(Dx, Dy)
+
+        return QPointF(point[0], point[1])
+
+    @staticmethod
+    def calculate_distance(start, end, point):
+        x1, y1 = start
+        x2, y2 = end
+        x3, y3 = point
+
+        numerator = abs((x2 - x1) * (y1 - y3) - (x1 - x3) * (y2 - y1))
+        denominator = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+        return numerator / denominator
 
     # Snap line on/off
     def snap_status(self, status):

@@ -13,9 +13,11 @@ from snap import SnapLine, SnapPoint
 # from main import magnification_factor
 from post_new import magnification_factor
 
+from back.input import receiver
+
 
 class GridWidget(QGraphicsView):
-    def __init__(self, h_grid, v_grid, y, x, post, joist, beam, shearWall, studWall, parent=None):
+    def __init__(self, h_grid, v_grid, y, x, post, joist, beam, shearWall, studWall, run, parent=None):
         super().__init__(parent)
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
@@ -89,6 +91,15 @@ class GridWidget(QGraphicsView):
         post.post.clicked.connect(self.post_instance.post_drawing_control)
         shearWall.shearWall.clicked.connect(self.shearWall_instance.shearWall_selector)
         studWall.studWall.clicked.connect(self.studWall_instance.studWall_selector)
+
+        run.clicked.connect(self.run_control)
+
+    # SLOT RUN BUTTON
+    def run_control(self):
+        data = receiver(self.post_instance.post_prop, self.beam_instance.beam_rect_prop, self.joist_instance.rect_prop,
+                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop)
+        for i in data.beam_properties.beam.values():
+            print(i)
 
     def mousePressEvent(self, event):
         if self.beam_instance.beam_select_status:  # CONTROL BEAM
