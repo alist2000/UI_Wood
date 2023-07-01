@@ -10,6 +10,8 @@ from post_new import magnification_factor
 from image import image_control
 from DeActivate import deActive
 
+from back.joist_control import joist_line_creator
+
 
 class JoistButton(QWidget):
     def __init__(self, parent=None):
@@ -66,8 +68,10 @@ class joistDrawing(QGraphicsRectItem):
 
                     # Save coordinates of the rectangle corners
                     self.rect_prop[rect_item] = {"label": f"J{self.joist_number}",
-                                                 "coordinate": [(x1, y1), (x1, y2), (x2, y1), (x2, y2)],
+                                                 "coordinate": [(x1, y1), (x1, y2), (x2, y2), (x2, y1)],
                                                  "direction": "N-S"}
+                    joist_line_creator(self.rect_prop[rect_item])
+                    print(self.rect_prop)
                     self.joist_number += 1
 
                     # Add corner points to snap points
@@ -147,8 +151,8 @@ class JoistProperties(QDialog):
     def __init__(self, rectItem, rect_prop, center_position, joint_coordinate, image, scene, parent=None):
         super().__init__(parent)
         self.direction = None
-        self.default = "N-S"
-        self.final_direction = "N-S"
+        self.default = rect_prop[rectItem]["direction"]
+        self.final_direction = rect_prop[rectItem]["direction"]
         self.rectItem = rectItem
         self.rect_prop = rect_prop
         self.joint_coordinate = joint_coordinate
@@ -179,7 +183,6 @@ class JoistProperties(QDialog):
     # dialog.show()
 
     def accept_control(self):
-        self.accept()
         self.final_direction = self.default
         if self.final_direction == "N-S":
             picture_path = "images/n_s.png"
@@ -187,6 +190,8 @@ class JoistProperties(QDialog):
             picture_path = "images/e_w.png"
         self.image.change_image(picture_path, self.scene)
         self.rect_prop[self.rectItem]["direction"] = self.final_direction
+        self.accept()
+
         print(self.rect_prop)
 
     def create_geometry_tab(self):
@@ -271,7 +276,7 @@ class JoistProperties(QDialog):
         label1 = QLabel("Joist Direction")
         self.direction = direction = QComboBox()
         direction.addItems(["N-S", "E-W"])
-        self.direction.setCurrentText(self.final_direction)
+        self.direction.setCurrentText(self.rect_prop[self.rectItem]["direction"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
         self.direction.currentTextChanged.connect(self.direction_control)

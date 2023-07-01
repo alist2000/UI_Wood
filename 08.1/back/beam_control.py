@@ -1,15 +1,13 @@
-class beam_control:
-    def __init__(self, beam, post, shearWall):
-        self.beam = beam
-        self.post = post
-        self.shearWall = shearWall
+import sys
 
+sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.1")
+from post_new import magnification_factor
+
+
+class beam_control_length:
+    def __init__(self, beam):
+        self.beam = beam
         self.add_length()
-        self.add_direction()
-        self.add_post_support()
-        self.add_shearWall_post_support()
-        self.add_beam_support()
-        # self.edit_support()
 
     def add_length(self):
         for beamItem, beamProp in self.beam.items():
@@ -18,8 +16,24 @@ class beam_control:
             l = self.length(start, end)
             self.beam[beamItem]["length"] = l
 
+    @staticmethod
+    def length(start, end):
+        x1 = start[0]
+        x2 = end[0]
+        y1 = start[1]
+        y2 = end[1]
+        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+        return round(l, 2)
+
+
+class beam_control_direction_and_line:
+    def __init__(self, beam):
+        self.beam = beam
+        self.add_direction()
+
     def add_direction(self):
         for beamItem, beamProp in self.beam.items():
+            beam_line_creator(beamProp)
             start = beamProp["coordinate"][0]
             end = beamProp["coordinate"][1]
             x1, y1 = start[0], start[1]
@@ -31,6 +45,18 @@ class beam_control:
             else:
                 direction = "N-S"
             self.beam[beamItem]["direction"] = direction
+
+
+class beam_control_support:
+    def __init__(self, beam, post, shearWall):
+        self.beam = beam
+        self.post = post
+        self.shearWall = shearWall
+
+        self.add_post_support()
+        self.add_shearWall_post_support()
+        self.add_beam_support()
+        self.edit_support()
 
     def add_post_support(self):
         for beamItem, beamProp in self.beam.items():
@@ -135,18 +161,12 @@ class beam_control:
                     if beam_supports[i]["coordinate"] == post_cor:
                         extra_support_index.append(i)
             for j in extra_support_index:
-                del beam_supports[j]
+                try:
+                    del beam_supports[j]
+                except:
+                    pass
             final_support = post_supports + beam_supports
             beamProp["support"] = final_support
-
-    @staticmethod
-    def length(start, end):
-        x1 = start[0]
-        x2 = end[0]
-        y1 = start[1]
-        y2 = end[1]
-        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
-        return round(l, 2)
 
     @staticmethod
     def is_point_on_line(point, line_point1, line_point2):
@@ -156,9 +176,9 @@ class beam_control:
 
         # Calculate the slopes
         if x2 - x1 == 0:  # To avoid division by zero
-            return x0 == x1
+            return x0 == x1 and min(y1, y2) <= y0 <= max(y1, y2)
         if x0 - x1 == 0:
-            return y0 == y1
+            return y0 == y1 and min(x1, x2) <= x0 <= max(x1, x2)
         slope1 = (y2 - y1) / (x2 - x1)
         slope2 = (y0 - y1) / (x0 - x1)
 
@@ -175,6 +195,116 @@ class beam_control:
             else:
                 post_range = "mid"
         return is_support, post_range
+
+
+class beam_line_creator:
+    def __init__(self, beam):
+        self.beamProp = beam
+
+        self.lines()
+
+    def lines(self):
+        self.beamProp["line"] = {}
+        joints = self.beamProp["coordinate"]
+        line_prop = self.find_line_points(
+            joints)
+        self.beamProp["line"]["properties"] = {"slope": line_prop[0], "c": line_prop[1], "range": line_prop[2]}
+
+    def find_line_points(self, points):
+        """
+        points: [(x1, y1), (x1, y2)]
+        """
+        line1 = (points[0], points[1])
+        line_prop1 = self.create_line(points[0], points[1])
+        return line_prop1
+
+    @staticmethod
+    def create_line(point1, point2):
+        # point1 and point2 are tuples representing (x, y)
+        (x1, y1) = point1
+        (x2, y2) = point2
+        if x2 - x1 == 0:
+            # vertical line
+            slope = False
+            c = x1
+            line_range = (min(y1, y2), max(y1, y2))
+        else:
+            if y2 - y1 == 0:
+                slope = True  # slope = 0
+                c = y1
+            else:
+                slope = (y2 - y1) / (x2 - x1)
+                c = y1 - x1 * slope
+            line_range = (min(x1, x2), max(x1, x2))
+
+        return slope, c, line_range
+
+
+class beam_control_joist:
+    def __init__(self, beam, joist):
+        self.beam = beam
+        self.joist = joist
+        self.control_intersection()
+
+    def control_intersection(self):
+        for beamProp in self.beam.values():
+            beamProp["joist"] = []
+            slope_beam = beamProp["line"]["properties"]["slope"]
+            c_beam = beamProp["line"]["properties"]["c"]
+            range_beam = beamProp["line"]["properties"]["range"]
+            for joistProp in self.joist.values():
+                lines = joistProp["line"]["properties"]
+                for i in range(len(lines)):
+                    slope_joist = lines[i]["slope"]
+                    c_joist = lines[i]["c"]
+                    range_joist_line = lines[i]["range"]
+                    if slope_joist == slope_beam and c_joist == c_beam:
+                        intersection_range = range_intersection(range_joist_line, range_beam)
+                        if intersection_range:
+                            # for tributary calculation
+                            try:
+                                range_other_direction = lines[i + 1]["range"]
+                            except:
+                                range_other_direction = lines[i - 1]["range"]
+
+                            tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
+                                                        range_other_direction)
+
+                            beamProp["joist"].append(
+                                {"label": joistProp["label"], "intersection_range": intersection_range,
+                                 "tributary_depth": tributary_depth})
+
+
+def range_intersection(range1, range2):
+    range1 = set(range(int(range1[0]), int(range1[1]) + 1))
+    range2 = set(range(int(range2[0]), int(range2[1]) + 1))
+    intersection = list(range1 & range2)
+    if intersection:
+        intersection = (intersection[0], intersection[-1])
+    return intersection
+
+
+def tributary(direction_joist, direction_beam, main_range):
+    if direction_beam == direction_joist:
+        # TRIBUTARY AREA IS A CONSTANT NUMBER HERE.
+        tributary_depth = 1 * magnification_factor
+    else:
+        range_length = abs(main_range[1] - main_range[0])
+        tributary_depth = range_length / 2
+    return tributary_depth
+
+
+class beam_control:
+    def __init__(self, beam, post, shearWall, joist):
+        self.beam = beam
+        self.post = post
+        self.shearWall = shearWall
+        self.joist = joist
+
+        beam_control_length(self.beam)
+        beam_control_direction_and_line(self.beam)
+        beam_control_support(self.beam, self.post, self.shearWall)
+        beam_control_joist(self.beam, self.joist)
 
 
 # Beam = {"beamItem1": {"label": "B1", "coordinate": [(0, 0), (4, 3)]},

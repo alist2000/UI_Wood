@@ -7,6 +7,8 @@ from pointer_control import beam_end_point
 from post_new import magnification_factor
 from DeActivate import deActive
 
+from back.beam_control import beam_line_creator
+
 
 class StudWallButton(QWidget):
     def __init__(self, parent=None):
@@ -67,7 +69,7 @@ class studWallDrawing(QGraphicsRectItem):
                     if pos == snapped_pos:
                         snapped_pos = self.snapLine.snap(pos)
                     self.finalize_rectangle(pos)
-                    # Create a new rectangle instance
+                    # Create a new rectangle instanceself.studWall_rect_prop[self.current_rect]
                     self.start_pos = snapped_pos
                     if self.studWall_loc:  # Add this condition
                         end_point = snapped_pos.toTuple()
@@ -76,6 +78,9 @@ class studWallDrawing(QGraphicsRectItem):
                         self.studWall_loc.append(final_end_point)
                         self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
                                                                       "coordinate": [start_point, final_end_point]}
+
+                        beam_line_creator(self.studWall_rect_prop[self.current_rect])
+
                         self.studWall_number += 1
                         self.current_rect = None
 

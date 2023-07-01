@@ -1,4 +1,6 @@
 from back.beam_control import beam_control
+from back.joist_control import joist_support_control
+from back.shearWall_control import shearWall_control
 
 
 class receiver:
@@ -15,7 +17,9 @@ class receiver:
 
         # SUPPORT TYPE 2: BEAM TO BEAM CONNECTION
 
-        self.beam_properties = beam_control(beam, post, shearWall)
+        self.beam_properties = beam_control(beam, post, shearWall, joist)
+        self.joist_properties = joist_support_control(joist, beam, shearWall, studWall)
+        self.shearWall_properties = shearWall_control(shearWall, joist, beam)
 
     # def beam_control(self):
     #     beam = self.beam

@@ -101,6 +101,11 @@ class GridWidget(QGraphicsView):
         for i in data.beam_properties.beam.values():
             print(i)
 
+        for i in data.joist_properties.joist.values():
+            print(i)
+        for i in data.shearWall_properties.shearWall.values():
+            print(i)
+
     def mousePressEvent(self, event):
         if self.beam_instance.beam_select_status:  # CONTROL BEAM
             # 1 (draw mode) and 2(delete mode)

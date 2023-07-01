@@ -7,6 +7,8 @@ from pointer_control import beam_end_point, pointer_control_shearWall
 from post_new import magnification_factor
 from DeActivate import deActive
 
+from back.beam_control import beam_line_creator
+
 
 class ShearWallButton(QWidget):
     def __init__(self, parent=None):
@@ -232,9 +234,11 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "start_center": post_start,
                                                            "end_center": post_end},
                                                        "direction": self.direction,
-                                                       "interior_exterior": self.interior_exterior
+                                                       "interior_exterior": self.interior_exterior,
+                                                       "thickness": "4"  # in
                                                        }
-        print(self.shearWall_rect_prop)
+        beam_line_creator(self.shearWall_rect_prop[self.current_rect])
+        print(self.shearWall_rect_prop.values())
         self.shearWall_number += 1
         self.shearWall_post_number += 2
 
@@ -300,6 +304,8 @@ class ShearWallProperties(QDialog):
         self.direction = None
         self.rectItem = rectItem
         self.rect_prop = rect_prop
+        self.thickness = None
+        self.thickness_default = rect_prop[rectItem]["thickness"]
         print(rect_prop)
 
         # IMAGE
@@ -317,6 +323,7 @@ class ShearWallProperties(QDialog):
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
 
         self.create_geometry_tab()
+        self.create_assignment_tab()
 
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
@@ -345,9 +352,13 @@ class ShearWallProperties(QDialog):
 
         post_start_label = QLabel("Post Start")
         post_start = QLabel(f'{Post_start}')
+        post_start_name_label = QLabel("Post Start Label")
+        post_start_name = QLabel(f'{self.rect_prop[self.rectItem]["post"]["label_start"]}')
 
         post_end_label = QLabel("Post End")
         post_end = QLabel(f'{Post_end}')
+        post_end_name_label = QLabel("Post End Label")
+        post_end_name = QLabel(f'{self.rect_prop[self.rectItem]["post"]["label_end"]}')
 
         # calc length
         l = self.length(start, end)
@@ -370,12 +381,18 @@ class ShearWallProperties(QDialog):
         h_layout1_1 = QHBoxLayout()
         h_layout1_1.addWidget(post_start_label)
         h_layout1_1.addWidget(post_start)
+        h_layout1_1_1 = QHBoxLayout()
+        h_layout1_1_1.addWidget(post_start_name_label)
+        h_layout1_1_1.addWidget(post_start_name)
         h_layout2 = QHBoxLayout()
         h_layout2.addWidget(label2)
         h_layout2.addWidget(end_point)
         h_layout2_2 = QHBoxLayout()
         h_layout2_2.addWidget(post_end_label)
         h_layout2_2.addWidget(post_end)
+        h_layout2_2_2 = QHBoxLayout()
+        h_layout2_2_2.addWidget(post_end_name_label)
+        h_layout2_2_2.addWidget(post_end_name)
         h_layout3 = QHBoxLayout()
         h_layout3.addWidget(label3)
         h_layout3.addWidget(length)
@@ -391,7 +408,9 @@ class ShearWallProperties(QDialog):
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
         v_layout.addLayout(h_layout1_1)
+        v_layout.addLayout(h_layout1_1_1)
         v_layout.addLayout(h_layout2_2)
+        v_layout.addLayout(h_layout2_2_2)
         v_layout.addLayout(h_layout3)
         v_layout.addLayout(h_layout4)
         v_layout.addLayout(h_layout5)
@@ -405,6 +424,33 @@ class ShearWallProperties(QDialog):
         y2 = end[1]
         l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
         return round(l, 2)
+
+    def create_assignment_tab(self):
+        tab = QWidget()
+        self.tab_widget.addTab(tab, f"Assignments")
+        label1 = QLabel("Shear Wall Thickness")
+        self.thickness = thickness = QComboBox()
+        thickness.addItems(["4", "6", "8"])
+        self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.thickness.currentTextChanged.connect(self.thickness_control)
+
+        # LAYOUT
+        h_layout1 = QHBoxLayout()
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(thickness)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout1)
+
+        tab.setLayout(v_layout)
+        # return self.direction
+        # SLOT
+
+    def thickness_control(self):
+        self.thickness_default = self.thickness.currentText()
+        self.rect_prop[self.rectItem]["thickness"] = self.thickness_default
 
 
 def edit_spacing(x, y):
