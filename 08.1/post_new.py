@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButto
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem
 
 from DeActivate import deActive
+from post_prop import PostProperties
 
 import itertools
 
@@ -53,7 +54,8 @@ class PostDrawing(QGraphicsRectItem):
             pos = main_self.mapToScene(event.pos())
             snapped_pos = self.snapPoint.snap(pos)
             rect = self.add_rectangle(snapped_pos.x(), snapped_pos.y())
-            self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": snapped_pos.toTuple()}
+            self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": snapped_pos.toTuple(),
+                                    "load": {"point": []}}
             print(self.post_prop)
             self.snapPoint.add_point(snapped_pos.x(), snapped_pos.y())
             self.post_number += 1
@@ -176,76 +178,3 @@ class CustomRectItem(QGraphicsRectItem):
         if event.button() == Qt.RightButton:
             self.post_properties_page = PostProperties(self, self.post_prop)
             self.post_properties_page.show()
-
-
-class PostProperties(QDialog):
-    def __init__(self, rectItem, post_properties, parent=None):
-        super().__init__(parent)
-        self.rect = rectItem
-        self.post_prop = post_properties
-        self.setWindowTitle("Post Properties")
-        self.setMinimumSize(200, 400)
-
-        v_layout = QVBoxLayout()
-
-        self.tab_widget = QTabWidget()
-        self.tab_widget.setWindowTitle("Object Data")
-        self.create_geometry_tab()
-
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.accept)  # Change from dialog.accept to self.accept
-        button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
-
-        v_layout.addWidget(self.tab_widget)
-        v_layout.addWidget(button_box)
-        self.setLayout(v_layout)  # Change from dialog.setLayout to self.setLayout
-
-    # Rest of the code remains the same
-
-    # dialog.show()
-
-    def create_geometry_tab(self):
-        tab = QWidget()
-        self.tab_widget.addTab(tab, f"Geometry")
-
-        # Label
-        print(self.post_prop)
-        Post_label = self.post_prop[self.rect]["label"]
-        label = QLabel("Post Label")
-        post_label = QLabel(Post_label)
-
-        # coordinate
-        position = self.post_prop[self.rect]["coordinate"]
-        label1 = QLabel("Global X")
-        x = QLabel(f"{position[0] / magnification_factor}")
-        label2 = QLabel("Global Y")
-        y = QLabel(f"{position[1] / magnification_factor}")
-
-        # label3 = QLabel("Post Exist")
-
-        # control post existence
-        # if self.position in self.Post_position_list:
-        #     post_exist = QLabel("Yes")
-        #     label = QLabel("Post Label")
-        #     post_label = QLabel(list(self.post_label)[list(self.Post_position_list).index(self.position)])
-        #     # post_label = QLabel(f"P{list(self.Post_position_list).index(self.position) + 1}")
-        # else:
-        #     post_exist = QLabel("No")
-        #     label = QLabel("Post Label")
-        #     post_label = QLabel("-")
-
-        # LAYOUT
-        h_layout0 = QHBoxLayout()
-        h_layout0.addWidget(label)
-        h_layout0.addWidget(post_label)
-        h_layout1 = QHBoxLayout()
-        h_layout1.addWidget(label1)
-        h_layout1.addWidget(x)
-        h_layout2 = QHBoxLayout()
-        h_layout2.addWidget(label2)
-        h_layout2.addWidget(y)
-        v_layout = QVBoxLayout()
-        v_layout.addLayout(h_layout0)
-        v_layout.addLayout(h_layout1)
-        v_layout.addLayout(h_layout2)
-        tab.setLayout(v_layout)

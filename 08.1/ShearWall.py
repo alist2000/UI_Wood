@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButto
 from pointer_control import beam_end_point, pointer_control_shearWall
 from post_new import magnification_factor
 from DeActivate import deActive
+from beam_prop import lineLoad, pointLoad_line
 
 from back.beam_control import beam_line_creator
 
@@ -223,9 +224,12 @@ class shearWallDrawing(QGraphicsRectItem):
 
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+        l = self.length(start, end)
+
         # After adding start_rect_item and end_rect_item to the scene
         self.shearWall_rect_prop[self.current_rect] = {"label": f"SW{self.shearWall_number}",
                                                        "coordinate": [start, end],
+                                                       "length": l,
                                                        "post": {
                                                            "label_start": f"SWP{self.shearWall_post_number}",
                                                            "label_end": f"SWP{self.shearWall_post_number + 1}",
@@ -235,7 +239,9 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "end_center": post_end},
                                                        "direction": self.direction,
                                                        "interior_exterior": self.interior_exterior,
-                                                       "thickness": "4"  # in
+                                                       "thickness": "4 in",  # in
+                                                       "load": {"point": [], "line": []}
+
                                                        }
         beam_line_creator(self.shearWall_rect_prop[self.current_rect])
         print(self.shearWall_rect_prop.values())
@@ -244,6 +250,15 @@ class shearWallDrawing(QGraphicsRectItem):
 
         # self.current_rect = None
         self.start_pos = None
+
+    @staticmethod
+    def length(start, end):
+        x1 = start[0]
+        x2 = end[0]
+        y1 = start[1]
+        y2 = end[1]
+        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+        return round(l, 2)
 
     # SLOT
     def shearWall_selector(self):
@@ -319,11 +334,13 @@ class ShearWallProperties(QDialog):
         self.tab_widget = QTabWidget()
         self.tab_widget.setWindowTitle("Object Data")
         self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_box.accepted.connect(self.accept)  # Change from dialog.accept to self.accept
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
 
         self.create_geometry_tab()
         self.create_assignment_tab()
+        self.lineLoad = lineLoad(self.tab_widget, self.rect_prop[self.rectItem])
+        self.pointLoad = pointLoad_line(self.tab_widget, self.rect_prop[self.rectItem])
 
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
@@ -334,7 +351,9 @@ class ShearWallProperties(QDialog):
     # dialog.show()
 
     def accept_control(self):
-        print(self.rect_prop)
+        self.lineLoad.print_values()
+        self.pointLoad.print_values()
+        self.accept()
 
     def create_geometry_tab(self):
         start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][0]])
@@ -430,7 +449,7 @@ class ShearWallProperties(QDialog):
         self.tab_widget.addTab(tab, f"Assignments")
         label1 = QLabel("Shear Wall Thickness")
         self.thickness = thickness = QComboBox()
-        thickness.addItems(["4", "6", "8"])
+        thickness.addItems(["4 in", "6 in", "8 in"])
         self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject

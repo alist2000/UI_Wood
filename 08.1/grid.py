@@ -123,6 +123,9 @@ class GridWidget(QGraphicsView):
             # 1 (draw mode) and 2(delete mode)
             self.studWall_instance.draw_studWall_mousePress(self, event)
 
+        data = receiver(self.post_instance.post_prop, self.beam_instance.beam_rect_prop, self.joist_instance.rect_prop,
+                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop)
+
     def mouseMoveEvent(self, event):
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
             self.beam_instance.draw_beam_mouseMove(self, event)

@@ -7,6 +7,7 @@ from pointer_control import control_post_range, range_post, beam_end_point, sele
     control_selectable_beam_range
 from post_new import magnification_factor
 from DeActivate import deActive
+from beam_prop import BeamProperties
 
 
 class BeamButton(QWidget):
@@ -78,7 +79,8 @@ class beamDrawing(QGraphicsRectItem):
                         self.beam_loc.append(final_end_point)
                         self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                                   "coordinate": [
-                                                                      start_point, final_end_point]}
+                                                                      start_point, final_end_point],
+                                                                  "load": {"point": [], "line": []}}
                         print(self.beam_rect_prop)
                         self.beam_number += 1
                         self.current_rect = None
@@ -218,85 +220,3 @@ class Rectangle(QGraphicsRectItem):
             self.beam_properties_page = BeamProperties(self, self.rect_prop,
                                                        self.scene())
             self.beam_properties_page.show()
-
-
-class BeamProperties(QDialog):
-    def __init__(self, rectItem, rect_prop, scene, parent=None):
-        super().__init__(parent)
-        self.direction = None
-        self.rectItem = rectItem
-        self.rect_prop = rect_prop
-
-        # IMAGE
-        self.scene = scene
-
-        self.setWindowTitle("Beam Properties")
-        self.setMinimumSize(200, 400)
-
-        v_layout = QVBoxLayout()
-
-        self.tab_widget = QTabWidget()
-        self.tab_widget.setWindowTitle("Object Data")
-        self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_box.accepted.connect(self.accept)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
-
-        self.create_geometry_tab()
-
-        v_layout.addWidget(self.tab_widget)
-        v_layout.addWidget(button_box)
-        self.setLayout(v_layout)  # Change from dialog.setLayout to self.setLayout
-
-    # Rest of the code remains the same
-
-    # dialog.show()
-
-    def accept_control(self):
-        print(self.rect_prop)
-
-    def create_geometry_tab(self):
-        start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][0]])
-        end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][1]])
-        tab = QWidget()
-        self.tab_widget.addTab(tab, f"Geometry")
-        label0 = QLabel("Label")
-        joistLabel = QLabel(self.rect_prop[self.rectItem]["label"])
-        label1 = QLabel("Start")
-        start_point = QLabel(f"{start}")
-        label2 = QLabel("End")
-        end_point = QLabel(f"{end}")
-
-        # calc length
-        l = self.length(start, end)
-        label3 = QLabel("Length")
-        length = QLabel(f"{l}")
-
-        # LAYOUT
-        h_layout0 = QHBoxLayout()
-        h_layout0.addWidget(label0)
-        h_layout0.addWidget(joistLabel)
-        h_layout1 = QHBoxLayout()
-        h_layout1.addWidget(label1)
-        h_layout1.addWidget(start_point)
-        h_layout2 = QHBoxLayout()
-        h_layout2.addWidget(label2)
-        h_layout2.addWidget(end_point)
-        h_layout3 = QHBoxLayout()
-        h_layout3.addWidget(label3)
-        h_layout3.addWidget(length)
-
-        v_layout = QVBoxLayout()
-        v_layout.addLayout(h_layout0)
-        v_layout.addLayout(h_layout1)
-        v_layout.addLayout(h_layout2)
-        v_layout.addLayout(h_layout3)
-        tab.setLayout(v_layout)
-
-    @staticmethod
-    def length(start, end):
-        x1 = start[0]
-        x2 = end[0]
-        y1 = start[1]
-        y2 = end[1]
-        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
-        return round(l, 2)
