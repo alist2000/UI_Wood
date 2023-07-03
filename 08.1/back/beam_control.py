@@ -2,6 +2,7 @@ import sys
 
 sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.1")
 from post_new import magnification_factor
+from back.load_control import load_joist_on_beam, range_intersection
 
 
 class beam_control_length:
@@ -249,6 +250,7 @@ class beam_control_joist:
     def control_intersection(self):
         for beamProp in self.beam.values():
             beamProp["joist"] = []
+            beamProp["load"]["joist_load"] = []
             slope_beam = beamProp["line"]["properties"]["slope"]
             c_beam = beamProp["line"]["properties"]["c"]
             range_beam = beamProp["line"]["properties"]["range"]
@@ -268,30 +270,25 @@ class beam_control_joist:
                                 range_other_direction = lines[i - 1]["range"]
 
                             tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
-                                                        range_other_direction)
+                                                        range_other_direction, beamProp["line"]["properties"]["c"])
 
                             beamProp["joist"].append(
                                 {"label": joistProp["label"], "intersection_range": intersection_range,
                                  "tributary_depth": tributary_depth})
 
-
-def range_intersection(range1, range2):
-    range1 = set(range(int(range1[0]), int(range1[1]) + 1))
-    range2 = set(range(int(range2[0]), int(range2[1]) + 1))
-    intersection = list(range1 & range2)
-    if intersection:
-        intersection = (intersection[0], intersection[-1])
-    return intersection
+                            load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
+                                               tributary_depth, beamProp["direction"], beamProp["load"]["joist_load"])
 
 
-def tributary(direction_joist, direction_beam, main_range):
+def tributary(direction_joist, direction_beam, main_range, c):
     if direction_beam == direction_joist:
         # TRIBUTARY AREA IS A CONSTANT NUMBER HERE.
         tributary_depth = 1 * magnification_factor
     else:
-        range_length = abs(main_range[1] - main_range[0])
-        tributary_depth = range_length / 2
-    return tributary_depth
+        tributary_depth = (main_range[1] + main_range[0]) / 2
+    start_range = min(c, tributary_depth)
+    end_range = max(c, tributary_depth)
+    return start_range, end_range
 
 
 class beam_control:

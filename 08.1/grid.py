@@ -33,7 +33,7 @@ class GridWidget(QGraphicsView):
 
         # control inputs
         self.x, self.y = self.control_inputs()
-        self.snap_distance = min(min(self.x), min(self.y)) / 15  # Set the grid size
+        self.snap_distance = min(min(self.x), min(self.y)) / 25  # Set the grid size
 
         # CREATE INSTANCE FOR SNAP
         snapPoint = SnapPoint()
