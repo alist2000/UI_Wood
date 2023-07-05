@@ -37,7 +37,7 @@ class load_seismic_dialog:
 
         spin_boxes = []
         combo_boxes = []
-        labels_number = ["S1", "S2", "Fa", "Fv", "T model", "R Factor"]
+        labels_number = ["S1", "Ss", "Fa", "Fv", "T model", "R Factor"]
         # Create and add the labels and spin_boxes
         for i, label in enumerate(labels_number):
             h_layout = QHBoxLayout()
@@ -54,7 +54,7 @@ class load_seismic_dialog:
         h_layout.addWidget(label)
 
         combobox = QComboBox()
-        combobox.addItems(["1", "2", "3"])
+        combobox.addItems(["I & II", "III", "IV"])
         combobox.setCurrentText(self.mainPage.combo_values[0])
         h_layout.addWidget(combobox)
         layout.addLayout(h_layout)

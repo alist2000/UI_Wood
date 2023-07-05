@@ -113,15 +113,42 @@ class GridWidget(QGraphicsView):
 
     # SLOT RUN BUTTON
     def run_control(self):
-        data = receiver(self.post_instance.post_prop, self.beam_instance.beam_rect_prop, self.joist_instance.rect_prop,
+        data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
+                        self.joist_instance.rect_prop,
                         self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop)
-        for i in data.beam_properties.beam.values():
+        # for i in data.beam_properties.beam.values():
+        #     print(i)
+        #
+        # for i in data.joist_properties.joist.values():
+        #     print(i)
+        # for i in data.shearWall_properties.shearWall.values():
+        #     print(i)
+        print(self.grid)
+        print(self.joist_instance.rect_prop)
+        print("RUN CLICK", data.midline.midline_dict)
+        for i in data.midline.midline_dict:
             print(i)
 
-        for i in data.joist_properties.joist.values():
-            print(i)
-        for i in data.shearWall_properties.shearWall.values():
-            print(i)
+    def wheelEvent(self, event):
+        zoomInFactor = 1.25
+        zoomOutFactor = 1 / zoomInFactor
+
+        # Save the scene pos
+        oldPos = self.mapToScene(event.position().toPoint())
+
+        # Zoom
+        if event.angleDelta().y() > 0:
+            zoomFactor = zoomInFactor
+        else:
+            zoomFactor = zoomOutFactor
+        self.scale(zoomFactor, zoomFactor)
+
+        # Get the new position
+        newPos = self.mapToScene(event.position().toPoint())
+
+        # Move scene to old position
+        delta = newPos - oldPos
+        self.translate(delta.x(), delta.y())
 
     def mousePressEvent(self, event):
         if self.beam_instance.beam_select_status:  # CONTROL BEAM
@@ -140,7 +167,8 @@ class GridWidget(QGraphicsView):
             # 1 (draw mode) and 2(delete mode)
             self.studWall_instance.draw_studWall_mousePress(self, event)
 
-        data = receiver(self.post_instance.post_prop, self.beam_instance.beam_rect_prop, self.joist_instance.rect_prop,
+        data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
+                        self.joist_instance.rect_prop,
                         self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop)
         print(self.grid)
 

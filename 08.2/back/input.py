@@ -1,10 +1,12 @@
 from back.beam_control import beam_control
 from back.joist_control import joist_support_control
 from back.shearWall_control import shearWall_control
+from back.midline_control import joist_in_midline
 
 
 class receiver:
-    def __init__(self, post, beam, joist, shearWall, studWall):
+    def __init__(self, grid, post, beam, joist, shearWall, studWall):
+        self.grid = grid
         self.post = post
         self.beam = beam
         self.joist = joist
@@ -20,6 +22,7 @@ class receiver:
         self.beam_properties = beam_control(beam, post, shearWall, joist)
         self.joist_properties = joist_support_control(joist, beam, shearWall, studWall)
         self.shearWall_properties = shearWall_control(shearWall, joist, beam)
+        self.midline = joist_in_midline(joist, grid)
 
     # def beam_control(self):
     #     beam = self.beam

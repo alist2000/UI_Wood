@@ -57,5 +57,5 @@ def range_intersection(range1, range2):
     range2 = set(range(int(range2[0]), int(range2[1]) + 1))
     intersection = list(range1 & range2)
     if intersection:
-        intersection = (intersection[0], intersection[-1])
+        intersection = (min(intersection), max(intersection))
     return intersection

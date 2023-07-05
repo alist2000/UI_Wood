@@ -1,8 +1,12 @@
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
-    QTableWidget, QAbstractItemView
-from post_new import magnification_factor
+    QTableWidget, QAbstractItemView, QCheckBox
+
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QPen, QColor
+
 from area_centroid_calculator import calculate_centroid_and_area
+from post_new import magnification_factor
 
 
 class JoistProperties(QDialog):
@@ -15,6 +19,7 @@ class JoistProperties(QDialog):
         self.rect_prop = rect_prop
         self.joint_coordinate = joint_coordinate
         self.position = center_position
+        self.loadRect = []
 
         # IMAGE
         self.image = image
@@ -32,7 +37,7 @@ class JoistProperties(QDialog):
         self.create_direction_tab()
         self.load_data = self.rect_prop[self.rectItem]["load"]["total_area"]
         self.loadTab = JoistLoad(self.tab_widget, self.load_data)
-        self.loadTab_custom = JoistCustomLoad(self.tab_widget, self.rect_prop[self.rectItem])
+        self.loadTab_custom = JoistCustomLoad(self.tab_widget, self.rect_prop[self.rectItem], self.scene)
         # self.rect_prop[self.rectItem]["load"]["total_area"] = self.loadTab.load_data
         # self.rect_prop[self.rectItem]["load"]["custom_area"] = self.loadTab_custom.load_data
 
@@ -46,6 +51,14 @@ class JoistProperties(QDialog):
     # Rest of the code remains the same
 
     # dialog.show()
+    def closeEvent(self, event):
+        self.loadRect = self.loadTab_custom.rectangleList
+        for load in self.loadRect:
+            if load is not None:
+                print("deleting")
+                self.scene.removeItem(load)
+                # self.loadRect.remove(load)
+        super().closeEvent(event)
 
     def accept_control(self):
         self.final_direction = self.default
@@ -58,6 +71,13 @@ class JoistProperties(QDialog):
         self.accept()
         self.loadTab.print_values()
         self.loadTab_custom.print_values()
+
+        self.loadRect = self.loadTab_custom.rectangleList
+        for load in self.loadRect:
+            if load is not None:
+                print("deleting")
+                self.scene.removeItem(load)
+                # self.loadRect.remove(load)
 
         print(self.rect_prop)
 
@@ -159,7 +179,6 @@ class JoistProperties(QDialog):
         tab.setLayout(v_layout)
         # return self.direction
 
-
     # SLOT
     def direction_control(self):
         self.default = self.direction.currentText()
@@ -210,6 +229,9 @@ class JoistLoad(QWidget):
         comboBox = QComboBox()
         comboBox.addItem("Dead")
         comboBox.addItem("Live")
+        comboBox.addItem("Dead Super")
+        comboBox.addItem("Live Roof")
+        comboBox.addItem("Snow")
         comboBox.setStyleSheet("""
                             QComboBox {
                                 border: 1px solid gray;
@@ -248,18 +270,30 @@ class JoistLoad(QWidget):
 
 
 class JoistCustomLoad(QWidget):
-    def __init__(self, tab_widget, joistProp):
+    def __init__(self, tab_widget, joistProp, scene):
         super().__init__()
+
         self.joistProp = joistProp
+        self.scene = scene
         self.load_data = joistProp["load"]["custom_area"]
         tab_widget.addTab(self, f"Custom Load")
         self.layout = QVBoxLayout(self)
         self.buttons_layout = QHBoxLayout()
-
+        self.x1 = None
+        self.x2 = None
+        self.y1 = None
+        self.y2 = None
+        self.rectangleList = []
+        self.rectangleDict = {}
+        self.rectangle = None
+        self.x2_min = self.joistProp["coordinate"][0][0] / magnification_factor
+        self.y2_min = self.joistProp["coordinate"][0][1] / magnification_factor
         self.buttonAdd = QPushButton("Add")
         self.buttonDelete = QPushButton("Delete")
         self.buttons_layout.addWidget(self.buttonAdd)
         self.buttons_layout.addWidget(self.buttonDelete)
+
+        self.checkbox = None
 
         self.header_layout = QHBoxLayout(self)
         x_top_left = QLabel("X Top-Left")
@@ -280,7 +314,7 @@ class JoistCustomLoad(QWidget):
         # y = QLabel("Y")
         # self.x_y_layout.addWidget(x)
         # self.x_y_layout.addWidget(y)
-        self.tableWidget = QTableWidget(0, 6)
+        self.tableWidget = QTableWidget(0, 7)
         # self.table_layout1.addWidget(x, self.tableWidget1)
 
         # self.table_layout2 = QHBoxLayout(self)
@@ -320,24 +354,28 @@ class JoistCustomLoad(QWidget):
         row = self.tableWidget.rowCount()
         self.tableWidget.insertRow(row)
 
-        x1 = QDoubleSpinBox()
+        self.x1 = x1 = QDoubleSpinBox()
         x1.setDecimals(3)
         x1.setRange(self.joistProp["coordinate"][0][0] / magnification_factor,
                     self.joistProp["coordinate"][2][0] / magnification_factor)
-        x2 = QDoubleSpinBox()
+        x1.valueChanged.connect(self.x1_slot)
+
+        self.x2 = x2 = QDoubleSpinBox()
         x2.setDecimals(3)
 
-        x2.setRange(self.joistProp["coordinate"][0][0] / magnification_factor,
+        x2.setRange(self.x2_min,
                     self.joistProp["coordinate"][2][0] / magnification_factor)
-        y1 = QDoubleSpinBox()
+        self.y1 = y1 = QDoubleSpinBox()
         y1.setDecimals(3)
 
         y1.setRange(self.joistProp["coordinate"][0][1] / magnification_factor,
                     self.joistProp["coordinate"][2][1] / magnification_factor)
-        y2 = QDoubleSpinBox()
+        y1.valueChanged.connect(self.y1_slot)
+
+        self.y2 = y2 = QDoubleSpinBox()
         y2.setDecimals(3)
 
-        y2.setRange(self.joistProp["coordinate"][0][1] / magnification_factor,
+        y2.setRange(self.y2_min,
                     self.joistProp["coordinate"][2][1] / magnification_factor)
         comboBox = QComboBox()
         comboBox.addItem("Dead")
@@ -356,20 +394,27 @@ class JoistCustomLoad(QWidget):
         spinBox = QDoubleSpinBox()
         spinBox.setRange(0, 1000000)
 
+        checkbox = QCheckBox('Show rectangle', self)
+        checkbox.setChecked(False)
+        checkbox.stateChanged.connect(self.toggle_rectangle)
+
         if row_data:  # if row_data is provided
             comboBox.setCurrentText(row_data['type'])
             spinBox.setValue(row_data['magnitude'])
-            x1.setValue(row_data['x1'] / magnification_factor)
-            x2.setValue(row_data['x2'] / magnification_factor)
-            y1.setValue(row_data['y1'] / magnification_factor)
-            y2.setValue(row_data['y2'] / magnification_factor)
+            self.x1.setValue(row_data['x1'] / magnification_factor)
+            self.x2.setValue(row_data['x2'] / magnification_factor)
+            self.y1.setValue(row_data['y1'] / magnification_factor)
+            self.y2.setValue(row_data['y2'] / magnification_factor)
 
-        self.tableWidget.setCellWidget(row, 0, x1)
-        self.tableWidget.setCellWidget(row, 1, y1)
-        self.tableWidget.setCellWidget(row, 2, x2)
-        self.tableWidget.setCellWidget(row, 3, y2)
+        self.tableWidget.setCellWidget(row, 0, self.x1)
+        self.tableWidget.setCellWidget(row, 1, self.y1)
+        self.tableWidget.setCellWidget(row, 2, self.x2)
+        self.tableWidget.setCellWidget(row, 3, self.y2)
         self.tableWidget.setCellWidget(row, 4, comboBox)
         self.tableWidget.setCellWidget(row, 5, spinBox)
+        self.tableWidget.setCellWidget(row, 6, checkbox)
+
+        # self.draw_rectangle()
 
     def delete_item(self):
         currentRow = self.tableWidget.currentRow()
@@ -393,3 +438,65 @@ class JoistCustomLoad(QWidget):
                 'y2': y2.value() * magnification_factor
             })
             print(f"Row {row + 1}: Combo box value: {comboBox.currentText()}, Spin box value: {spinBox.value()}")
+
+    # SLOT
+    def x1_slot(self):
+        self.x2_min = self.x1.value()
+
+    # SLOT
+    def y1_slot(self):
+        self.y2_min = self.y1.value()
+
+    # def draw_rectangle(self):
+    #     x1 = self.x1.value()
+    #     y1 = self.y1.value()
+    #     x2 = self.x2.value()
+    #     y2 = self.y2.value()
+    #
+    #     # self.scene.clear()  # clear previous drawings
+    #     if self.checkbox.isChecked():
+    #         self.rectangle = self.scene.addRect(
+    #             QRectF(x1 * magnification_factor, y1 * magnification_factor, (x2 - x1) * magnification_factor, (
+    #                     y2 - y1) * magnification_factor), QPen(QColor(255, 0, 0)))
+    #         self.rectangleList.append(self.rectangle)
+    #     else:
+    #         try:
+    #             self.rectangleList.remove(self.rectangle)
+    #         except:
+    #             pass
+    def draw_rectangle(self, row):
+        x1 = self.tableWidget.cellWidget(row, 0).value()
+        y1 = self.tableWidget.cellWidget(row, 1).value()
+        x2 = self.tableWidget.cellWidget(row, 2).value()
+        y2 = self.tableWidget.cellWidget(row, 3).value()
+        self.rectangle = self.scene.addRect(
+            QRectF(x1 * magnification_factor, y1 * magnification_factor, (x2 - x1) * magnification_factor, (
+                    y2 - y1) * magnification_factor), QPen(QColor(255, 0, 0)))
+        self.rectangleList.append(self.rectangle)
+        self.rectangleDict[f"{row}"] = self.rectangle
+
+    def toggle_rectangle(self):
+        row = self.tableWidget.currentRow()
+        self.checkbox = self.tableWidget.cellWidget(row, 6)
+        print("ROW:   ", row)
+        if self.checkbox.isChecked():
+            self.draw_rectangle(row)
+            self.rectangle.setVisible(self.checkbox.isChecked())
+            self.rectangleList.append(self.rectangle)
+
+        else:
+            try:
+                self.rectangleList.remove(self.rectangle)
+            except:
+                pass
+            if self.rectangleDict[f"{row}"]:
+                try:
+                    self.scene.removeItem(self.rectangleDict[f"{row}"])
+                except:
+                    print("FUCKED")
+
+            # for load in self.rectangleList:
+            #     if load is not None:
+            #         print("deleting")
+            #         self.scene.removeItem(load)
+            #         # self.loadRect.remove(load)

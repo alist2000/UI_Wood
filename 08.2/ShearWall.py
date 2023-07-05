@@ -343,7 +343,7 @@ class ShearWallProperties(QDialog):
         self.create_geometry_tab()
         self.create_assignment_tab()
         self.lineLoad = lineLoad(self.tab_widget, self.rect_prop[self.rectItem])
-        self.pointLoad = pointLoad_line(self.tab_widget, self.rect_prop[self.rectItem])
+        # self.pointLoad = pointLoad_line(self.tab_widget, self.rect_prop[self.rectItem])
 
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
@@ -355,7 +355,7 @@ class ShearWallProperties(QDialog):
 
     def accept_control(self):
         self.lineLoad.print_values()
-        self.pointLoad.print_values()
+        # self.pointLoad.print_values()
         self.accept()
 
     def create_geometry_tab(self):
