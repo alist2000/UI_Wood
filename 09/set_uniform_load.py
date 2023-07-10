@@ -57,7 +57,10 @@ class set_uniform_load(QDialog):
     def delete_row(self):
         # Delete the selected row
         for item in self.listWidget.selectedItems():
+            name = item.text()
+            self.all_set_load.pop(name)
             self.listWidget.takeItem(self.listWidget.row(item))
+
 
     def modify_row(self):
         # Open the add dialog with the values of the selected row

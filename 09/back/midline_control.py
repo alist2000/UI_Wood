@@ -85,6 +85,19 @@ class control:
                             midline = midline_area_calc(load["magnitude"], x_range, y_range,
                                                         load["type"])
                             lineProp.append(midline.midline_area_dict)
+                    joistLoadMap = JoistProp["load"]["load_map"]
+                    for load_set in joistLoadMap:
+                        load_x_range = load_set["range_x"]
+                        load_y_range = load_set["range_y"]
+                        midlineRange = midline_range(direction, load_x_range, load_y_range, gridRange)
+
+                        x_range = midlineRange.x_range
+                        y_range = midlineRange.y_range
+                        if x_range and y_range:
+                            for load in load_set["load"]:
+                                midline = midline_area_calc(load["magnitude"], x_range, y_range,
+                                                            load["type"])
+                                lineProp.append(midline.midline_area_dict)
 
 
 # joist = {"<joist_new.joistRectangle(0x29616f25bb0, pos=0,0) at 0x0000029617CDB000>": {'label': 'J1',

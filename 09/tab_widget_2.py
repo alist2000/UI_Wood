@@ -7,6 +7,7 @@ from grid import GridWidget
 
 from post_new import PostButton
 from joist_new import JoistButton
+from load_map import LoadButton
 from Beam import BeamButton
 from ShearWall import ShearWallButton
 from StudWall import StudWallButton
@@ -46,7 +47,7 @@ class secondTabWidget(QMainWindow):
         # toolBar.addWidget(toolButton)
 
         self.setCentralWidget(self.tabWidget)
-        self.seismic_parameters = ToolBar(self)
+        self.toolBar = ToolBar(self)
         # self.create_tool_bar()
         self.show()
         # self.tab_widget = QTabWidget()
@@ -102,13 +103,17 @@ class secondTabWidget(QMainWindow):
             studWall_instance = StudWallButton(tab)
             studWall_item = studWall_instance.studWall
 
+            # ADD JOIST BUTTON
+            load_instance = LoadButton(tab)
+            load_item = load_instance.load
+
             # ADD RUN (NOW IT IS FOR TEST)
             runButton = QPushButton("RUN")
 
             # ADD GRID LINES
             grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
                               joist_instance, beam_instance, shearWall_instance, studWall_instance, runButton,
-                              self.shapes, self.slider)
+                              self.shapes, self.slider, load_instance, self.toolBar)
             menu = grid.menu
             # menu = Image(grid, self.slider)
             # menu = TabContent(f"number {i}")
@@ -131,6 +136,7 @@ class secondTabWidget(QMainWindow):
             v_layout.addWidget(beam_item)
             v_layout.addWidget(shearWall_item)
             v_layout.addWidget(studWall_item)
+            v_layout.addWidget(load_item)
             v_layout.addWidget(runButton)
 
             h_layout.addLayout(v_layout2, 1)

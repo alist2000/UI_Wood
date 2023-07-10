@@ -1,24 +1,24 @@
-from PySide6.QtCore import Qt, QPointF, QPoint
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPen, QPainter, QBrush
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem
-from mouse import SelectableLineItem
-from post_new import PostDrawing
-from joist_new import joistDrawing
+
 from Beam import beamDrawing
 from ShearWall import shearWallDrawing
 from StudWall import studWallDrawing
-from tool_bar import Image
-
-from snap import SnapLine, SnapPoint
-
+from back.input import receiver
+from joist_new import joistDrawing
+from load_map import loadDrawing
+from mouse import SelectableLineItem
+from post_new import PostDrawing
 # from main import magnification_factor
 from post_new import magnification_factor
-
-from back.input import receiver
+from snap import SnapLine, SnapPoint
+from tool_bar import Image
 
 
 class GridWidget(QGraphicsView):
     def __init__(self, h_grid_number, v_grid_number, y, x, post, joist, beam, shearWall, studWall, run, shapes, slider,
+                 load, toolBar,
                  parent=None):
         super().__init__(parent)
         self.scene = QGraphicsScene()
@@ -88,6 +88,7 @@ class GridWidget(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
 
         self.joist_instance = joistDrawing(joist, self.scene, snapPoint, snapLine)
+        self.load_instance = loadDrawing(load, self.scene, snapPoint, snapLine, toolBar)
         self.post_instance = PostDrawing(post, self.x, self.y, self.scene, snapPoint, snapLine)
         self.shearWall_instance = shearWallDrawing(shearWall, self.x, self.y, self.grid, self.scene, snapPoint,
                                                    snapLine)
@@ -109,6 +110,7 @@ class GridWidget(QGraphicsView):
 
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
         joist.joist.clicked.connect(self.joist_instance.joist_selector)
+        load.load.clicked.connect(self.load_instance.load_selector)
         post.post.clicked.connect(self.post_instance.post_drawing_control)
         shearWall.shearWall.clicked.connect(self.shearWall_instance.shearWall_selector)
         studWall.studWall.clicked.connect(self.studWall_instance.studWall_selector)
@@ -119,9 +121,10 @@ class GridWidget(QGraphicsView):
     def run_control(self):
         data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
                         self.joist_instance.rect_prop,
-                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop)
-        # for i in data.beam_properties.beam.values():
-        #     print(i)
+                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
+                        self.load_instance.rect_prop)
+        for i in data.beam_properties.beam.values():
+            print(i)
         #
         # for i in data.joist_properties.joist.values():
         #     print(i)
@@ -171,6 +174,9 @@ class GridWidget(QGraphicsView):
         elif self.studWall_instance.studWall_select_status:  # CONTROL STUD WALL
             # 1 (draw mode) and 2(delete mode)
             self.studWall_instance.draw_studWall_mousePress(self, event)
+        elif self.load_instance.load_status:  # CONTROL LOAD MAP
+            # 1 (draw mode) and 2(delete mode)
+            self.load_instance.draw_load_mousePress(self, event)
         else:
             if self.menu.pixmapItem:
                 # First check if the pixmap is under the mouse cursor when pressed
@@ -186,7 +192,8 @@ class GridWidget(QGraphicsView):
 
         data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
                         self.joist_instance.rect_prop,
-                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop)
+                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
+                        self.load_instance.rect_prop)
         # self.lastPanPoint = event.position().toPoint()
         # self.setCursor(Qt.ClosedHandCursor)
         # self.scene.clearSelection()
@@ -210,6 +217,9 @@ class GridWidget(QGraphicsView):
             self.shearWall_instance.draw_shearWall_mouseMove(self, event)
         elif self.studWall_instance.studWall_select_status == 1:  # CONTROL STUD WALL
             self.studWall_instance.draw_studWall_mouseMove(self, event)
+        elif self.load_instance.load_status == 1:
+            self.load_instance.draw_load_mouseMove(self, event)
+
             # If pixmap dragging flag is set, move pixmap
         if self.menu.pixmapItem:
             if self.menu.pixmapItem.isSelected() and self.menu.unlock:
@@ -217,7 +227,6 @@ class GridWidget(QGraphicsView):
                 pos = self.mapToScene(event.pos())
                 # Update the position of the pixmapItem
                 self.menu.pixmapItem.setPos(pos)
-
 
         # else:
         #     # Call base function  if pixmap is not intended to be moved

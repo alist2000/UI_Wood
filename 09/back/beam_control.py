@@ -250,7 +250,7 @@ class beam_control_joist:
     def control_intersection(self):
         for beamProp in self.beam.values():
             beamProp["joist"] = []
-            beamProp["load"]["joist_load"] = []
+            beamProp["load"]["joist_load"] = {"assignment": [], "load_map": []}
             slope_beam = beamProp["line"]["properties"]["slope"]
             c_beam = beamProp["line"]["properties"]["c"]
             range_beam = beamProp["line"]["properties"]["range"]
