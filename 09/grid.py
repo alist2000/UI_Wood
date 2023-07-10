@@ -13,7 +13,7 @@ from post_new import PostDrawing
 # from main import magnification_factor
 from post_new import magnification_factor
 from snap import SnapLine, SnapPoint
-from tool_bar import Image
+from menuBar import Image, visual
 
 
 class GridWidget(QGraphicsView):
@@ -108,6 +108,13 @@ class GridWidget(QGraphicsView):
         self.studWall_instance.other_button = [self.post_instance, self.beam_instance, self.joist_instance,
                                                self.shearWall_instance]
 
+        # CRETE VISUAL MENU
+        self.visual_setting = visual(self, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
+                                     self.joist_instance.rect_prop,
+                                     self.shearWall_instance.shearWall_rect_prop,
+                                     self.studWall_instance.studWall_rect_prop,
+                                     self.load_instance.rect_prop)
+
         beam.beam.clicked.connect(self.beam_instance.beam_selector)
         joist.joist.clicked.connect(self.joist_instance.joist_selector)
         load.load.clicked.connect(self.load_instance.load_selector)
@@ -125,7 +132,8 @@ class GridWidget(QGraphicsView):
                         self.load_instance.rect_prop)
         for i in data.beam_properties.beam.values():
             print(i)
-        #
+        for loadItem in self.load_instance.rect_prop.keys():
+            loadItem.setVisible(not loadItem.isVisible())
         # for i in data.joist_properties.joist.values():
         #     print(i)
         # for i in data.shearWall_properties.shearWall.values():

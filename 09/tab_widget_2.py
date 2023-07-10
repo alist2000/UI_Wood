@@ -12,7 +12,8 @@ from Beam import BeamButton
 from ShearWall import ShearWallButton
 from StudWall import StudWallButton
 from action import save_tabs, load_tabs
-from tool_bar import ToolBar, Image
+from tool_bar import ToolBar
+from menuBar import Image
 
 
 class secondTabWidget(QMainWindow):
@@ -115,12 +116,14 @@ class secondTabWidget(QMainWindow):
                               joist_instance, beam_instance, shearWall_instance, studWall_instance, runButton,
                               self.shapes, self.slider, load_instance, self.toolBar)
             menu = grid.menu
+            visual_setting = grid.visual_setting
             # menu = Image(grid, self.slider)
             # menu = TabContent(f"number {i}")
 
             # image = Image(grid, self.slider)
             menu_layout = QHBoxLayout()
             menu_layout.addWidget(menu)
+            menu_layout.addWidget(visual_setting)
             v_main_layout = QVBoxLayout()
             v_main_layout.addLayout(menu_layout, 1)
 
