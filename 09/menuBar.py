@@ -142,8 +142,9 @@ class visual(QMainWindow):
 
     @staticmethod
     def hide_show(Keys):
+        firstKey = Keys[0].isVisible()
         for key in Keys:
-            key.setVisible(not key.isVisible())
+            key.setVisible(not firstKey)
 
     def postHideShow(self):
         Keys = list(self.postProp.keys())

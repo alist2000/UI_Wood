@@ -14,8 +14,8 @@ class load_joist_on_beam:
         self.beamDirection = beamDirection
         self.beamJoistLoad_assignment = beamJoistLoad["assignment"]
         self.beamJoistLoad_load_map = beamJoistLoad["load_map"]
-        self.beamJoistLoad_assignment.clear()
-        self.beamJoistLoad_load_map.clear()
+        # self.beamJoistLoad_assignment.clear()
+        # self.beamJoistLoad_load_map.clear()
         total_area_load = self.joistLoad["total_area"]
         self.total_area_to_line(total_area_load)
         custom_area_load = self.joistLoad["custom_area"]
