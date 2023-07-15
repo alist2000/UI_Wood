@@ -6,6 +6,7 @@ from Beam import beamDrawing
 from ShearWall import shearWallDrawing
 from StudWall import studWallDrawing
 from back.input import receiver
+from output.beam_output import beam_output
 from joist_new import joistDrawing
 from load_map import loadDrawing
 from mouse import SelectableLineItem
@@ -54,6 +55,8 @@ class GridWidget(QGraphicsView):
         width_manual = sum(self.x)
         height_manual = sum(self.y)
         x_list, y_list = self.edit_spacing()
+        print("xlist", x_list)
+        print("ylist", y_list)
 
         pen = QPen(Qt.black, 1, Qt.SolidLine)
 
@@ -65,7 +68,7 @@ class GridWidget(QGraphicsView):
             self.scene.addItem(line_horizontal)
             self.grid["horizontal"].append({
                 "label": f"{i + 1}",
-                "position": x_list[i]
+                "position": y_list[i]
             })
         for i in range(v_grid_number):
             line_vertical = SelectableLineItem(x_list[i], 0, x_list[i], height_manual)
@@ -134,8 +137,15 @@ class GridWidget(QGraphicsView):
                         self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
                         self.load_instance.rect_prop)
 
-        # for i in data.beam_properties.beam.values():
-        #     print(i)
+        print("FIRST BEAM")
+        for i in data.beam_properties.beam.values():
+            print(i)
+
+        beamOutput = beam_output(data.beam_properties.beam)
+        print("FINAL BEAM OUTPUT")
+        for i in beamOutput.beamProperties.values():
+            print(i)
+
         # for loadItem in self.load_instance.rect_prop.keys():
         #     loadItem.setVisible(not loadItem.isVisible())
         # for i in data.joist_properties.joist.values():

@@ -8,6 +8,7 @@ from PySide6.QtGui import QPixmap, QAction, QKeyEvent
 from PySide6.QtCore import Qt, QPoint
 
 from set_uniform_load import set_uniform_load
+from replicate import Replicate
 
 
 class ToolBar:
@@ -15,6 +16,7 @@ class ToolBar:
         self.mainPage = mainPage
         self.dialogPage = load_seismic_dialog(self)
         self.dialogPage2 = set_uniform_load(self)
+        self.dialogPage3 = Replicate(self)
 
         self.spin_values = [0, 0, 0, 0, 0, 0]
         self.combo_values = ["1"]
@@ -33,6 +35,12 @@ class ToolBar:
         seismic_parameters_action = QAction('Define Set Uniform Load', self.mainPage)
         seismic_parameters_action.triggered.connect(self.dialogPage2.uniform_load_exe)
         tool_bar.addAction(seismic_parameters_action)
+
+        # Create Define Set Uniform Load Cases
+        replicate = QAction('Replicate', self.mainPage)
+        replicate.triggered.connect(self.dialogPage3.rep_exec)
+        # replicate.triggered.connect(self.dialogPage3.rep_exec)
+        tool_bar.addAction(replicate)
 
         # saveAction.triggered.connect(self.save_tabs)
 
@@ -73,7 +81,7 @@ class load_seismic_dialog:
         # Get the widget from the source tab
         # print("lkjk", source_tab)
         # print("s2", self.mainPage.mainPage.tabWidget.currentWidget())
-        # for i in range(10):
+        # for i in range(10.4):
         # widget_to_copy = source_tab.layout().itemAt(1)
         # lay = QStackedLayout()
         # lay.addWidget(widget_to_copy.itemAt(0).widget())

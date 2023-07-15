@@ -146,13 +146,13 @@ class SnapLine(Snap):
 # class TestSnapPoint(unittest.TestCase):
 #     def setUp(self):
 #         self.snap_point = SnapPoint()
-#         self.snap_point.add_point(10, 20)
+#         self.snap_point.add_point(10.4, 20)
 #         self.snap_point.add_point(30, 40)
 #         self.snap_point.set_snap_distance(5)
 #
 #     def test_snap_point_inside_snap_distance(self):
 #         result = self.snap_point.snap(QPointF(15, 25))
-#         self.assertEqual(result, QPointF(10, 20))
+#         self.assertEqual(result, QPointF(10.4, 20))
 #
 #     def test_snap_point_outside_snap_distance(self):
 #         result = self.snap_point.snap(QPointF(40, 50))

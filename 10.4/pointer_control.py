@@ -39,9 +39,9 @@ def set_point(range_x, range_y, x, y, support_type):
 # print(set_point((0, 100), (375, 425), 28, 402, "beam"))
 # print(set_point((0, 50), (375, 450), 28, 402, "beam"))
 # print(set_point((25, 50), (375, 450), 28, 402, "beam"))
-# print(set_point((10, 50), (300, 450), 28, 402, "beam"))
-# print(set_point((10, 50), (300, 450), 5, 402, "beam"))
-# print(set_point((10, 50), (300, 450), 5, 402, "post"))
+# print(set_point((10.4, 50), (300, 450), 28, 402, "beam"))
+# print(set_point((10.4, 50), (300, 450), 5, 402, "beam"))
+# print(set_point((10.4, 50), (300, 450), 5, 402, "post"))
 
 
 def range_post(post_position, post_dimension):

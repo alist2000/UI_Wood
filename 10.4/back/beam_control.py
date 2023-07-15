@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.1")
+sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.")
 from post_new import magnification_factor
 from back.load_control import load_joist_on_beam, range_intersection
 
@@ -311,9 +311,9 @@ class beam_control:
 
 
 # Beam = {"beamItem1": {"label": "B1", "coordinate": [(0, 0), (4, 3)]},
-#         "beamItem2": {"label": "B2", "coordinate": [(0, 0), (10, 20)]}}
-# Post = {"postItem1": {"label": "P1", "coordinate": (10, 20)},
-#         "postItem2": {"label": "P2", "coordinate": (5, 10)}}
+#         "beamItem2": {"label": "B2", "coordinate": [(0, 0), (10.4, 20)]}}
+# Post = {"postItem1": {"label": "P1", "coordinate": (10.4, 20)},
+#         "postItem2": {"label": "P2", "coordinate": (5, 10.4)}}
 # ShearWall = {"<ShearWall.Rectangle(0x1e25840c970, pos=0,0) at 0x000001E2592E4140>": {'label': 'SW1',
 #                                                                                      'coordinate': [(400.0, 59.0),
 #                                                                                                     (400.0, 330.0)],
@@ -364,7 +364,7 @@ class beam_control:
 #                                                                                               'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1c31bbffaf0, pos=0,0) at 0x000001C31C9AB480>",
 #                                                                                               'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1c31bbff830, pos=0,0) at 0x000001C31C9AB4C0>",
 #                                                                                               'start_center': (
-#                                                                                                   400.0, 10.0),
+#                                                                                                   400.0, 10.4.0),
 #                                                                                               'end_center': (
 #                                                                                                   400.0, 130.0)},
 #                                                                                      'direction': 'N-S',
@@ -392,7 +392,7 @@ class beam_control:
 #     "<post_new.CustomRectItem(0x1c31bbfff70, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001C31C98C440>": {
 #         'label': 'P1', 'coordinate': (0.0, 0.0)},
 #     "<post_new.CustomRectItem(0x1c31bbff430, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001C31C98C680>": {
-#         'label': 'P2', 'coordinate': (-10.0, 400.0)}}
+#         'label': 'P2', 'coordinate': (-10.4.0, 400.0)}}
 Beam = {"<Beam.Rectangle(0x1efd680d550, pos=0,0) at 0x000001EFD74D0E00>": {'label': 'B1', 'coordinate': [(0.0, 400.0), (
     338.0, 400.0)]}, "<Beam.Rectangle(0x1efd680cdd0, pos=0,0) at 0x000001EFD74D0E80>": {'label': 'B2',
                                                                                         'coordinate': [(302.0, 400.0),
