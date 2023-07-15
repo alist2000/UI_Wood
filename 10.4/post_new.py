@@ -54,7 +54,7 @@ class PostDrawing(QGraphicsRectItem):
             x, y = coordinate
             rect = self.add_rectangle(x, y)
             self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": coordinate,
-                                    "load": {"point": []}}
+                                    "load": {"point": []}, "wall_width": "6 in"}
             self.snapPoint.add_point(x, y)
             self.post_number += 1
             return True
@@ -64,7 +64,7 @@ class PostDrawing(QGraphicsRectItem):
                 snapped_pos = self.snapPoint.snap(pos)
                 rect = self.add_rectangle(snapped_pos.x(), snapped_pos.y())
                 self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": snapped_pos.toTuple(),
-                                        "load": {"point": []}}
+                                        "load": {"point": []}, "wall_width": "6 in"}
                 self.snapPoint.add_point(snapped_pos.x(), snapped_pos.y())
                 self.post_number += 1
                 return True

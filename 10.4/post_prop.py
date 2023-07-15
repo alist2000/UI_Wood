@@ -13,17 +13,19 @@ class PostProperties(QDialog):
         self.post_prop = post_properties
         self.setWindowTitle("Post Properties")
         self.setMinimumSize(200, 400)
+        self.wallWidth = None
+        self.wallWidth_default = post_properties[rectItem]["wall_width"]
+        self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
 
         v_layout = QVBoxLayout()
 
         self.tab_widget = QTabWidget()
         self.tab_widget.setWindowTitle("Object Data")
         self.create_geometry_tab()
+        self.create_assignment_tab()
         self.pointLoad = pointLoad(self.tab_widget, self.post_prop[self.rect])
-
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
 
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
@@ -83,6 +85,34 @@ class PostProperties(QDialog):
     def accept_control(self):
         self.pointLoad.print_values()
         self.accept()
+
+    def create_assignment_tab(self):
+        tab = QWidget()
+        self.tab_widget.addTab(tab, f"Assignments")
+        label1 = QLabel("Wall Width")
+        self.wallWidth = wallWidth = QComboBox()
+        wallWidth.addItems(["6 in", "8 in"])
+        self.wallWidth.setCurrentText(self.post_prop[self.rect]["wall_width"])
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.wallWidth.currentTextChanged.connect(self.wall_width_control)
+
+        # LAYOUT
+        h_layout1 = QHBoxLayout()
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(wallWidth)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout1)
+
+        tab.setLayout(v_layout)
+        # return self.direction
+
+        # SLOT
+
+    def wall_width_control(self):
+        self.thickness_default = self.wallWidth.currentText()
+        self.post_prop[self.rect]["wall_width"] = self.thickness_default
 
 
 class pointLoad(QWidget):
