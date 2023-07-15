@@ -62,8 +62,8 @@ class load_joist_on_beam:
                     {"from": self.joistLabel, "type": Type, "magnitude": magnitude, "start": start, "end": end})
 
     def load_map_to_line(self, loads):
-        load_list = []
         for load_set in loads:
+            load_list = []
             range_x_load = load_set["range_x"]
             range_y_load = load_set["range_y"]
 
@@ -120,9 +120,12 @@ class load_on_joist:
 
 
 def range_intersection(range1, range2):
-    range1 = set(range(int(range1[0]), int(range1[1]) + 1))
-    range2 = set(range(int(range2[0]), int(range2[1]) + 1))
-    intersection = list(range1 & range2)
-    if intersection:
-        intersection = (min(intersection), max(intersection))
+    x1, x2 = range1
+    y1, y2 = range2
+    start = max(x1, y1)
+    end = min(x2, y2)
+    if x2 >= start and start <= y2 and end >= x1 and y1 <= end and start < end:
+        intersection = (start, end)
+    else:
+        intersection = ()
     return intersection
