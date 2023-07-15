@@ -42,8 +42,9 @@ class loadDrawing(QGraphicsRectItem):
 
         # note spacing x = width, spacing y = height
 
-    def draw_load_mousePress(self, main_self, event, coordinate=None):
-        if coordinate:  # for copy/load
+    def draw_load_mousePress(self, main_self, event, properties=None):
+        if properties:  # for copy/load
+            coordinate = properties["coordinate"]
             x1, y1 = coordinate[0]
             x2, y2 = coordinate[2]
             x1_main = min(x1, x2)
@@ -68,7 +69,7 @@ class loadDrawing(QGraphicsRectItem):
             # result = dialog.exec()
             # print(dialog.color)
             # print(result)
-            rect_item.setBrush(QColor(dialog.color))
+            rect_item.setBrush(QColor(properties["color"]))
             print(f"Value chosen in combo box: {dialog.combo_box.currentText()}")
             if dialog.combo_box.currentText():
                 load = self.toolBar.dialogPage2.all_set_load[
@@ -77,10 +78,11 @@ class loadDrawing(QGraphicsRectItem):
                 load = []
 
             # Save coordinates of the rectangle corners
-            self.rect_prop[rect_item] = {"label": dialog.combo_box.currentText(),
+            self.rect_prop[rect_item] = {"label": properties["label"],
                                          "coordinate": [(x1_main, y1_main), (x1_main, y2_main),
                                                         (x2_main, y2_main), (x2_main, y1_main)],
-                                         "load": load}
+                                         "color": properties["color"],
+                                         "load": properties["load"]}
             joist_line_creator(self.rect_prop[rect_item])
             print(self.rect_prop)
             self.load_number += 1
@@ -141,6 +143,7 @@ class loadDrawing(QGraphicsRectItem):
                         self.rect_prop[rect_item] = {"label": dialog.combo_box.currentText(),
                                                      "coordinate": [(x1_main, y1_main), (x1_main, y2_main),
                                                                     (x2_main, y2_main), (x2_main, y1_main)],
+                                                     "color": dialog.color,
                                                      "load": load}
                         joist_line_creator(self.rect_prop[rect_item])
                         print(self.rect_prop)

@@ -199,22 +199,22 @@ class copyObject:
             for item in items:
                 if item == "post":
                     for postProp in postObjects:
-                        targetTab.post_instance.draw_post_mousePress(None, None, postProp["coordinate"])
+                        targetTab.post_instance.draw_post_mousePress(None, None, postProp)
                 elif item == "beam":
                     for beamProp in beamObjects:
-                        targetTab.beam_instance.draw_beam_mousePress(None, None, beamProp["coordinate"])
+                        targetTab.beam_instance.draw_beam_mousePress(None, None, beamProp)
                 elif item == "joist":
                     for joistProp in joistObjects:
-                        targetTab.joist_instance.draw_joist_mousePress(None, None, joistProp["coordinate"])
+                        targetTab.joist_instance.draw_joist_mousePress(None, None, joistProp)
                 elif item == "shearWall":
                     for shearWallProp in shearWallObjects:
-                        targetTab.shearWall_instance.draw_shearWall_mousePress(None, None, shearWallProp["coordinate"])
+                        targetTab.shearWall_instance.draw_shearWall_mousePress(None, None, shearWallProp)
                 elif item == "studWall":
                     for studWallProp in studWallObjects:
                         targetTab.studWall_instance.draw_studWall_mousePress(None, None, studWallProp["coordinate"])
                 elif item == "loadMap":
                     for loadProp in loadMapObjects:
-                        targetTab.load_instance.draw_load_mousePress(None, None, loadProp["coordinate"])
+                        targetTab.load_instance.draw_load_mousePress(None, None, loadProp)
         # joistProp = list(self.mainPage.mainPage.grid[0].joist_instance.rect_prop.values())
         # self.mainPage.mainPage.grid[1].joist_instance.draw_joist_mousePress(None, None, joistProp[0]["coordinate"])
 # class MainWindow(QMainWindow):

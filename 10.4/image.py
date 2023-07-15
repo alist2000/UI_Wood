@@ -3,8 +3,11 @@ from PySide6.QtWidgets import QGraphicsPixmapItem
 
 
 class image_control:
-    def __init__(self, x, y, width, height, rectItem):
-        self.path = "images/n_s.png"
+    def __init__(self, x, y, width, height, rectItem, path=None):
+        if path:
+            self.path = path
+        else:
+            self.path = "images/n_s.png"
 
         self.x = x
         self.y = y

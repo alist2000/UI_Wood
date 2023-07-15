@@ -40,8 +40,9 @@ class joistDrawing(QGraphicsRectItem):
 
         # note spacing x = width, spacing y = height
 
-    def draw_joist_mousePress(self, main_self, event, coordinate=None):
-        if coordinate:  # for copy/load
+    def draw_joist_mousePress(self, main_self, event, properties=None):
+        if properties:  # for copy/load
+            coordinate = properties["coordinate"]
             x1, y1 = coordinate[0]
             x2, y2 = coordinate[2]
             x1_main = min(x1, x2)
@@ -51,7 +52,12 @@ class joistDrawing(QGraphicsRectItem):
             rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
 
             rect_item = joistRectangle(rect_x, rect_y, rect_w, rect_h, self.rect_prop)
-            image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item)
+            if properties["direction"] == "E-W":
+                imagePath = "images/e_w.png"
+            else:
+                imagePath = "images/n_s.png"
+
+            image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item, imagePath)
             rect_item.image = image
 
             rect_item.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
@@ -62,8 +68,9 @@ class joistDrawing(QGraphicsRectItem):
             self.rect_prop[rect_item] = {"label": f"J{self.joist_number}",
                                          "coordinate": [(x1_main, y1_main), (x1_main, y2_main),
                                                         (x2_main, y2_main), (x2_main, y1_main)],
-                                         "direction": "N-S",
-                                         "load": {"total_area": [], "custom_area": [], "load_map": []}}
+                                         "direction": properties["direction"],
+                                         "load": {"total_area": properties["load"]["total_area"],
+                                                  "custom_area": properties["load"]["custom_area"], "load_map": []}}
             joist_line_creator(self.rect_prop[rect_item])
             print(self.rect_prop)
             self.joist_number += 1

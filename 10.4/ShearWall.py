@@ -3,12 +3,11 @@ from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 
+from DeActivate import deActive
+from back.beam_control import beam_line_creator
+from beam_prop import lineLoad
 from pointer_control import beam_end_point, pointer_control_shearWall
 from post_new import magnification_factor
-from DeActivate import deActive
-from beam_prop import lineLoad, pointLoad_line
-
-from back.beam_control import beam_line_creator
 
 
 class ShearWallButton(QWidget):
@@ -47,11 +46,12 @@ class shearWallDrawing(QGraphicsRectItem):
         self.shearWall_post_number = 1
         self.shearWall_loc = []  # for every single shearWall
 
-    def draw_shearWall_mousePress(self, main_self, event, coordinate=None):
-        if coordinate:  # for copy/load
+    def draw_shearWall_mousePress(self, main_self, event, prop=None):
+        if prop:  # for copy/load
+            coordinate = prop["coordinate"]
             x1, y1 = coordinate[0]
             x2, y2 = coordinate[1]
-            self.finalize_rectangle_copy((x1, y1), (x2, y2))
+            self.finalize_rectangle_copy((x1, y1), (x2, y2), prop)
         else:
             if event.button() == Qt.LeftButton:
                 pos = main_self.mapToScene(event.position().toPoint())
@@ -82,6 +82,8 @@ class shearWallDrawing(QGraphicsRectItem):
                             self.snapPoint.remove_point(self.shearWall_rect_prop[item]["post"]["end_center"])
 
                             # delete start and end rectangles
+                            print("post of shear wall", self.shearWall_rect_prop[item]["post"]["start_rect_item"])
+                            print("post of shear wall", self.shearWall_rect_prop[item]["post"]["end_rect_item"])
                             self.scene.removeItem(self.shearWall_rect_prop[item]["post"]["start_rect_item"])
                             self.scene.removeItem(self.shearWall_rect_prop[item]["post"]["end_rect_item"])
 
@@ -263,7 +265,7 @@ class shearWallDrawing(QGraphicsRectItem):
         # self.current_rect = None
         self.start_pos = None
 
-    def finalize_rectangle_copy(self, start, end):
+    def finalize_rectangle_copy(self, start, end, prop):
         self.shearWall_loc.append(start)
 
         x1, y1 = start
@@ -356,8 +358,8 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "direction": self.direction,
                                                        "interior_exterior": self.interior_exterior,
                                                        "line_label": self.line,
-                                                       "thickness": "4 in",  # in
-                                                       "load": {"point": [], "line": []}
+                                                       "thickness": prop["thickness"],  # in
+                                                       "load": prop["load"]
 
                                                        }
         beam_line_creator(self.shearWall_rect_prop[self.current_rect])

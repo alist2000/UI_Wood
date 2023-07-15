@@ -49,12 +49,14 @@ class PostDrawing(QGraphicsRectItem):
 
         self.post_prop = {}  # Dictionary to store coordinates of rectangles
 
-    def draw_post_mousePress(self, main_self, event, coordinate=None):
-        if coordinate:  # for copy/load
+    def draw_post_mousePress(self, main_self, event, properties=None):
+        if properties:  # for copy/load
+            coordinate = properties["coordinate"]
             x, y = coordinate
             rect = self.add_rectangle(x, y)
             self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": coordinate,
-                                    "load": {"point": []}, "wall_width": "6 in"}
+                                    "load": {"point": properties["load"]["point"]},
+                                    "wall_width": properties["wall_width"]}
             self.snapPoint.add_point(x, y)
             self.post_number += 1
             return True

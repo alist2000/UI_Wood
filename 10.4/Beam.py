@@ -40,11 +40,12 @@ class beamDrawing(QGraphicsRectItem):
         self.beam_number = 1
         self.beam_loc = []  # for every single beam
 
-    def draw_beam_mousePress(self, main_self, event, coordinate=None):
-        if coordinate:  # for copy/load
+    def draw_beam_mousePress(self, main_self, event, properties=None):
+        if properties:  # for copy/load
+            coordinate = properties["coordinate"]
             x1, y1 = coordinate[0]
             x2, y2 = coordinate[1]
-            self.finalize_rectangle_copy((x1, y1), (x2, y2))
+            self.finalize_rectangle_copy((x1, y1), (x2, y2), properties)
         else:
             if event.button() == Qt.LeftButton:
 
@@ -180,7 +181,7 @@ class beamDrawing(QGraphicsRectItem):
         # self.current_rect = None
         self.start_pos = None
 
-    def finalize_rectangle_copy(self, start, end):
+    def finalize_rectangle_copy(self, start, end, properties):
         self.beam_loc.append(start)
 
         x1, y1 = start
@@ -207,7 +208,8 @@ class beamDrawing(QGraphicsRectItem):
         self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                   "coordinate": [
                                                       start, final_end_point],
-                                                  "load": {"point": [], "line": []}}
+                                                  "load": {"point": properties["load"]["point"],
+                                                           "line": properties["load"]["line"]}}
         print(self.beam_rect_prop)
         self.beam_number += 1
 
