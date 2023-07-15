@@ -65,7 +65,7 @@ class GridWidget(QGraphicsView):
             self.scene.addItem(line_horizontal)
             self.grid["horizontal"].append({
                 "label": f"{i + 1}",
-                "position": x_list[i]
+                "position": y_list[i]
             })
         for i in range(v_grid_number):
             line_vertical = SelectableLineItem(x_list[i], 0, x_list[i], height_manual)
