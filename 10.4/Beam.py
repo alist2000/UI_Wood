@@ -181,8 +181,13 @@ class beamDrawing(QGraphicsRectItem):
         self.start_pos = None
 
     def finalize_rectangle_copy(self, start, end):
+        self.beam_loc.append(start)
+
         x1, y1 = start
         x2, y2 = end
+        self.current_rect = Rectangle(x1 - self.beam_width / 2,
+                                      y1 - self.beam_width / 2, self.beam_rect_prop)
+        self.scene.addItem(self.current_rect)
 
         width = abs(x2 - x1)
         height = abs(y2 - y1)
@@ -197,9 +202,26 @@ class beamDrawing(QGraphicsRectItem):
 
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-        # self.current_rect = None
+        final_end_point = beam_end_point(start, end)
+        self.beam_loc.append(final_end_point)
+        self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
+                                                  "coordinate": [
+                                                      start, final_end_point],
+                                                  "load": {"point": [], "line": []}}
+        print(self.beam_rect_prop)
+        self.beam_number += 1
+
+        # Add Snap Line
+        self.snapLine.add_line(self.beam_loc[0], self.beam_loc[1])
+
+        # Add Start and End beam point to Snap Point
+        self.snapPoint.add_point(self.beam_loc[0][0], self.beam_loc[0][1])
+        self.snapPoint.add_point(self.beam_loc[1][0], self.beam_loc[1][1])
+
+        self.current_rect = None
         self.start_pos = None
 
+        self.beam_loc.clear()
 
     # SLOT
     def beam_selector(self):

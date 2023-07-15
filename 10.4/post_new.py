@@ -53,7 +53,7 @@ class PostDrawing(QGraphicsRectItem):
         if coordinate:  # for copy/load
             x, y = coordinate
             rect = self.add_rectangle(x, y)
-            self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": snapped_pos.toTuple(),
+            self.post_prop[rect] = {"label": f"P{self.post_number}", "coordinate": coordinate,
                                     "load": {"point": []}}
             self.snapPoint.add_point(x, y)
             self.post_number += 1

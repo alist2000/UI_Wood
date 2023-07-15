@@ -39,73 +39,78 @@ class studWallDrawing(QGraphicsRectItem):
         self.studWall_number = 1
         self.studWall_loc = []  # for every single studWall
 
-    def draw_studWall_mousePress(self, main_self, event):
-        if event.button() == Qt.LeftButton:
+    def draw_studWall_mousePress(self, main_self, event, coordinate=None):
+        if coordinate:  # for copy/load
+            x1, y1 = coordinate[0]
+            x2, y2 = coordinate[1]
+            self.finalize_rectangle_copy((x1, y1), (x2, y2))
+        else:
+            if event.button() == Qt.LeftButton:
 
-            pos = main_self.mapToScene(event.position().toPoint())
-            # snapped_pos = self.snap_to_grid(pos)
-            snapped_pos = self.snapPoint.snap(pos)
-            # if snap to some point we don't need to check with snap line
-            if pos == snapped_pos:
-                snapped_pos = self.snapLine.snap(pos)
-            if self.studWall_select_status == 2:
-                item = main_self.itemAt(event.position().toPoint())
-                if isinstance(item, Rectangle):  # Finding studWall
-                    # Delete the coordinates of the rectangle
-                    if item in self.studWall_rect_prop:
-                        # delete snap points (start & end)
-                        self.snapPoint.remove_point(self.studWall_rect_prop[item]["coordinate"][0])
-                        self.snapPoint.remove_point(self.studWall_rect_prop[item]["coordinate"][1])
-                        self.snapLine.remove_line(tuple(self.studWall_rect_prop[item]["coordinate"]))
-                        # delete item
-                        del self.studWall_rect_prop[item]
-                    self.scene.removeItem(item)
+                pos = main_self.mapToScene(event.position().toPoint())
+                # snapped_pos = self.snap_to_grid(pos)
+                snapped_pos = self.snapPoint.snap(pos)
+                # if snap to some point we don't need to check with snap line
+                if pos == snapped_pos:
+                    snapped_pos = self.snapLine.snap(pos)
+                if self.studWall_select_status == 2:
+                    item = main_self.itemAt(event.position().toPoint())
+                    if isinstance(item, Rectangle):  # Finding studWall
+                        # Delete the coordinates of the rectangle
+                        if item in self.studWall_rect_prop:
+                            # delete snap points (start & end)
+                            self.snapPoint.remove_point(self.studWall_rect_prop[item]["coordinate"][0])
+                            self.snapPoint.remove_point(self.studWall_rect_prop[item]["coordinate"][1])
+                            self.snapLine.remove_line(tuple(self.studWall_rect_prop[item]["coordinate"]))
+                            # delete item
+                            del self.studWall_rect_prop[item]
+                        self.scene.removeItem(item)
 
-
-            else:
-                if self.current_rect:
-                    snapped_pos = self.snapPoint.snap(pos)
-                    # if snap to some point we don't need to check with snap line
-                    if pos == snapped_pos:
-                        snapped_pos = self.snapLine.snap(pos)
-                    self.finalize_rectangle(pos)
-                    # Create a new rectangle instanceself.studWall_rect_prop[self.current_rect]
-                    self.start_pos = snapped_pos
-                    if self.studWall_loc:  # Add this condition
-                        end_point = snapped_pos.toTuple()
-                        start_point = self.studWall_loc[0]
-                        final_end_point = beam_end_point(start_point, end_point)
-                        self.studWall_loc.append(final_end_point)
-                        self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
-                                                                      "coordinate": [start_point, final_end_point]}
-
-                        beam_line_creator(self.studWall_rect_prop[self.current_rect])
-
-                        self.studWall_number += 1
-                        self.current_rect = None
-
-                        # Add Snap Line
-                        self.snapLine.add_line(self.studWall_loc[0], self.studWall_loc[1])
-
-                        # Add Start and End studWall point to Snap Point
-                        self.snapPoint.add_point(self.studWall_loc[0][0], self.studWall_loc[0][1])
-                        self.snapPoint.add_point(self.studWall_loc[1][0], self.studWall_loc[1][1])
-
-                        self.studWall_loc.clear()
 
                 else:
-                    snapped_pos = self.snapPoint.snap(pos)
-                    # Start point just snap to point not line.
-                    point = snapped_pos.toTuple()
-                    x, y = point[0], point[1]
+                    if self.current_rect:
+                        snapped_pos = self.snapPoint.snap(pos)
+                        # if snap to some point we don't need to check with snap line
+                        if pos == snapped_pos:
+                            snapped_pos = self.snapLine.snap(pos)
+                        self.finalize_rectangle(pos)
+                        # Create a new rectangle instanceself.studWall_rect_prop[self.current_rect]
+                        self.start_pos = snapped_pos
+                        if self.studWall_loc:  # Add this condition
+                            end_point = snapped_pos.toTuple()
+                            start_point = self.studWall_loc[0]
+                            final_end_point = beam_end_point(start_point, end_point)
+                            self.studWall_loc.append(final_end_point)
+                            self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
+                                                                          "coordinate": [start_point, final_end_point]}
 
-                    self.start_pos = QPointF(x, y)
+                            beam_line_creator(self.studWall_rect_prop[self.current_rect])
 
-                    self.studWall_loc.append(self.start_pos.toTuple())
+                            self.studWall_number += 1
+                            self.current_rect = None
 
-                    self.current_rect = Rectangle(x - self.studWall_width / 2,
-                                                  y - self.studWall_width / 2, self.studWall_rect_prop)
-                    self.scene.addItem(self.current_rect)
+                            # Add Snap Line
+                            self.snapLine.add_line(self.studWall_loc[0], self.studWall_loc[1])
+
+                            # Add Start and End studWall point to Snap Point
+                            self.snapPoint.add_point(self.studWall_loc[0][0], self.studWall_loc[0][1])
+                            self.snapPoint.add_point(self.studWall_loc[1][0], self.studWall_loc[1][1])
+
+                            self.studWall_loc.clear()
+
+                    else:
+                        snapped_pos = self.snapPoint.snap(pos)
+                        # Start point just snap to point not line.
+                        point = snapped_pos.toTuple()
+                        x, y = point[0], point[1]
+
+                        self.start_pos = QPointF(x, y)
+
+                        self.studWall_loc.append(self.start_pos.toTuple())
+
+                        self.current_rect = Rectangle(x - self.studWall_width / 2,
+                                                      y - self.studWall_width / 2, self.studWall_rect_prop)
+                        self.scene.addItem(self.current_rect)
 
     def draw_studWall_mouseMove(self, main_self, event):
         if self.current_rect and (self.start_pos or self.start_pos == QPointF(0.000000, 0.000000)):
@@ -148,6 +153,51 @@ class studWallDrawing(QGraphicsRectItem):
         self.current_rect.setBrush(QBrush(QColor.fromRgb(152, 238, 204, 150), Qt.SolidPattern))
         # self.current_rect = None
         self.start_pos = None
+
+    def finalize_rectangle_copy(self, start, end):
+        self.studWall_loc.append(start)
+
+        x1, y1 = start
+        x2, y2 = end
+
+        # if snap to some point we don't need to check with snap line
+        self.current_rect = Rectangle(x1,
+                                      y1, self.studWall_rect_prop)
+        self.scene.addItem(self.current_rect)
+        width = abs(x2 - x1)
+        height = abs(y2 - y1)
+
+        if abs(width) > abs(height):
+            self.current_rect.setRect(min(x1, x2),
+                                      y1 - self.studWall_width / 2, abs(width), self.studWall_width)
+        else:
+            self.current_rect.setRect(x1 - self.studWall_width / 2,
+                                      min(y1, y2), self.studWall_width,
+                                      abs(height))
+
+        self.current_rect.setPen(QPen(QColor.fromRgb(152, 238, 204, 160), 2))
+        self.current_rect.setBrush(QBrush(QColor.fromRgb(152, 238, 204, 150), Qt.SolidPattern))
+        self.start_pos = None
+        end_point = end
+        start_point = self.studWall_loc[0]
+        final_end_point = beam_end_point(start_point, end_point)
+        self.studWall_loc.append(final_end_point)
+        self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
+                                                      "coordinate": [start_point, final_end_point]}
+
+        beam_line_creator(self.studWall_rect_prop[self.current_rect])
+
+        self.studWall_number += 1
+        self.current_rect = None
+
+        # Add Snap Line
+        self.snapLine.add_line(self.studWall_loc[0], self.studWall_loc[1])
+
+        # Add Start and End studWall point to Snap Point
+        self.snapPoint.add_point(self.studWall_loc[0][0], self.studWall_loc[0][1])
+        self.snapPoint.add_point(self.studWall_loc[1][0], self.studWall_loc[1][1])
+
+        self.studWall_loc.clear()
 
     # SLOT
     def studWall_selector(self):
