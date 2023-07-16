@@ -212,10 +212,10 @@ class GridWidget(QGraphicsView):
 
                 #   self.scene.clearSelection()
 
-        data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
-                        self.joist_instance.rect_prop,
-                        self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
-                        self.load_instance.rect_prop)
+        # data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
+        #                 self.joist_instance.rect_prop,
+        #                 self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
+        #                 self.load_instance.rect_prop)
         # self.lastPanPoint = event.position().toPoint()
         # self.setCursor(Qt.ClosedHandCursor)
         # self.scene.clearSelection()

@@ -21,7 +21,7 @@ class ToolBar:
         self.savePage = Save(self)
 
         self.spin_values = [0, 0, 0, 0, 0, 0]
-        self.combo_values = ["1"]
+        self.combo_values = ["I & II"]
         self.create_tool_bar()
 
     def create_tool_bar(self):

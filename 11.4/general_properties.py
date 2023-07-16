@@ -2,6 +2,8 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSpinBox, QDoub
     QTabWidget
 from tab_widget_2 import secondTabWidget
 
+from load import Load
+
 
 class Widget_button(QWidget):
     def __init__(self, reportInputs, parent=None):
@@ -13,6 +15,7 @@ class Widget_button(QWidget):
         self.height_story_final = None
         self.h_spacing_final = None
         self.v_spacing_final = None
+        self.loadInstance = Load(self)
 
         # REPORT INPUTS
         self.reportInputs = reportInputs
@@ -51,7 +54,9 @@ class Widget_button(QWidget):
         self.h_spacing_list = []
         self.v_spacing_list = []
         run = QPushButton("SUBMIT")
+        load = QPushButton("LOAD")
         run.clicked.connect(self.run_control)
+        load.clicked.connect(self.loadInstance.load_control)
 
         h_l2 = h_layout_control(h_gridLabel, h_grid, v_gridLabel, v_grid)
 
@@ -70,6 +75,7 @@ class Widget_button(QWidget):
         v_layout.addLayout(h_l2)
         v_layout.addLayout(grid_spacing_layout)
         v_layout.addWidget(run)
+        v_layout.addWidget(load)
         self.setLayout(v_layout)
 
     # SLOT FUNCTION

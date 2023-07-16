@@ -178,10 +178,10 @@ class PixmapItem(QGraphicsPixmapItem):
         self.setGraphicsEffect(self.opacity_effect)
 
     def scaleUp(self):
-        self.setScale(self.scale() * 1.2)
+        self.setScale(self.scale() * 1.01)
 
     def scaleDown(self):
-        self.setScale(self.scale() / 1.2)
+        self.setScale(self.scale() / 1.01)
 
     def adjust_transparency(self, value):
         self.opacity_effect.setOpacity(value / 100)
