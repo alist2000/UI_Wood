@@ -40,6 +40,9 @@ class Image(QMainWindow):
         lockAct = QAction("Lock/Unlock", self, shortcut="Ctrl+L", triggered=self.toggleLock)
         file_menu.addAction(lockAct)
 
+        hideShow = QAction("Hide/Show", self, shortcut="Ctrl+H", triggered=self.hide_show)
+        file_menu.addAction(hideShow)
+
         menu_bar.addMenu(file_menu)
 
         self.setMenuBar(menu_bar)
@@ -92,6 +95,11 @@ class Image(QMainWindow):
         for item in self.scene.selectedItems():
             if isinstance(item, PixmapItem):
                 item.scaleDown()
+
+    def hide_show(self):
+        for item in self.scene.selectedItems():
+            if isinstance(item, PixmapItem):
+                item.setVisible(not item.isVisible())
 
 
 class visual(QMainWindow):
