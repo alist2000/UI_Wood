@@ -117,7 +117,7 @@ class loadDrawing(QGraphicsRectItem):
                     self.scene.removeItem(item)
 
     def draw_load_mouseMove(self, main_self, event):
-        if self.first_click:
+        if self.first_click or self.first_click == QPointF(0.000000, 0.000000):
             pos = main_self.mapToScene(event.pos())
             # snapped_pos = self.snap_to_grid(pos)
             snapped_pos = self.snapPoint.snap(pos)
