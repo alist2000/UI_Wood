@@ -232,7 +232,7 @@ class GridWidget(QGraphicsView):
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
             self.beam_instance.draw_beam_mouseMove(self, event)
         elif self.joist_instance.joist_status == 1:
-            self.joist_instance.draw_joist_mouseMove()
+            self.joist_instance.draw_joist_mouseMove(self, event)
         elif self.post_instance.post_drawing_mode:
             self.post_instance.draw_post_mouseMove(self, event)
         elif self.shearWall_instance.shearWall_select_status == 1:  # CONTROL SHEAR WALL

@@ -90,7 +90,6 @@ class joistDrawing(QGraphicsRectItem):
                         self.first_click = self.snapPoint.snap(scene_pos)  # Snap to a nearby point if close
                         self.temp_rect = QGraphicsRectItem()
                         self.temp_rect.setPen(QPen(Qt.black))
-                        self.temp_rect.setBrush(QBrush(Qt.red))
                         self.scene.addItem(self.temp_rect)
                     elif self.first_click or self.first_click == QPointF(0.000000, 0.000000):
                         snapped_scene_pos = self.snapPoint.snap(scene_pos)  # Snap to a nearby point if close
@@ -142,13 +141,22 @@ class joistDrawing(QGraphicsRectItem):
                             del self.rect_prop[item]
                         self.scene.removeItem(item)
 
-    def draw_joist_mouseMove(self):
-        if self.first_click:
+    def draw_joist_mouseMove(self, main_self, event):
+        if self.first_click or self.first_click == QPointF(0.000000, 0.000000):
+            pos = main_self.mapToScene(event.pos())
+            # snapped_pos = self.snap_to_grid(pos)
+            snapped_pos = self.snapPoint.snap(pos)
+            # if snap to some point we don't need to check with snap line
+            if pos == snapped_pos:
+                snapped_pos = self.snapLine.snap(pos)
+            width = snapped_pos.x() - self.first_click.x()
+            height = snapped_pos.y() - self.first_click.y()
+
             x1, y1 = self.first_click.x(), self.first_click.y()
-            x2, y2 = self.scene_pos.x(), self.scene_pos.y()
+            x2, y2 = snapped_pos.x(), snapped_pos.y()
             rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
             self.temp_rect.setRect(rect_x, rect_y, rect_w, rect_h)
-
+            self.scene.addItem(self.temp_rect)
     # SLOT
     def joist_selector(self):
         if self.other_button:
