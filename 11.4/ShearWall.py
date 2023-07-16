@@ -99,11 +99,24 @@ class shearWallDrawing(QGraphicsRectItem):
                         # if snap to some point we don't need to check with snap line
                         if pos == snapped_pos:
                             snapped_pos = self.snapLine.snap(pos)
+                        end_point = snapped_pos.toTuple()
+                        start_point = self.shearWall_loc[0]
+
+                        width = abs(end_point[0] - start_point[0])
+                        height = abs(end_point[1] - start_point[1])
+                        print("direction", self.direction)
+                        if self.direction == "both":
+                            if width > height:
+                                self.direction = "E-W"
+                                self.line = self.line[1]
+                            else:
+                                self.direction = "N-S"
+                                self.line = self.line[1]
+
                         self.finalize_rectangle(pos, self.direction)
                         # Create a new rectangle instance
                         self.start_pos = snapped_pos
                         if self.shearWall_loc:  # Add this condition
-                            end_point = snapped_pos.toTuple()
                             start_point = self.shearWall_loc[0]
                             final_end_point = beam_end_point(start_point, end_point)
                             self.shearWall_loc.append(final_end_point)
@@ -129,21 +142,14 @@ class shearWallDrawing(QGraphicsRectItem):
                             snapped_pos = self.snapLine.snap(pos)
                             # Start point just snap to point not line.
                         print(snapped_pos)
-                        point = snapped_pos.toTuple()
-                        x, y = point[0], point[1]
+                        start = snapped_pos.toTuple()
+                        x, y = start[0], start[1]
                         status, self.direction, self.interior_exterior, self.line = pointer_control_shearWall(x, y,
                                                                                                               self.grid)
                         if status:
                             self.start_pos = QPointF(x, y)
 
                             self.shearWall_loc.append(self.start_pos.toTuple())
-                            if self.direction == "E-W":
-                                y_rect = y - self.shearWall_width / 2
-                                x_rect = x
-                            else:
-                                y_rect = y
-                                x_rect = x - self.shearWall_width / 2
-
                             self.current_rect = Rectangle(x,
                                                           y, self.shearWall_rect_prop)
                             self.scene.addItem(self.current_rect)
@@ -156,10 +162,18 @@ class shearWallDrawing(QGraphicsRectItem):
             # if snap to some point we don't need to check with snap line
             if pos == snapped_pos:
                 snapped_pos = self.snapLine.snap(pos)
-            width = snapped_pos.x() - self.start_pos.x()
-            height = snapped_pos.y() - self.start_pos.y()
+            width = abs(snapped_pos.x() - self.start_pos.x())
+            height = abs(snapped_pos.y() - self.start_pos.y())
+            direction = self.direction
+            if self.direction == "both":
+                if width > height:
+                    # self.direction = "E-W"
+                    direction = "E-W"
+                else:
+                    # self.direction = "N-S"
+                    direction = "N-S"
 
-            if self.direction == "E-W":
+            if direction == "E-W":
                 # Move horizontally, keep vertical dimension constant
                 self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
                                           self.start_pos.y() - self.shearWall_width / 2, abs(width),
@@ -355,7 +369,7 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "end_rect_item": end_rect_item,
                                                            "start_center": post_start,
                                                            "end_center": post_end},
-                                                       "direction": self.direction,
+                                                       "direction": direction,
                                                        "interior_exterior": self.interior_exterior,
                                                        "line_label": self.line,
                                                        "thickness": prop["thickness"],  # in

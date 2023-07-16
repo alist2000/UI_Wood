@@ -131,7 +131,15 @@ def pointer_control_shearWall(x, y, gridProp):
     horizontal_dict = {item["position"]: item["label"] for item in horizontal}
     vertical_dict = {item["position"]: item["label"] for item in vertical}
 
-    if x_start <= x <= x_end and y in horizontal_dict.keys():
+    if (x_start <= x <= x_end and y in horizontal_dict.keys()) and (y_start <= y <= y_end and x in vertical_dict.keys()):
+        line = [vertical_dict[x], horizontal_dict[y]]
+
+        if (y == y_start or y == y_end) and (x == x_start or x == x_end):
+            int_ext = "exterior"
+        else:
+            int_ext = "interior"
+        return True, "both", int_ext, line
+    elif x_start <= x <= x_end and y in horizontal_dict.keys():
         line = horizontal_dict[y]
         if y == y_start or y == y_end:
             int_ext = "exterior"
