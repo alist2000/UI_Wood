@@ -53,7 +53,8 @@ class ControlSupport:
     def __init__(self, beamProp, direction_index, support_list):
         for support in beamProp["support"]:
             loc = support["coordinate"][direction_index] / magnification_factor
-            start = beamProp["coordinate"][0][direction_index] / magnification_factor
+            start = min(beamProp["coordinate"][0][direction_index],
+                        beamProp["coordinate"][1][direction_index]) / magnification_factor
             # THIS PART SHOULD BE DEVELOPED. USER SHOULD BE ABLE TO CHANGE SUPPORT TYPE.
             type_support = (1, 1, 0)  # PINNED
             if len(beamProp["support"]) == 1:
@@ -320,114 +321,114 @@ myBeam = {"b": {'label': 'B1', 'coordinate': [(0.0, 0.0), (400.0, 0.0)], 'load':
                                                                                                      {'from': 'J2',
                                                                                                       'label': 'roof',
                                                                                                       'load': [{
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.19},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.38},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.38},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.5700000000000001},
-                                                                                                               {
-                                                                                                                   'type': 'Dead Super',
-                                                                                                                   'magnitude': 0.95}],
+                                                                                                          'type': 'Dead',
+                                                                                                          'magnitude': 0.19},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.38},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.38},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.5700000000000001},
+                                                                                                          {
+                                                                                                              'type': 'Dead Super',
+                                                                                                              'magnitude': 0.95}],
                                                                                                       'start': 258,
                                                                                                       'end': 400},
                                                                                                      {'from': 'J2',
                                                                                                       'label': 'roof ',
                                                                                                       'load': [{
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.19},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.38},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.38},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.5700000000000001},
-                                                                                                               {
-                                                                                                                   'type': 'Dead Super',
-                                                                                                                   'magnitude': 0.95}],
+                                                                                                          'type': 'Dead',
+                                                                                                          'magnitude': 0.19},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.38},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.38},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.5700000000000001},
+                                                                                                          {
+                                                                                                              'type': 'Dead Super',
+                                                                                                              'magnitude': 0.95}],
                                                                                                       'start': 258,
                                                                                                       'end': 310},
                                                                                                      {'from': 'J3',
                                                                                                       'label': 'roof',
                                                                                                       'load': [{
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.1},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.2},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.2},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.3},
-                                                                                                               {
-                                                                                                                   'type': 'Dead Super',
-                                                                                                                   'magnitude': 0.5},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.1},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.2}],
+                                                                                                          'type': 'Dead',
+                                                                                                          'magnitude': 0.1},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.2},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.2},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.3},
+                                                                                                          {
+                                                                                                              'type': 'Dead Super',
+                                                                                                              'magnitude': 0.5},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.1},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.2}],
                                                                                                       'start': 218,
                                                                                                       'end': 258},
                                                                                                      {'from': 'J3',
                                                                                                       'label': 'roof ',
                                                                                                       'load': [{
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.1},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.2},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.2},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.3},
-                                                                                                               {
-                                                                                                                   'type': 'Dead Super',
-                                                                                                                   'magnitude': 0.5},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.1},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.2}],
+                                                                                                          'type': 'Dead',
+                                                                                                          'magnitude': 0.1},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.2},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.2},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.3},
+                                                                                                          {
+                                                                                                              'type': 'Dead Super',
+                                                                                                              'magnitude': 0.5},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.1},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.2}],
                                                                                                       'start': 70,
                                                                                                       'end': 258},
                                                                                                      {'from': 'J3',
                                                                                                       'label': 'roof',
                                                                                                       'load': [{
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.1},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.2},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.2},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.3},
-                                                                                                               {
-                                                                                                                   'type': 'Dead Super',
-                                                                                                                   'magnitude': 0.5},
-                                                                                                               {
-                                                                                                                   'type': 'Dead',
-                                                                                                                   'magnitude': 0.1},
-                                                                                                               {
-                                                                                                                   'type': 'Live',
-                                                                                                                   'magnitude': 0.2}],
+                                                                                                          'type': 'Dead',
+                                                                                                          'magnitude': 0.1},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.2},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.2},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.3},
+                                                                                                          {
+                                                                                                              'type': 'Dead Super',
+                                                                                                              'magnitude': 0.5},
+                                                                                                          {
+                                                                                                              'type': 'Dead',
+                                                                                                              'magnitude': 0.1},
+                                                                                                          {
+                                                                                                              'type': 'Live',
+                                                                                                              'magnitude': 0.2}],
                                                                                                       'start': 0,
                                                                                                       'end': 45}]}},
                 'length': 400.0, 'line': {'properties': {'slope': True, 'c': 0.0, 'range': (0.0, 400.0)}},
@@ -438,5 +439,5 @@ myBeam = {"b": {'label': 'B1', 'coordinate': [(0.0, 0.0), (400.0, 0.0)], 'load':
                           {'label': 'J3', 'intersection_range': (0, 258), 'tributary_depth': (0.0, 40.0)}]}
           }
 
-a = beam_output(myBeam)
-print(a.beamProperties)
+# a = beam_output(myBeam)
+# print(a.beamProperties)
