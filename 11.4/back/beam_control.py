@@ -79,17 +79,35 @@ class beam_control_support:
             # Control post support
             # Control ShearWall post support
             for shearWallItem, shearWallProp in self.shearWall.items():
-                is_support, post_range = self.main_is_point_on_line(shearWallProp["post"]["start_center"], start, end)
-                if is_support:
+                # note: start and end of shear wall also consider as post coordinate
+                is_support1, post_range1 = self.main_is_point_on_line(shearWallProp["post"]["start_center"], start, end)
+                is_support2, post_range2 = self.main_is_point_on_line(shearWallProp["coordinate"][0], start, end)
+                if is_support1 or is_support2:
+                    if is_support1:
+                        post_range = post_range1
+                        coordinate = shearWallProp["post"]["start_center"]
+                    else:
+                        post_range = post_range2
+                        coordinate = shearWallProp["coordinate"][0]
                     beamProp["support"].append(
                         {"label": shearWallProp["post"]["label_start"], "type": "shearWall_post",
-                         "coordinate": shearWallProp["post"]["start_center"],
+                         "coordinate": coordinate,
                          "range": post_range})
-                is_support, post_range = self.main_is_point_on_line(shearWallProp["post"]["end_center"], start, end)
-                if is_support:
+                is_support1, post_range1 = self.main_is_point_on_line(shearWallProp["post"]["end_center"], start, end)
+                is_support2, post_range2 = self.main_is_point_on_line(shearWallProp["coordinate"][1], start, end)
+
+                if is_support1 or is_support2:
+                    if is_support1:
+                        post_range = post_range1
+                        coordinate = shearWallProp["post"]["end_center"]
+
+                    else:
+                        post_range = post_range2
+                        coordinate = shearWallProp["coordinate"][1]
+
                     beamProp["support"].append(
                         {"label": shearWallProp["post"]["label_end"], "type": "shearWall_post",
-                         "coordinate": shearWallProp["post"]["end_center"],
+                         "coordinate": coordinate,
                          "range": post_range})
 
     def add_beam_support(self):
