@@ -8,6 +8,7 @@ from back.beam_control import beam_line_creator
 from beam_prop import lineLoad
 from pointer_control import beam_end_point, pointer_control_shearWall
 from post_new import magnification_factor
+from offset import Offset
 
 
 class ShearWallButton(QWidget):
@@ -24,6 +25,7 @@ class shearWallDrawing(QGraphicsRectItem):
         self.scene = scene
         self.snapPoint = snapPoint
         self.snapLine = snapLine
+        self.offset = 0
         x_list, y_list = edit_spacing(x, y)
 
         self.x_grid = x_list
@@ -111,7 +113,14 @@ class shearWallDrawing(QGraphicsRectItem):
                                 self.line = self.line[1]
                             else:
                                 self.direction = "N-S"
-                                self.line = self.line[1]
+                                self.line = self.line[0]
+
+                        # OFFSET CONTROL
+                        start_point, end_point = control_offset(self.direction, self.start_pos.toTuple(), end_point,
+                                                                self.offset)
+                        self.start_pos = QPointF(start_point[0], start_point[1])
+                        pos = QPoint(end_point[0], end_point[1])
+                        snapped_pos = QPoint(end_point[0], end_point[1])
 
                         self.finalize_rectangle(pos, self.direction)
                         # Create a new rectangle instance
@@ -146,6 +155,7 @@ class shearWallDrawing(QGraphicsRectItem):
                         x, y = start[0], start[1]
                         status, self.direction, self.interior_exterior, self.line = pointer_control_shearWall(x, y,
                                                                                                               self.grid)
+
                         if status:
                             self.start_pos = QPointF(x, y)
 
@@ -172,16 +182,22 @@ class shearWallDrawing(QGraphicsRectItem):
                 else:
                     # self.direction = "N-S"
                     direction = "N-S"
+            # OFFSET CONTROL
+            start_point, snapped_pos = control_offset(direction, self.start_pos.toTuple(), snapped_pos.toTuple(),
+                                                      self.offset)
+            start_pos = QPointF(start_point[0], start_point[1])
+            pos = QPoint(snapped_pos[0], snapped_pos[1])
+            snapped_pos = QPoint(snapped_pos[0], snapped_pos[1])
 
             if direction == "E-W":
                 # Move horizontally, keep vertical dimension constant
-                self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
-                                          self.start_pos.y() - self.shearWall_width / 2, abs(width),
+                self.current_rect.setRect(min(start_pos.x(), snapped_pos.x()),
+                                          start_pos.y() - self.shearWall_width / 2, abs(width),
                                           self.shearWall_width)
             else:
                 # Move vertically, keep horizontal dimension constant
-                self.current_rect.setRect(self.start_pos.x() - self.shearWall_width / 2,
-                                          min(self.start_pos.y(), snapped_pos.y()), self.shearWall_width,
+                self.current_rect.setRect(start_pos.x() - self.shearWall_width / 2,
+                                          min(start_pos.y(), snapped_pos.y()), self.shearWall_width,
                                           abs(height))
 
     def finalize_rectangle(self, pos, direction):
@@ -415,6 +431,8 @@ class shearWallDrawing(QGraphicsRectItem):
         if self.other_button:
             post, beam, joist, studWall, load = self.other_button
         if self.shearWall_select_status == 0:
+            offsetInstance = Offset(self.offset)
+            self.offset = offsetInstance.offset * magnification_factor
             self.shearWall_select_status = 1
             self.shearWall.shearWall.setText("Draw Shear Wall")
             self.setCursor(Qt.CursorShape.UpArrowCursor)
@@ -630,3 +648,15 @@ def edit_spacing(x, y):
     for i in range(len(y)):
         y_list.append(sum(y[:i + 1]))
     return x_list, y_list
+
+
+def control_offset(direction, start, end, offset):
+    x1, y1 = start
+    x2, y2 = end
+    if direction == "N-S":
+        x1 += offset
+        x2 += offset
+    else:
+        y1 += offset
+        y2 += offset
+    return (x1, y1), (x2, y2)

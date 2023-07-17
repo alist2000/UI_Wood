@@ -103,7 +103,7 @@ class load_seismic_dialog:
         dialog.accept()
 
     def create_spin_box(self, i, layout, spin_boxes):
-        spinbox = QSpinBox()
+        spinbox = QDoubleSpinBox()
         spinbox.setValue(self.mainPage.spin_values[i])
         layout.addWidget(spinbox)
         spin_boxes.append(spinbox)
