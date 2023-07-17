@@ -52,12 +52,13 @@ class beam_output_handler:
 class ControlSupport:
     def __init__(self, beamProp, direction_index, support_list):
         for support in beamProp["support"]:
-            loc = support["coordinate"][direction_index]
+            loc = support["coordinate"][direction_index] / magnification_factor
+            start = beamProp["coordinate"][0][direction_index] / magnification_factor
             # THIS PART SHOULD BE DEVELOPED. USER SHOULD BE ABLE TO CHANGE SUPPORT TYPE.
             type_support = (1, 1, 0)  # PINNED
             if len(beamProp["support"]) == 1:
                 type_support = (1, 1, 1)
-            support_list.append((loc, type_support))
+            support_list.append((loc - start, type_support))
 
 
 class ControlDistributetLoad:
