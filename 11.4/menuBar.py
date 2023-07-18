@@ -97,9 +97,8 @@ class Image(QMainWindow):
                 item.scaleDown()
 
     def hide_show(self):
-        for item in self.scene.selectedItems():
-            if isinstance(item, PixmapItem):
-                item.setVisible(not item.isVisible())
+        if self.pixmapItem:
+            self.pixmapItem.setVisible(not self.pixmapItem.isVisible())
 
 
 class visual(QMainWindow):
