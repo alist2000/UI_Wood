@@ -83,10 +83,13 @@ class beamDrawing(QGraphicsRectItem):
                             start_point = self.beam_loc[0]
                             final_end_point = beam_end_point(start_point, end_point)
                             self.beam_loc.append(final_end_point)
+
                             self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                                       "coordinate": [
                                                                           start_point, final_end_point],
                                                                       "load": {"point": [], "line": []}}
+                            self.add_length(self.beam_rect_prop[self.current_rect])
+
                             print(self.beam_rect_prop)
                             self.beam_number += 1
                             self.current_rect = None
@@ -249,6 +252,21 @@ class beamDrawing(QGraphicsRectItem):
             self.beam_select_status = 0
             self.beam.beam.setText("BEAM")
             self.setCursor(Qt.CursorShape.ArrowCursor)
+
+    def add_length(self, beamProp):
+        start = beamProp["coordinate"][0]
+        end = beamProp["coordinate"][1]
+        l = self.length(start, end)
+        beamProp["length"] = l
+
+    @staticmethod
+    def length(start, end):
+        x1 = start[0]
+        x2 = end[0]
+        y1 = start[1]
+        y2 = end[1]
+        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+        return round(l, 2)
 
     # @staticmethod
     # def post_slot2():

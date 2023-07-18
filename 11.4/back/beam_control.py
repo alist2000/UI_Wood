@@ -322,7 +322,7 @@ class beam_control:
         self.shearWall = shearWall
         self.joist = joist
 
-        beam_control_length(self.beam)
+        # beam_control_length(self.beam)
         beam_control_direction_and_line(self.beam)
         beam_control_support(self.beam, self.post, self.shearWall)
         beam_control_joist(self.beam, self.joist)
