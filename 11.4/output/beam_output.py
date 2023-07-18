@@ -32,9 +32,10 @@ class beam_output_handler:
                        beamProp["coordinate"][1][self.direction_index]) / magnification_factor
 
         ControlSupport(beamProp, self.direction_index, self.support_list)
-        self.pointLoad = ControlPointLoad(beamProp["load"]["point"])
+        self.pointLoad = ControlPointLoad(beamProp["load"]["point"], beamProp, self.direction_index)
         self.distributedLoad = ControlDistributetLoad(beamProp["load"]["joist_load"]["load_map"], self.start)
-        self.lineLoad = ControlLineLoad(beamProp["load"]["point"], self.length)
+        self.lineLoad = ControlLineLoad(beamProp["load"]["line"], beamProp, self.direction_index)
+        print("loadset line load", self.lineLoad.loadSet)
         self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet)
 
         self.beamProp_dict = {
@@ -95,22 +96,32 @@ class ControlDistributetLoad:
 
 
 class ControlLineLoad:
-    def __init__(self, load, beamLength):
+    def __init__(self, load, beamProp, direction_index):
+        beamLength = beamProp["length"] / magnification_factor
         self.load = load
         self.all_indexes = []
         self.loadSet = []
+        range_list = []
         for load_item in load:
-            start = load_item["distance"] / magnification_factor
+
             loadLength = load_item["length"] / magnification_factor
-            print(start, loadLength)
+            start_main = min(beamProp["coordinate"][0][direction_index],
+                             beamProp["coordinate"][1][direction_index])
+            if start_main == beamProp["coordinate"][0][direction_index]:
+                distance = load_item["distance"]
+            else:
+                distance = abs(load_item["distance"] + load_item["length"] - beamProp["length"])
+            print("distance = ", distance)
+            start = distance / magnification_factor
             end = start + loadLength
             print(end)
             # control input
             if end > beamLength:
                 load_item["length"] = (beamLength - start) * magnification_factor
                 print(load_item["length"])
-        range_list = [(load_item['distance'] / magnification_factor,
-                       (load_item['distance'] + load_item["length"]) / magnification_factor) for load_item in load]
+            range_list.append((start, start + load_item["length"] / magnification_factor))
+        # range_list = [(load_item['distance'] / magnification_factor,
+        #                (load_item['distance'] + load_item["length"]) / magnification_factor) for load_item in load]
         print(range_list)
         first_list = [i[0] for i in range_list]
         second_list = [i[1] for i in range_list]
@@ -122,8 +133,18 @@ class ControlLineLoad:
         for rangeItem in range_final:
             loadList = []
             for loadItem in load:
-                rangeLoad = (loadItem["distance"] / magnification_factor,
-                             (loadItem['distance'] + loadItem["length"]) / magnification_factor)
+                loadLength = loadItem["length"] / magnification_factor
+                start_main = min(beamProp["coordinate"][0][direction_index],
+                                 beamProp["coordinate"][1][direction_index])
+                if start_main == beamProp["coordinate"][0][direction_index]:
+                    distance = loadItem["distance"]
+                else:
+                    distance = abs(loadItem["distance"] + loadItem["length"] - beamProp["length"])
+                start = distance / magnification_factor
+                end = start + loadLength
+
+                rangeLoad = (start,
+                             end)
                 intersection = range_intersection(rangeLoad, rangeItem)
                 if intersection:
                     loadList.append({
@@ -177,7 +198,7 @@ class CombineDistributes:
 
 
 class ControlPointLoad:
-    def __init__(self, load):
+    def __init__(self, load, beamProp, direction_index):
         self.load = load
         self.all_indexes = []
         self.loadSet = []
@@ -197,8 +218,14 @@ class ControlPointLoad:
 
         for item in self.all_indexes:
             loads_types = [{'type': load[i]['type'], 'magnitude': load[i]['magnitude']} for i in item]
+            start = min(beamProp["coordinate"][0][direction_index],
+                        beamProp["coordinate"][1][direction_index])
+            if start == beamProp["coordinate"][0][direction_index]:
+                distance = load[item[0]]['distance'] / magnification_factor
+            else:
+                distance = abs(beamProp["length"] - load[item[0]]['distance']) / magnification_factor
             self.loadSet.append({
-                "start": load[item[0]]['distance'],
+                "start": distance,
                 "load": loads_types
             })
 
