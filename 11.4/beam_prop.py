@@ -178,7 +178,7 @@ class lineLoad(QWidget):
         length.setDecimals(3)
 
         length.setRange(0,
-                        (self.itemProp["length"] - (self.distance_value * magnification_factor)) / magnification_factor)
+                        (self.itemProp["length"] / magnification_factor))
         comboBox = QComboBox()
         comboBox.addItem("Dead")
         comboBox.addItem("Live")
@@ -307,6 +307,7 @@ class pointLoad_line(QWidget):
 
         self.distance = distance = QDoubleSpinBox()
         distance.setDecimals(3)
+        print("adfasfasfasfaf", self.itemProp)
         distance.setRange(0, self.itemProp["length"] / magnification_factor)
         comboBox = QComboBox()
         comboBox.addItem("Dead")
@@ -349,4 +350,3 @@ class pointLoad_line(QWidget):
                 'magnitude': spinBox.value(),
                 'distance': distance.value() * magnification_factor
             })
-            print(f"Row {row + 1}: Combo box value: {comboBox.currentText()}, Spin box value: {spinBox.value()}")
