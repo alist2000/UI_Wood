@@ -213,6 +213,8 @@ class beamDrawing(QGraphicsRectItem):
                                                       start, final_end_point],
                                                   "load": {"point": properties["load"]["point"],
                                                            "line": properties["load"]["line"]}}
+        self.add_length(self.beam_rect_prop[self.current_rect])
+
         print(self.beam_rect_prop)
         self.beam_number += 1
 
