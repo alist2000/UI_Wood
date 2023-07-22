@@ -9,10 +9,13 @@ from back.load_control import range_intersection
 class beam_output:
     def __init__(self, beam):
         self.beam = beam
-        self.beamProperties = {}
-        for beamItem, beamProp in beam.items():
+        # self.beamProperties = {}
+        self.beamProperties = []
+        # for beamItem, beamProp in beam.items():
+        for beamProp in beam:
             beamOutput = beam_output_handler(beamProp)
-            self.beamProperties[beamItem] = beamOutput.beamProp_dict
+            self.beamProperties.append(beamOutput.beamProp_dict)
+            # self.beamProperties[beamItem] = beamOutput.beamProp_dict
 
 
 class beam_output_handler:
