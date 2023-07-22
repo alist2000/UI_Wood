@@ -21,7 +21,6 @@ class secondTabWidget(QMainWindow):
     def __init__(self, inputs):
         super().__init__()
         self.slider = None
-        self.mainSync = mainSync()
         self.tabWidget = QTabWidget()
         self.shapes = []
         self.grid = []
@@ -38,6 +37,7 @@ class secondTabWidget(QMainWindow):
         self.setCentralWidget(self.tabWidget)
         self.toolBar = ToolBar(self)
         self.checkModel = checkModel(self.toolBar.savePage.save_data, self.grid, self.level_number)
+        self.mainSync = mainSync(self.toolBar.savePage.save_data, self.grid, self.level_number)
 
         self.toolBar.savePage.add_subscriber(self.mainSync)
         self.toolBar.savePage.add_subscriber(self.checkModel)
@@ -85,11 +85,11 @@ class secondTabWidget(QMainWindow):
             load_item = load_instance.load
 
             # ADD RUN (NOW IT IS FOR TEST)
-            runButton = QPushButton("RUN")
+            # runButton = QPushButton("RUN")
 
             # ADD GRID LINES
             grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
-                              joist_instance, beam_instance, shearWall_instance, studWall_instance, runButton,
+                              joist_instance, beam_instance, shearWall_instance, studWall_instance,
                               self.shapes, self.slider, load_instance, self.toolBar)
 
             self.grid.append(grid)
@@ -122,7 +122,7 @@ class secondTabWidget(QMainWindow):
             v_layout.addWidget(shearWall_item)
             v_layout.addWidget(studWall_item)
             v_layout.addWidget(load_item)
-            v_layout.addWidget(runButton)
+            # v_layout.addWidget(runButton)
 
             h_layout.addLayout(v_layout2, 1)
             h_layout.addLayout(v_layout, 1)
@@ -135,7 +135,7 @@ class secondTabWidget(QMainWindow):
         self.addToolBar(tool_bar)
         run = QAction('RUN', self)
         check_model = QAction('Check Model', self)
-        run.triggered.connect(self.toolBar.savePage.save_data)
+        run.triggered.connect(self.mainSync.Run_and_Analysis)
         check_model.triggered.connect(self.checkModel.check_model_run)
         tool_bar.addAction(check_model)
         tool_bar.addAction(run)

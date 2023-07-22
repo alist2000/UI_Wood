@@ -18,7 +18,7 @@ from menuBar import Image, visual
 
 
 class GridWidget(QGraphicsView):
-    def __init__(self, h_grid_number, v_grid_number, y, x, post, joist, beam, shearWall, studWall, run, shapes, slider,
+    def __init__(self, h_grid_number, v_grid_number, y, x, post, joist, beam, shearWall, studWall, shapes, slider,
                  load, toolBar,
                  parent=None):
         super().__init__(parent)
@@ -128,7 +128,7 @@ class GridWidget(QGraphicsView):
         shearWall.shearWall.clicked.connect(self.shearWall_instance.shearWall_selector)
         studWall.studWall.clicked.connect(self.studWall_instance.studWall_selector)
 
-        run.clicked.connect(self.run_control)
+        # run.clicked.connect(self.run_control)
 
     # SLOT RUN BUTTON
     def run_control(self):
@@ -142,9 +142,10 @@ class GridWidget(QGraphicsView):
             print(i)
         print(data.beam_properties.beam.values())
 
-        beamOutput = beam_output(data.beam_properties.beam)
+        beamOutput = beam_output(list(data.beam_properties.beam.values()))
         print("FINAL BEAM OUTPUT")
-        for i in beamOutput.beamProperties.values():
+        # for i in beamOutput.beamProperties.values():
+        for i in beamOutput.beamProperties:
             print(i)
 
         # for loadItem in self.load_instance.rect_prop.keys():
