@@ -284,7 +284,7 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "interior_exterior": self.interior_exterior,
                                                        "line_label": self.line,
                                                        "thickness": "4 in",  # in
-                                                       "load": {"point": [], "line": []}
+                                                       "load": {"point": [], "line": [], "reaction": []}
 
                                                        }
         beam_line_creator(self.shearWall_rect_prop[self.current_rect])
@@ -389,7 +389,8 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "interior_exterior": self.interior_exterior,
                                                        "line_label": self.line,
                                                        "thickness": prop["thickness"],  # in
-                                                       "load": prop["load"]
+                                                       "load": {"point": prop["load"]["point"],
+                                                                "line": prop["load"]["line"], "reaction": []}
 
                                                        }
         beam_line_creator(self.shearWall_rect_prop[self.current_rect])

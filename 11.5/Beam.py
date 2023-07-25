@@ -87,7 +87,7 @@ class beamDrawing(QGraphicsRectItem):
                             self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                                       "coordinate": [
                                                                           start_point, final_end_point],
-                                                                      "load": {"point": [], "line": []}}
+                                                                      "load": {"point": [], "line": [], "reaction": []}}
                             self.add_length(self.beam_rect_prop[self.current_rect])
 
                             print(self.beam_rect_prop)
@@ -212,7 +212,8 @@ class beamDrawing(QGraphicsRectItem):
                                                   "coordinate": [
                                                       start, final_end_point],
                                                   "load": {"point": properties["load"]["point"],
-                                                           "line": properties["load"]["line"]}}
+                                                           "line": properties["load"]["line"],
+                                                           "reaction": []}}
         self.add_length(self.beam_rect_prop[self.current_rect])
 
         print(self.beam_rect_prop)
