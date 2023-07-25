@@ -20,7 +20,7 @@ class ToolBar:
         self.dialogPage3 = Replicate(self)
         self.savePage = Save(self)
 
-        self.spin_values = [0, 0, 0, 0, 0, 0]
+        self.spin_values = [0, 0, 0, 0, 0, 0, 0]
         self.combo_values = ["I & II"]
         self.create_tool_bar()
 
@@ -65,7 +65,7 @@ class load_seismic_dialog:
 
         spin_boxes = []
         combo_boxes = []
-        labels_number = ["S1", "Ss", "Fa", "Fv", "T model", "R Factor"]
+        labels_number = ["S1", "Ss", "Fa", "Fv", "I", "T model", "R Factor"]
         # Create and add the labels and spin_boxes
         for i, label in enumerate(labels_number):
             h_layout = QHBoxLayout()

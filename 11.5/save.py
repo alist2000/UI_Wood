@@ -53,9 +53,10 @@ class Save(Subject):
             self.data["tab"][i]["shearWall"] = shearWall_values
 
         # Save Seismic parameters
-        seismic_parameters = ["S1", "Ss", "Fa", "Fv", "T model", "R Factor", "Risk Category"]
+        seismic_parameters = ["S1", "Ss", "Fa", "Fv", "I", "T model", "R Factor", "Risk Category"]
+        print("moooother fuuuckkerr", seismic_parameters)
         for i in range(len(seismic_parameters)):
-            if i <= 5:
+            if i <= 6:
                 self.data["seismic_parameters"][seismic_parameters[i]] = self.mainPage.spin_values[i]
             else:
                 self.data["seismic_parameters"][seismic_parameters[i]] = self.mainPage.combo_values[0]

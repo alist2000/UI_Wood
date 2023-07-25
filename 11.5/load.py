@@ -85,8 +85,9 @@ class set_toolBar:
 
     def set_seismic_parameters(self):
         self.toolBar.spin_values = []
+        print("seismic kiri", self.seismic_parameters.values())
         for i, item in enumerate(self.seismic_parameters.values()):
-            if i <= 5:
+            if i <= 6:
                 self.toolBar.spin_values.append(item)
             else:
                 self.toolBar.combo_values = [item]
