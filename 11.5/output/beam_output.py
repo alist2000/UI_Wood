@@ -9,6 +9,7 @@ from back.load_control import range_intersection
 class beam_output:
     def __init__(self, beam):
         self.beam = beam
+
         # self.beamProperties = {}
         self.beamProperties = []
         # for beamItem, beamProp in beam.items():
@@ -35,35 +36,52 @@ class beam_output_handler:
                        beamProp["coordinate"][1][self.direction_index]) / magnification_factor
 
         ControlSupport(beamProp, self.direction_index, self.support_list)
-        self.pointLoad = ControlPointLoad(beamProp["load"]["point"], beamProp, self.direction_index)
-        self.distributedLoad = ControlDistributetLoad(beamProp["load"]["joist_load"]["load_map"], self.start)
-        self.lineLoad = ControlLineLoad(beamProp["load"]["line"], beamProp, self.direction_index)
-        print("loadset line load", self.lineLoad.loadSet)
-        self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet)
+        self.support_list = list(set(self.support_list))
+        # if beam have no support, we should ignore it.
+        if self.support_list:
+            self.pointLoad = ControlPointLoad(beamProp["load"]["point"], beamProp, self.direction_index)
+            self.reactionLoad = ControlReactionLoad(beamProp["load"]["reaction"], beamProp, self.direction_index)
+            self.finalPointLoad = CombinePointLoads(self.pointLoad.loadSet, self.reactionLoad.loadSet)
+            self.distributedLoad = ControlDistributetLoad(beamProp["load"]["joist_load"]["load_map"], self.start)
+            self.lineLoad = ControlLineLoad(beamProp["load"]["line"], beamProp, self.direction_index)
+            print("loadset line load", self.lineLoad.loadSet)
+            self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet)
 
-        self.beamProp_dict = {
-            "label": beamProp["label"],
-            "coordinate": [self.start, self.end],
-            "length": self.length,
-            "support": self.support_list,
-            "load": {
-                "point": self.pointLoad.loadSet,
-                "distributed": self.finalDistributedLoad.loadSet
+            self.beamProp_dict = {
+                "label": beamProp["label"],
+                "coordinate": [self.start, self.end],
+                "length": self.length,
+                "support": self.support_list,
+                "load": {
+                    "point": self.finalPointLoad.loadSet,
+                    "distributed": self.finalDistributedLoad.loadSet
+                }
             }
-        }
+        else:
+            self.beamProp_dict = {}
 
 
 class ControlSupport:
     def __init__(self, beamProp, direction_index, support_list):
         for support in beamProp["support"]:
             loc = support["coordinate"][direction_index] / magnification_factor
-            start = min(beamProp["coordinate"][0][direction_index],
-                        beamProp["coordinate"][1][direction_index]) / magnification_factor
+            self.start = min(beamProp["coordinate"][0][direction_index],
+                             beamProp["coordinate"][1][direction_index]) / magnification_factor
+            self.length = beamProp["length"] / magnification_factor
+            support_loc = loc - self.start
+            support_loc = self.control_point_on_beam(support_loc)
             # THIS PART SHOULD BE DEVELOPED. USER SHOULD BE ABLE TO CHANGE SUPPORT TYPE.
             type_support = (1, 1, 0)  # PINNED
             if len(beamProp["support"]) == 1:
                 type_support = (1, 1, 1)
-            support_list.append((loc - start, type_support))
+            support_list.append((support_loc, type_support))
+
+    def control_point_on_beam(self, loc):
+        if loc > self.length:
+            loc = self.length
+        elif loc < 0:
+            loc = 0
+        return loc
 
 
 class ControlDistributetLoad:
@@ -235,6 +253,45 @@ class ControlPointLoad:
         ControlLoadType(self.loadSet)
 
 
+class ControlReactionLoad:
+    def __init__(self, load, beamProp, direction_index):
+        self.load = load
+        self.loadSet = []
+
+        for i in range(len(load)):
+            start = min(beamProp["coordinate"][0][direction_index],
+                        beamProp["coordinate"][1][direction_index])
+            distance = abs(start - load[i]['start'][direction_index]) / magnification_factor
+            self.loadSet.append({
+                "start": distance,
+                "load": load[i]['load']
+            })
+
+
+class CombinePointLoads:
+    def __init__(self, pointLoad, reactionLoad):
+        start1 = [i["start"] for i in pointLoad]
+        start2 = [i["start"] for i in reactionLoad]
+        start = list(set(start1 + start2))
+        self.loadSet = []
+        for coordinate in start:
+            load1 = self.add_load(pointLoad, coordinate)
+            load2 = self.add_load(reactionLoad, coordinate)
+
+            self.loadSet.append({
+                "start": coordinate,
+                "load": load1 + load2
+            })
+        ControlLoadType(self.loadSet)
+
+    @staticmethod
+    def add_load(load, start):
+        for loadItem in load:
+            if loadItem["start"] == start:
+                return loadItem["load"]
+        return []
+
+
 class ControlLoadType:
     def __init__(self, loadList):
         self.all_indexes2 = []
@@ -274,200 +331,3 @@ def create_range(load):
     second_list = [i[1] for i in range_list1]
     full_start_end = first_list + second_list
     return full_start_end
-
-
-# lineload = [{'type': 'Dead', 'magnitude': 4.0, 'distance': 160.0, 'length': 222.0},
-#             {'type': 'Dead', 'magnitude': 2.0, 'distance': 140.0, 'length': 222.0},
-#             {'type': 'Live', 'magnitude': 3.0, 'distance': 130.0, 'length': 5.0}]
-#
-# b = ControlLineLoad(lineload, 5.55)
-# print(b.loadSet)
-myBeam = {"beam number one":
-              {'label': 'B1', 'coordinate': [(0.0, 0.0), (400.0, 0.0)], 'load': {'point': [], 'line': [],
-                                                                                 'joist_load': {'assignment': [],
-                                                                                                'load_map': [
-                                                                                                    {'from': 'J1',
-                                                                                                     'label': 'ROOF',
-                                                                                                     'load': [{
-                                                                                                         'type': 'Dead',
-                                                                                                         'magnitude': 0.2},
-                                                                                                         {
-                                                                                                             'type': 'Live',
-                                                                                                             'magnitude': 0.6}],
-                                                                                                     'start': 276,
-                                                                                                     'end': 352},
-                                                                                                    {'from': 'J4',
-                                                                                                     'label': 'ROOF',
-                                                                                                     'load': [{
-                                                                                                         'type': 'Dead',
-                                                                                                         'magnitude': 0.1},
-                                                                                                         {
-                                                                                                             'type': 'Live',
-                                                                                                             'magnitude': 0.3}],
-                                                                                                     'start': 45,
-                                                                                                     'end': 276}]}},
-               'length': 400.0, 'line': {'properties': {'slope': True, 'c': 0.0, 'range': (0.0, 400.0)}},
-               'direction': 'E-W',
-               'support': [{'label': 'P1', 'type': 'post', 'coordinate': (400.0, 0.0), 'range': 'end'},
-                           {'label': 'P2', 'type': 'post', 'coordinate': (0.0, 0.0), 'range': 'start'}],
-               'joist': [{'label': 'J1', 'intersection_range': (276, 400), 'tributary_depth': (0.0, 80.0)},
-                         {'label': 'J4', 'intersection_range': (0, 276), 'tributary_depth': (0.0, 40.0)}]}
-          }
-
-myBeam = {"b": {'label': 'B1', 'coordinate': [(0.0, 0.0), (400.0, 0.0)], 'load': {'point': [], 'line': [],
-                                                                                  'joist_load': {'assignment': [],
-                                                                                                 'load_map': [
-                                                                                                     {'from': 'J1',
-                                                                                                      'label': 't',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.24500000000000002},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.49000000000000005}],
-                                                                                                      'start': 268,
-                                                                                                      'end': 315},
-                                                                                                     {'from': 'J2',
-                                                                                                      'label': 't',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2}],
-                                                                                                      'start': 33,
-                                                                                                      'end': 268}]}},
-                'length': 400.0, 'line': {'properties': {'slope': True, 'c': 0.0, 'range': (0.0, 400.0)}},
-                'direction': 'E-W',
-                'support': [{'label': 'P1', 'type': 'post', 'coordinate': (0.0, 0.0), 'range': 'start'},
-                            {'label': 'P2', 'type': 'post', 'coordinate': (400.0, 0.0), 'range': 'end'}],
-                'joist': [{'label': 'J1', 'intersection_range': (268, 400), 'tributary_depth': (0.0, 98.5)},
-                          {'label': 'J2', 'intersection_range': (0, 268), 'tributary_depth': (0.0, 40.0)}]}
-          }
-
-myBeam = {"b": {'label': 'B1', 'coordinate': [(0.0, 0.0), (400.0, 0.0)], 'load': {'point': [], 'line': [],
-                                                                                  'joist_load': {'assignment': [],
-                                                                                                 'load_map': [
-                                                                                                     {'from': 'J2',
-                                                                                                      'label': 'roof',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.19},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.38},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.38},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.5700000000000001},
-                                                                                                          {
-                                                                                                              'type': 'Dead Super',
-                                                                                                              'magnitude': 0.95}],
-                                                                                                      'start': 258,
-                                                                                                      'end': 400},
-                                                                                                     {'from': 'J2',
-                                                                                                      'label': 'roof ',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.19},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.38},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.38},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.5700000000000001},
-                                                                                                          {
-                                                                                                              'type': 'Dead Super',
-                                                                                                              'magnitude': 0.95}],
-                                                                                                      'start': 258,
-                                                                                                      'end': 310},
-                                                                                                     {'from': 'J3',
-                                                                                                      'label': 'roof',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.2},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.3},
-                                                                                                          {
-                                                                                                              'type': 'Dead Super',
-                                                                                                              'magnitude': 0.5},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2}],
-                                                                                                      'start': 218,
-                                                                                                      'end': 258},
-                                                                                                     {'from': 'J3',
-                                                                                                      'label': 'roof ',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.2},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.3},
-                                                                                                          {
-                                                                                                              'type': 'Dead Super',
-                                                                                                              'magnitude': 0.5},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2}],
-                                                                                                      'start': 70,
-                                                                                                      'end': 258},
-                                                                                                     {'from': 'J3',
-                                                                                                      'label': 'roof',
-                                                                                                      'load': [{
-                                                                                                          'type': 'Dead',
-                                                                                                          'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.2},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.3},
-                                                                                                          {
-                                                                                                              'type': 'Dead Super',
-                                                                                                              'magnitude': 0.5},
-                                                                                                          {
-                                                                                                              'type': 'Dead',
-                                                                                                              'magnitude': 0.1},
-                                                                                                          {
-                                                                                                              'type': 'Live',
-                                                                                                              'magnitude': 0.2}],
-                                                                                                      'start': 0,
-                                                                                                      'end': 45}]}},
-                'length': 400.0, 'line': {'properties': {'slope': True, 'c': 0.0, 'range': (0.0, 400.0)}},
-                'direction': 'E-W',
-                'support': [{'label': 'P1', 'type': 'post', 'coordinate': (0.0, 0.0), 'range': 'start'},
-                            {'label': 'P2', 'type': 'post', 'coordinate': (400.0, 0.0), 'range': 'end'}],
-                'joist': [{'label': 'J2', 'intersection_range': (258, 400), 'tributary_depth': (0.0, 76.5)},
-                          {'label': 'J3', 'intersection_range': (0, 258), 'tributary_depth': (0.0, 40.0)}]}
-          }
-
-# a = beam_output(myBeam)
-# print(a.beamProperties)
