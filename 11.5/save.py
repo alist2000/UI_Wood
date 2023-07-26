@@ -54,7 +54,6 @@ class Save(Subject):
 
         # Save Seismic parameters
         seismic_parameters = ["S1", "Ss", "Fa", "Fv", "I", "T model", "R Factor", "Risk Category"]
-        print("moooother fuuuckkerr", seismic_parameters)
         for i in range(len(seismic_parameters)):
             if i <= 6:
                 self.data["seismic_parameters"][seismic_parameters[i]] = self.mainPage.spin_values[i]
