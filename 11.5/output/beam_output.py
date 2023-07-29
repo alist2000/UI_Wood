@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\10")
+sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\11.5")
 sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\9")
 from post_new import magnification_factor
 from back.load_control import range_intersection
@@ -50,7 +50,7 @@ class beam_output_handler:
             self.beamProp_dict = {
                 "label": beamProp["label"],
                 "coordinate": [self.start, self.end],
-                "length": self.length,
+                "length": self.end - self.start,
                 "support": self.support_list,
                 "load": {
                     "point": self.finalPointLoad.loadSet,
