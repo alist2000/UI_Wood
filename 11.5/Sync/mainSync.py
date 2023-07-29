@@ -2,10 +2,15 @@ import math
 import sys
 
 sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
+sys.path.append(r"D:\git\Wood")
 from output.beam_output import beam_output
-from analysis.main import Main
+from output.post_output import post_output
+from WOOD_DESIGN.mainpost import MainPost
+from WOOD_DESIGN.mainbeam import MainBeam
+from WOOD_DESIGN.reports import Sqlreports
 from Sync.data import Data
 from Sync.reaction import Control_reaction, Reaction_On
+from post_new import magnification_factor
 
 
 class mainSync(Data):
@@ -19,14 +24,27 @@ class mainSync(Data):
         for currentTab in range(self.tabWidgetCount):
             self.grid[currentTab].run_control()
         self.saveFunc()
-        ControlTab(self.tab)
+        generalProp = ControlGeneralProp(self.general_properties)
+        ControlTab(self.tab, generalProp)
 
 
 class ControlGeneralProp:
     def __init__(self, generalProp):
         self.generalProp = generalProp
+        self.y = self.control_inputs(generalProp["h_spacing"])
+        self.x = self.control_inputs(generalProp["v_spacing"])
+        self.height = [i / magnification_factor for i in self.control_inputs(generalProp["height_story"])]
+        self.Hn = sum(self.height) / magnification_factor
 
-        pass
+    @staticmethod
+    def control_inputs(item):
+        if item:
+            # better appearance
+            item = [i * magnification_factor for i in item]
+        else:
+            item = [10 * magnification_factor]  # 10 ft or 10 m
+
+        return item
 
 
 class ControlSeismicParameter:
@@ -37,7 +55,7 @@ class ControlSeismicParameter:
 
 
 class ControlTab:
-    def __init__(self, tab):
+    def __init__(self, tab, generalProp):
         self.tab = tab
         self.posts = []
         self.beams = []
@@ -45,7 +63,7 @@ class ControlTab:
         self.shearWalls = []
 
         for i, Tab in self.tab.items():
-            post = Tab["post"]
+            post = {i: Tab["post"]}
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
@@ -54,15 +72,25 @@ class ControlTab:
             self.joists.append(joist)
             self.shearWalls.append(shearWall)
 
-        beamAnalysisInstance = beamAnalysis(self.beams, self.posts, self.shearWalls)
+        # CREATE DB FOR OUTPUT.
+        db = Sqlreports()
+        db.beam_table()
+        db.post_table()
+
+        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, db)
+        PostSync(self.posts, generalProp.height, db)
+
         print(beamAnalysisInstance.reactionTab)
+        print("ALL POSTS : ", self.posts)
+        print("ALL POSTS : ", self.beams)
 
 
-class beamAnalysis:
-    def __init__(self, beam, Posts, ShearWalls):
+class beamAnalysisSync:
+    def __init__(self, beam, Posts, ShearWalls, db):
         self.beam = beam
         self.reactionTab = []
         self.reaction_list = []
+        beamId = 1
 
         for i, beamTab in enumerate(beam):
             self.reaction_list.clear()
@@ -84,10 +112,20 @@ class beamAnalysis:
                     label = beam_["label"]
                     if label not in beam_support:
                         # BEAM SHOULD ANALYZE FIRST
-                        beam_analysis = Main(beam_)
+                        beam_analysis = MainBeam(beam_)
+                        if beam_analysis.query[0] != "No Section Was Adequate":
+                            beam_analysis.query.insert(0, str(beamId))
+                            beam_analysis.query.insert(1, str(tabNumber + 1))
+                            beam_analysis.query.insert(2, beam_["label"])
 
-                        Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
-                        pass
+                            db.cursor1.execute(
+                                'INSERT INTO BEAM (ID, STORY,LABEL, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                beam_analysis.query)
+                            db.conn1.commit()
+
+                            Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
+                            beamId += 1
+                            pass
 
             # # assign beam reactions
             # for reaction in self.reaction_list:
@@ -101,10 +139,38 @@ class beamAnalysis:
                 # beam with no support are empty(False)
                 if beam_:
                     if beam_["label"] in beam_support:
-                        beam_analysis = Main(beam_)
+                        beam_analysis = MainBeam(beam_)
+                        if beam_analysis.query[0] != "No Section Was Adequate":
+                            beam_analysis.query.insert(0, str(beamId))
+                            beam_analysis.query.insert(1, str(tabNumber + 1))
+                            beam_analysis.query.insert(2, beam_["label"])
 
-                        Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
-                        pass
+
+                            db.cursor1.execute(
+                                'INSERT INTO BEAM (ID, STORY,LABEL, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                beam_analysis.query)
+                            db.conn1.commit()
+                            Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
+                            beamId += 1
+
+                            pass
 
             reactionInstance.do_post()
             self.reactionTab.append(self.reaction_list)
+
+
+class PostSync:
+    def __init__(self, posts, height, db):
+        self.postOutPut = post_output(posts, height)
+        print(self.postOutPut.postProperties)
+        postId = 1
+        for post in self.postOutPut.postProperties:
+            postAnalysis = MainPost(post)
+            postAnalysis.query.insert(0, postId)
+            postAnalysis.query.insert(1, str(post["story"]))
+            postAnalysis.query.insert(2, post["label"])
+            db.cursor1.execute(
+                'INSERT INTO POST (ID, STORY,LABEL, SIZE, GRADE, Pa_k, fc_psi, Cp, P_allow, Fcc_psi, DCR, Load_comb, Fc_perp, Load_comb_sill, DCR_sill) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                postAnalysis.query)
+            db.conn1.commit()
+            postId += 1
