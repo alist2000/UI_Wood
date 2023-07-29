@@ -66,6 +66,9 @@ class Save(Subject):
         self.manage()
 
     def save_clicked(self):
+        # SLOT
+        for currentTab in range(len(self.mainPage.mainPage.grid)):
+            self.mainPage.mainPage.grid[currentTab].run_control()
         self.save_data()
 
         # Open QFileDialog to choose where to save the json file
