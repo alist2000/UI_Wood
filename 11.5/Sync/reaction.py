@@ -46,14 +46,13 @@ class Control_reaction(reaction_types):
             reaction_coordinate = (reaction_distance, self.coordinate_beam[0][self.constant_index])
         support = self.selected_beam["support"]
 
-        # HINT: load contract ->  down + , up -
         for i, magnitude in enumerate(load):
             load_type = self.load_names[i]
             for supportItem in support:
                 if supportItem.get("reaction") is None:
                     supportItem["reaction"] = []
                 if supportItem["coordinate"] == reaction_coordinate:
-                    supportItem["reaction"].append({"magnitude": -magnitude, "type": load_type})
+                    supportItem["reaction"].append({"magnitude": magnitude, "type": load_type})
 
 
 class Reaction_On:
@@ -64,6 +63,8 @@ class Reaction_On:
         self.support = support
 
     def do_beam(self):
+        for beam in self.beams:
+            beam["load"]["reaction"].clear()
         for supportItem in self.support:
             support_label = supportItem["label"]
             reaction = supportItem["reaction"]
@@ -72,6 +73,10 @@ class Reaction_On:
                 Reaction_on_beam(self.beams, support_label, reaction, coordinate)
 
     def do_post(self):
+        for post in list(self.posts.values())[0]:
+            post["load"]["reaction"].clear()
+        for shearWall in self.shearWalls:
+            shearWall["load"]["reaction"].clear()
         for supportItem in self.support:
             support_label = supportItem["label"]
             reaction = supportItem["reaction"]
@@ -96,7 +101,7 @@ class Reaction_on_beam:
 
 class Reaction_on_post:
     def __init__(self, posts, support_label, reaction):
-        for post in posts:
+        for post in list(posts.values())[0]:
             if post["label"] == support_label:
                 post["load"]["reaction"].extend(reaction
                                                 )
