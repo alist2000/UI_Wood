@@ -5,6 +5,7 @@ sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
 sys.path.append(r"D:\git\Wood")
 from output.beam_output import beam_output
 from output.post_output import post_output
+from output.shearWall_output import ShearWall_output, EditLabel
 from WOOD_DESIGN.mainpost import MainPost
 from WOOD_DESIGN.mainbeam import MainBeam
 from WOOD_DESIGN.reports import Sqlreports
@@ -79,10 +80,12 @@ class ControlTab:
 
         beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, db)
         PostSync(self.posts, generalProp.height, db)
+        ShearWallSync(self.shearWalls, generalProp.height, db)
 
-        print(beamAnalysisInstance.reactionTab)
-        print("ALL POSTS : ", self.posts)
-        print("ALL POSTS : ", self.beams)
+        # print(beamAnalysisInstance.reactionTab)
+        # print("ALL POSTS : ", self.posts)
+        # print("ALL BEAMS : ", self.beams)
+        # print("ALL SHEAR WALLS : ", self.shearWalls)
 
 
 class beamAnalysisSync:
@@ -119,7 +122,7 @@ class beamAnalysisSync:
                             beam_analysis.query.insert(2, beam_["label"])
 
                             db.cursor1.execute(
-                                'INSERT INTO BEAM (ID, STORY,LABEL, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                'INSERT INTO BEAM (ID, STORY, LABEL, LENGTH, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr,DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range,RD, RL, RLr, RE) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 beam_analysis.query)
                             db.conn1.commit()
 
@@ -145,9 +148,8 @@ class beamAnalysisSync:
                             beam_analysis.query.insert(1, str(tabNumber + 1))
                             beam_analysis.query.insert(2, beam_["label"])
 
-
                             db.cursor1.execute(
-                                'INSERT INTO BEAM (ID, STORY,LABEL, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                'INSERT INTO BEAM (ID, STORY, LABEL, LENGTH, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr,DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range,RD, RL, RLr, RE) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 beam_analysis.query)
                             db.conn1.commit()
                             Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
@@ -174,3 +176,12 @@ class PostSync:
                 postAnalysis.query)
             db.conn1.commit()
             postId += 1
+
+
+class ShearWallSync:
+    def __init__(self, shearWall, height, db):
+        shearWallEditedInstance = EditLabel(shearWall)
+        shearWallEdited = list(reversed(shearWallEditedInstance.shearWalls_rev))
+        self.shearWallOutPut = ShearWall_output(shearWallEdited, height)
+        print("*** SHEAR PROP IS HERE", self.shearWallOutPut.shearWallProperties)
+        shearWallId = 1
