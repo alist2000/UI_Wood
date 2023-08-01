@@ -8,6 +8,65 @@ from output.beam_output import ControlDistributetLoad, ControlLineLoad, CombineD
 from output.shearWallSql import shearWallSQL
 
 
+class EditLabel:
+    def __init__(self, shearWalls):
+        self.shearWalls = shearWalls
+        shearWalls_rev = list(reversed(shearWalls))
+        self.shearWalls_rev = shearWalls_rev
+        full_label, full_label_repeat_index = self.edit_label()
+        self.edit_repeated_label(full_label_repeat_index, full_label)
+
+    def edit_label(self):
+        max_story = len(self.shearWalls_rev) - 1
+        full_label_repeat_index = {}
+        full_label = {}
+
+        for i, shearWallTab in enumerate(self.shearWalls_rev):
+            label_not_repeat_index = set()
+            label_list = []
+            for shearWall in shearWallTab:
+                labelMain = shearWall["label"]
+                base_coordinate = shearWall["coordinate"]
+                label_list.append(labelMain)
+
+                if i < max_story:
+                    for num, shearWallBottom in enumerate(self.shearWalls_rev[i + 1]):
+                        coordinate = shearWallBottom["coordinate"]
+
+                        if coordinate == base_coordinate:
+                            shearWallBottom["label"] = labelMain
+                            label_not_repeat_index.add(num)
+
+            full_label[str(i)] = label_list
+
+            full_label_repeat_index[str(i + 1)] = list(label_not_repeat_index)
+
+        return full_label, full_label_repeat_index
+
+    def edit_repeated_label(self, repeated_labels_dict, labels):
+        maxLabelNumberDict = {}
+        for labelTab, labelItems in labels.items():
+            label_number = [int(i[2:]) for i in labelItems]
+            max_label = max(label_number)
+            maxLabelNumberDict[str(labelTab)] = max_label
+
+        controlLabel = {}
+        for tab, numberList in repeated_labels_dict.items():
+            controlLabel[str(tab)] = []
+            for number in numberList:
+                controlLabel[str(tab)].append(labels[str(tab)][number])
+
+        exist_repeated_tab = list(repeated_labels_dict.keys())
+
+        for i, shearWallTab in enumerate(self.shearWalls_rev):
+            if str(i) in exist_repeated_tab:
+                labelNumber = maxLabelNumberDict[str(i)]
+                for num, shearWall in enumerate(shearWallTab):
+                    if num not in repeated_labels_dict[str(i)] and shearWall["label"] in controlLabel[str(i)]:
+                        shearWall["label"] = f"SW{str(labelNumber + 1)}"
+                        labelNumber += 1
+
+
 class ShearWall_output:
     def __init__(self, shearWalls, height):
         self.shearWallProperties = {}
