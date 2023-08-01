@@ -22,11 +22,16 @@ class mainSync(Data):
         self.tabWidgetCount = tabWidgetCount
 
     def Run_and_Analysis(self):
+        midLineDict = {}
         for currentTab in range(self.tabWidgetCount):
-            self.grid[currentTab].run_control()
+            midLineData = self.grid[currentTab].run_control()
+            midLineDict[str(currentTab)] = midLineData
         self.saveFunc()
         generalProp = ControlGeneralProp(self.general_properties)
         ControlTab(self.tab, generalProp)
+        print(self.seismic_parameters)
+        print(midLineDict)
+        print("FINAL")
 
 
 class ControlGeneralProp:
