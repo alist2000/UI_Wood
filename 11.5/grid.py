@@ -55,8 +55,6 @@ class GridWidget(QGraphicsView):
         width_manual = sum(self.x)
         height_manual = sum(self.y)
         x_list, y_list = self.edit_spacing()
-        print("xlist", x_list)
-        print("ylist", y_list)
 
         pen = QPen(Qt.black, 1, Qt.SolidLine)
 
@@ -137,32 +135,33 @@ class GridWidget(QGraphicsView):
                         self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
                         self.load_instance.rect_prop)
 
-        print("FIRST BEAM")
-        for i in data.beam_properties.beam.values():
-            print(i)
-        print(data.beam_properties.beam.values())
-
-        beamOutput = beam_output(list(data.beam_properties.beam.values()))
-        print("FINAL BEAM OUTPUT")
-        # for i in beamOutput.beamProperties.values():
-        for i in beamOutput.beamProperties:
-            print(i)
-
-        # for loadItem in self.load_instance.rect_prop.keys():
-        #     loadItem.setVisible(not loadItem.isVisible())
-        # for i in data.joist_properties.joist.values():
+        # print("FIRST BEAM")
+        # for i in data.beam_properties.beam.values():
         #     print(i)
-        print(data.joist_properties.joist.values())
-
-        # for i in data.shearWall_properties.shearWall.values():
+        # print(data.beam_properties.beam.values())
+        #
+        # beamOutput = beam_output(list(data.beam_properties.beam.values()))
+        # print("FINAL BEAM OUTPUT")
+        # # for i in beamOutput.beamProperties.values():
+        # for i in beamOutput.beamProperties:
         #     print(i)
-        for i in self.post_instance.post_prop.values():
-            print(i)
-        print(self.grid)
-        print(self.joist_instance.rect_prop)
-        print("RUN CLICK", data.midline.midline_dict)
-        for i in data.midline.midline_dict:
-            print(i)
+        #
+        # # for loadItem in self.load_instance.rect_prop.keys():
+        # #     loadItem.setVisible(not loadItem.isVisible())
+        # # for i in data.joist_properties.joist.values():
+        # #     print(i)
+        # print(data.joist_properties.joist.values())
+        #
+        # # for i in data.shearWall_properties.shearWall.values():
+        # #     print(i)
+        # for i in self.post_instance.post_prop.values():
+        #     print(i)
+        # print(self.grid)
+        # print(self.joist_instance.rect_prop)
+        # print("RUN CLICK", data.midline.midline_dict)
+        # for i in data.midline.midline_dict:
+        #     print(i)
+        return data.midline.midline_dict
 
     def wheelEvent(self, event):
         zoomInFactor = 1.25
