@@ -91,7 +91,7 @@ class PostProperties(QDialog):
         self.tab_widget.addTab(tab, f"Assignments")
         label1 = QLabel("Wall Width")
         self.wallWidth = wallWidth = QComboBox()
-        wallWidth.addItems(["6 in", "8 in"])
+        wallWidth.addItems(["6 in", "4 in"])
         self.wallWidth.setCurrentText(self.post_prop[self.rect]["wall_width"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject

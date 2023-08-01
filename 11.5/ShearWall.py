@@ -86,8 +86,9 @@ class shearWallDrawing(QGraphicsRectItem):
                             # delete start and end rectangles
                             print("post of shear wall", self.shearWall_rect_prop[item]["post"]["start_rect_item"])
                             print("post of shear wall", self.shearWall_rect_prop[item]["post"]["end_rect_item"])
-                            self.scene.removeItem(self.shearWall_rect_prop[item]["post"]["start_rect_item"])
-                            self.scene.removeItem(self.shearWall_rect_prop[item]["post"]["end_rect_item"])
+                            if type(self.shearWall_rect_prop[item]["post"]["start_rect_item"]) is not str:
+                                self.scene.removeItem(self.shearWall_rect_prop[item]["post"]["start_rect_item"])
+                                self.scene.removeItem(self.shearWall_rect_prop[item]["post"]["end_rect_item"])
 
                             # delete item
                             del self.shearWall_rect_prop[item]
@@ -300,8 +301,8 @@ class shearWallDrawing(QGraphicsRectItem):
 
         x1, y1 = start
         x2, y2 = end
-        status, self.direction, self.interior_exterior, self.line = pointer_control_shearWall(x1, y1,
-                                                                                              self.grid)
+        # status, self.direction, self.interior_exterior, self.line = pointer_control_shearWall(x1, y1,
+        #                                                                                       self.grid)
         # if snap to some point we don't need to check with snap line
         self.current_rect = Rectangle(x1,
                                       y1, self.shearWall_rect_prop)
@@ -385,9 +386,9 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "end_rect_item": end_rect_item,
                                                            "start_center": post_start,
                                                            "end_center": post_end},
-                                                       "direction": direction,
-                                                       "interior_exterior": self.interior_exterior,
-                                                       "line_label": self.line,
+                                                       "direction": prop["direction"],
+                                                       "interior_exterior": prop["interior_exterior"],
+                                                       "line_label": prop["line_label"],
                                                        "thickness": prop["thickness"],  # in
                                                        "load": {"point": prop["load"]["point"],
                                                                 "line": prop["load"]["line"], "reaction": []}
@@ -618,7 +619,7 @@ class ShearWallProperties(QDialog):
         self.tab_widget.addTab(tab, f"Assignments")
         label1 = QLabel("Shear Wall Thickness")
         self.thickness = thickness = QComboBox()
-        thickness.addItems(["4 in", "6 in", "8 in"])
+        thickness.addItems(["4 in", "6 in"])
         self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
