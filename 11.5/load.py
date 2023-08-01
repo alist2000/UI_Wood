@@ -20,7 +20,6 @@ class Load:
             with open(fileName, 'r') as f:
                 self.data = json.load(f)
 
-            print(self.data)
             self.create_main_tab()
             drawing(self.data, self.tabWidget.grid)
             set_toolBar(self.data, self.tabWidget.toolBar)
@@ -85,7 +84,6 @@ class set_toolBar:
 
     def set_seismic_parameters(self):
         self.toolBar.spin_values = []
-        print("seismic kiri", self.seismic_parameters.values())
         for i, item in enumerate(self.seismic_parameters.values()):
             if i <= 6:
                 self.toolBar.spin_values.append(item)
