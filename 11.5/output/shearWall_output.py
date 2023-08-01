@@ -47,8 +47,9 @@ class EditLabel:
         maxLabelNumberDict = {}
         for labelTab, labelItems in labels.items():
             label_number = [int(i[2:]) for i in labelItems]
-            max_label = max(label_number)
-            maxLabelNumberDict[str(labelTab)] = max_label
+            if label_number:
+                max_label = max(label_number)
+                maxLabelNumberDict[str(labelTab)] = max_label
 
         controlLabel = {}
         for tab, numberList in repeated_labels_dict.items():
@@ -59,7 +60,7 @@ class EditLabel:
         exist_repeated_tab = list(repeated_labels_dict.keys())
 
         for i, shearWallTab in enumerate(self.shearWalls_rev):
-            if str(i) in exist_repeated_tab:
+            if str(i) in exist_repeated_tab and shearWallTab:
                 labelNumber = maxLabelNumberDict[str(i)]
                 for num, shearWall in enumerate(shearWallTab):
                     if num not in repeated_labels_dict[str(i)] and shearWall["label"] in controlLabel[str(i)]:
