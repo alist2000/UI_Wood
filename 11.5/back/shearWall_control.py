@@ -33,7 +33,8 @@ class ShearWallPostIntersection:
                         value["shearWall_intersection"].append(
                             {"shearWall_label": value2["label"],
                              "post_label": value2["post"]["label_start"],
-                             "coordinate": value["post"]["start_center"]}
+                             "coordinate": value["post"]["start_center"],
+                             "line_label": value2["line_label"]}
                         )
                     elif value["post"]["end_center"] in [value2["post"]["start_center"], value2["coordinate"][0],
                                                          value2["post"]["end_center"], value2["coordinate"][1]] or \
@@ -42,7 +43,8 @@ class ShearWallPostIntersection:
                         value["shearWall_intersection"].append(
                             {"shearWall_label": value2["label"],
                              "post_label": value2["post"]["label_end"],
-                             "coordinate": value["post"]["end_center"]}
+                             "coordinate": value["post"]["end_center"],
+                             "line_label": value2["line_label"]}
                         )
 
 
