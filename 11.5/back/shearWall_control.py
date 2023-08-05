@@ -27,11 +27,12 @@ class BeamOnShearWall:
 
 class ShearWallPostIntersection:
     def __init__(self, shear_wall):
-        for item, value in shear_wall.items():
-            value["shearWall_intersection"] = []
-            for item2, value2 in shear_wall.items():
-                if item != item2:
-                    CheckIntersection(value, value2)
+        if shear_wall:
+            for item, value in shear_wall.items():
+                value["shearWall_intersection"] = []
+                for item2, value2 in shear_wall.items():
+                    if item != item2:
+                        CheckIntersection(value, value2)
 
 
 class shearWall_control:
