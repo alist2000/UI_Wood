@@ -1,4 +1,8 @@
 from back.load_control import range_intersection
+import sys
+
+sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.1")
+from post_new import magnification_factor
 
 
 # midline_dict = [{"line": "grid line", "area": "area", "magnitude": "magnitude"}]
@@ -25,15 +29,16 @@ class midline_range:
 
 
 class midline_area_calc:
-    def __init__(self, magnitude, x_range, y_range, Type):
+    def __init__(self, magnitude, x_range, y_range):
         self.x_range = x_range
         self.y_range = y_range
 
         width = abs(self.x_range[1] - self.x_range[0])
         height = abs(self.y_range[1] - self.y_range[0])
-        area = width * height
+        area = width * height / (magnification_factor ** 2)
 
-        self.midline_area_dict = {"area": area, "magnitude": magnitude, "type": Type}
+        # self.midline_area_dict = {"area": area, "magnitude": magnitude, "type": Type}
+        self.midline_area_dict = {"area": area, "magnitude": magnitude}
 
 
 class joist_in_midline:
@@ -68,10 +73,12 @@ class control:
                 if joist_grid_intersection:
                     joistLoadTotal = JoistProp["load"]["total_area"]
                     for load in joistLoadTotal:
-                        midline = midline_area_calc(load["magnitude"],
-                                                    joist_grid_intersection,
-                                                    JoistProp["line"]["properties"][free_range]["range"], load["type"])
-                        lineProp.append(midline.midline_area_dict)
+                        if load["type"] == "Dead Super":
+                            midline = midline_area_calc(load["magnitude"],
+                                                        joist_grid_intersection,
+                                                        JoistProp["line"]["properties"][free_range]["range"],
+                                                        )
+                            lineProp.append(midline.midline_area_dict)
 
                     joistLoadCustom = JoistProp["load"]["custom_area"]
                     for load in joistLoadCustom:
@@ -82,9 +89,10 @@ class control:
                         x_range = midlineRange.x_range
                         y_range = midlineRange.y_range
                         if x_range and y_range:
-                            midline = midline_area_calc(load["magnitude"], x_range, y_range,
-                                                        load["type"])
-                            lineProp.append(midline.midline_area_dict)
+                            if load["type"] == "Dead Super":
+                                midline = midline_area_calc(load["magnitude"], x_range, y_range,
+                                                            )
+                                lineProp.append(midline.midline_area_dict)
                     joistLoadMap = JoistProp["load"]["load_map"]
                     for load_set in joistLoadMap:
                         load_x_range = load_set["range_x"]
@@ -95,10 +103,10 @@ class control:
                         y_range = midlineRange.y_range
                         if x_range and y_range:
                             for load in load_set["load"]:
-                                midline = midline_area_calc(load["magnitude"], x_range, y_range,
-                                                            load["type"])
-                                lineProp.append(midline.midline_area_dict)
-
+                                if load["type"] == "Dead Super":
+                                    midline = midline_area_calc(load["magnitude"], x_range, y_range,
+                                                                )
+                                    lineProp.append(midline.midline_area_dict)
 
 # joist = {"<joist_new.joistRectangle(0x29616f25bb0, pos=0,0) at 0x0000029617CDB000>": {'label': 'J1',
 #                                                                                       'coordinate': [(35.0, 95.0),
