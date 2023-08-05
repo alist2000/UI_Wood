@@ -28,6 +28,8 @@ class joist_line_creator:
         self.joistProp["line"]["properties"].append(
             {"slope": line_prop4[0], "c": line_prop4[1], "range": line_prop4[2]})
 
+        self.joistProp["area"] = self.area(line_prop1[2], line_prop2[2])
+
     def find_line_points(self, points):
         """
         points: [(x1, y1), (x1, y2), (x2, y2), (x2, y1)]
@@ -62,6 +64,12 @@ class joist_line_creator:
             line_range = (min(x1, x2), max(x1, x2))
 
         return slope, c, line_range
+
+    @staticmethod
+    def area(range1, range2):
+        height = abs(range1[1] - range1[0])
+        width = abs(range2[1] - range2[0])
+        return height * width
 
 
 class joist_support_control:
