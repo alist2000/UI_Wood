@@ -1,4 +1,3 @@
-import math
 import sys
 
 sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
@@ -10,6 +9,7 @@ from WOOD_DESIGN.mainpost import MainPost
 from WOOD_DESIGN.mainbeam import MainBeam
 from WOOD_DESIGN.reports import Sqlreports
 from Sync.data import Data
+from Sync.Image import saveImage
 from Sync.reaction import Control_reaction, Reaction_On
 from post_new import magnification_factor
 
@@ -26,10 +26,18 @@ class mainSync(Data):
         for currentTab in range(self.tabWidgetCount):
             midLineData = self.grid[currentTab].run_control()
             midLineDict[str(currentTab)] = midLineData
+            saveImage(self.grid, currentTab)
+
         self.saveFunc()
         generalProp = ControlGeneralProp(self.general_properties)
-        ControlTab(self.tab, generalProp)
-        print(self.seismic_parameters)
+        TabData = ControlTab(self.tab, generalProp)
+        LoadMapaArea = TabData.loadMapArea
+        LoadMapMag = TabData.loadMapMag
+        JoistArea = TabData.joistArea
+        storyName = TabData.storyName
+        seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
+                                                  JoistArea)
+        print(seismicInstance.seismicPara)
         print(midLineDict)
         print("FINAL")
 
@@ -54,10 +62,12 @@ class ControlGeneralProp:
 
 
 class ControlSeismicParameter:
-    def __init__(self, seismicPara):
+    def __init__(self, seismicPara, storyName, areaLoad, magLoad, areaJoist):
         self.seismicPara = seismicPara
-
-        pass
+        self.seismicPara["story_name"] = storyName
+        self.seismicPara["load_area"] = areaLoad
+        self.seismicPara["load_magnitude"] = magLoad
+        self.seismicPara["joist_area"] = areaJoist
 
 
 class ControlTab:
@@ -67,24 +77,35 @@ class ControlTab:
         self.beams = []
         self.joists = []
         self.shearWalls = []
+        self.loadMaps = []
 
         for i, Tab in self.tab.items():
             post = {i: Tab["post"]}
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
+            loadMap = Tab["loadMap"]
             self.posts.append(post)
             self.beams.append(beam)
             self.joists.append(joist)
             self.shearWalls.append(shearWall)
+            self.loadMaps.append(loadMap)
 
         # CREATE DB FOR OUTPUT.
         db = Sqlreports()
         db.beam_table()
         db.post_table()
 
-        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, db)
-        PostSync(self.posts, generalProp.height, db)
+        # BEAM
+        # beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, db)
+
+        # POST
+        # PostSync(self.posts, generalProp.height, db)
+
+        # SHEAR WALL
+        self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
+        self.joistArea = JoistSumArea(self.joists)
+        self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
         ShearWallSync(self.shearWalls, generalProp.height, db)
 
         # print(beamAnalysisInstance.reactionTab)
@@ -190,3 +211,43 @@ class ShearWallSync:
         self.shearWallOutPut = ShearWall_output(shearWallEdited, height)
         print("*** SHEAR PROP IS HERE", self.shearWallOutPut.shearWallProperties)
         shearWallId = 1
+
+
+def LoadMapArea(loadMaps):
+    areaListFull = []
+    magListFull = []
+    for i, loadMapTab in enumerate(loadMaps):
+        areaList = []
+        magList = []
+        for loadMap in loadMapTab:
+            for load in loadMap["load"]:
+                if load["type"] == "Dead Super":
+                    areaList.append(loadMap["area"] / (magnification_factor ** 2))
+                    magList.append(load["magnitude"])
+        areaListFull.append(areaList)
+        magListFull.append(magList)
+
+    return areaListFull, magListFull
+
+
+def JoistSumArea(joists):
+    JoistArea = []
+    for joistTab in joists:
+        area = 0
+        for joist in joistTab:
+            area += joist["area"] / (magnification_factor ** 2)
+        JoistArea.append(area)
+
+    return JoistArea
+
+
+def StoryName(item):
+    storyList = []
+    storyNumber = len(item)
+    for i in range(storyNumber):
+        if i < storyNumber - 1:
+            storyList.append(f"Story{i + 1}")
+        else:
+            storyList.append("Roof")
+    storyList.reverse()
+    return storyList
