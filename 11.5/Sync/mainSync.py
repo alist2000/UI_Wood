@@ -4,6 +4,7 @@ sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
 sys.path.append(r"D:\git\Wood")
 from output.beam_output import beam_output
 from output.post_output import post_output
+from output.joist_output import Joist_output
 from output.shearWall_output import ShearWall_output, EditLabel
 from WOOD_DESIGN.mainpost import MainPost
 from WOOD_DESIGN.mainbeam import MainBeam
@@ -101,6 +102,9 @@ class ControlTab:
 
         # POST
         # PostSync(self.posts, generalProp.height, db)
+
+        # JOIST
+        joistOutput = Joist_output(self.joists)
 
         # SHEAR WALL
         self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
