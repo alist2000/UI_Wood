@@ -120,6 +120,10 @@ class ShearWall_output:
                                                                decimal_number)
                 start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
                     self.finalDistributedLoad.loadSet)
+                if self.Story == self.roof_level_number:
+                    StoryName = "Roof"
+                else:
+                    StoryName = self.Story
                 db.cursor.execute(
                     'INSERT INTO WallTable (ID, Story, Line, Wall_Label,'
                     ' Wall_Length, Story_Height, Opening_Width, Int_Ext,  Wall_Self_Weight,'
@@ -140,7 +144,7 @@ class ShearWall_output:
                 self.shearWall_dict = {
                     "label": label,
                     "coordinate": [self.start, self.end],
-                    "story": self.Story,
+                    "story": StoryName,
                     "line_label": line,
                     "length": round(self.end - self.start, max(n1, n2)),
                     "height": height[story],
