@@ -29,7 +29,13 @@ class Save(Subject):
     def save_data(self):
         # Define the data to save
         self.data = {
-            'general_information': 'value1',
+            'general_information': {"project_name": "",
+                                    "company": "",
+                                    "designer": "",
+                                    "client": "",
+                                    "comment": "",
+                                    "unit_system": "us".upper(),
+                                    "section": ""},
             'general_properties': self.mainPage.mainPage.inputs,
             "seismic_parameters": {},
             "load_set": "",
