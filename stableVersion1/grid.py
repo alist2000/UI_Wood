@@ -64,8 +64,9 @@ class GridWidget(QGraphicsView):
             snapLine.add_line((0, y_list[i]), (width_manual, y_list[i]))
             line_horizontal.setPen(pen)
             self.scene.addItem(line_horizontal)
+            label = get_string_value(i + 1)
             self.grid["horizontal"].append({
-                "label": f"{i + 1}",
+                "label": label,
                 "position": y_list[i]
             })
         for i in range(v_grid_number):
@@ -74,10 +75,9 @@ class GridWidget(QGraphicsView):
             snapLine.add_line((x_list[i], 0), (x_list[i], height_manual))
             line_vertical.setPen(pen)
             self.scene.addItem(line_vertical)
-            label = get_string_value(i + 1)
 
             self.grid["vertical"].append({
-                "label": label,
+                "label": f"{i + 1}",
                 "position": x_list[i]
             })
 
