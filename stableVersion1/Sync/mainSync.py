@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
+sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion1")
 sys.path.append(r"D:\git\Wood")
 from output.beam_output import beam_output
 from output.post_output import post_output
@@ -13,6 +13,9 @@ from Sync.data import Data
 from Sync.Image import saveImage
 from Sync.reaction import Control_reaction, Reaction_On
 from post_new import magnification_factor
+from Report_Lab.version1.main import Main
+from Report_Lab.version1.beam.input import BeamInput
+from Report_Lab.version1.post.input import PostInput
 
 
 class mainSync(Data):
@@ -30,8 +33,9 @@ class mainSync(Data):
             saveImage(self.grid, currentTab)
 
         self.saveFunc()
+
         generalProp = ControlGeneralProp(self.general_properties)
-        TabData = ControlTab(self.tab, generalProp)
+        TabData = ControlTab(self.tab, generalProp, self.general_information)
         LoadMapaArea = TabData.loadMapArea
         LoadMapMag = TabData.loadMapMag
         JoistArea = TabData.joistArea
@@ -72,7 +76,7 @@ class ControlSeismicParameter:
 
 
 class ControlTab:
-    def __init__(self, tab, generalProp):
+    def __init__(self, tab, generalProp, generalInfo):
         self.tab = tab
         self.posts = []
         self.beams = []
@@ -98,10 +102,10 @@ class ControlTab:
         db.post_table()
 
         # BEAM
-        # beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, db)
+        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, generalInfo, db)
 
         # POST
-        # PostSync(self.posts, generalProp.height, db)
+        PostSync(self.posts, generalProp.height, generalInfo, db)
 
         # JOIST
         joistOutput = Joist_output(self.joists)
@@ -115,11 +119,11 @@ class ControlTab:
         # print(beamAnalysisInstance.reactionTab)
         # print("ALL POSTS : ", self.posts)
         # print("ALL BEAMS : ", self.beams)
-        # print("ALL SHEAR WALLS : ", self.shearWalls)
+        print("ALL SHEAR WALLS : ", self.shearWalls)
 
 
 class beamAnalysisSync:
-    def __init__(self, beam, Posts, ShearWalls, db):
+    def __init__(self, beam, Posts, ShearWalls, generalInfo, db):
         self.beam = beam
         self.reactionTab = []
         self.reaction_list = []
@@ -169,6 +173,10 @@ class beamAnalysisSync:
 
             beamOutput = beam_output(beamTab)
             for beamNum, beam_ in enumerate(beamOutput.beamProperties):
+                InputReport = BeamInput(beam_, generalInfo)
+                value = InputReport.input
+                report = Main(value, value, value,
+                              f"D:/git/Wood/UI_Wood/stableVersion1/report/Beam_output_{beam_['label']}_story_{str(i)}.pdf")
                 # beam with no support are empty(False)
                 if beam_:
                     if beam_["label"] in beam_support:
@@ -192,11 +200,15 @@ class beamAnalysisSync:
 
 
 class PostSync:
-    def __init__(self, posts, height, db):
+    def __init__(self, posts, height, generalInfo, db):
         self.postOutPut = post_output(posts, height)
         print(self.postOutPut.postProperties)
         postId = 1
         for post in self.postOutPut.postProperties:
+            InputReport = PostInput(post, generalInfo)
+            value = InputReport.input
+            report = Main(value, value, value,
+                          f"D:/git/Wood/UI_Wood/stableVersion1/report/Post_output_{post['label']}_ID_{str(postId)}.pdf")
             postAnalysis = MainPost(post)
             postAnalysis.query.insert(0, postId)
             postAnalysis.query.insert(1, str(post["story"]))
