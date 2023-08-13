@@ -7,7 +7,8 @@ from output.post_output import post_output
 from output.joist_output import Joist_output
 from output.shearWall_output import ShearWall_output, EditLabel
 from WOOD_DESIGN.mainpost import MainPost
-from WOOD_DESIGN.mainbeam import MainBeam
+from WOOD_DESIGN.mainbeamnew import MainBeam
+from WOOD_DESIGN.mainshearwall import MainShearwall
 from WOOD_DESIGN.reports import Sqlreports
 from Sync.data import Data
 from Sync.Image import saveImage
@@ -36,14 +37,18 @@ class mainSync(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         TabData = ControlTab(self.tab, generalProp, self.general_information)
-        LoadMapaArea = TabData.loadMapArea
-        LoadMapMag = TabData.loadMapMag
+        # LoadMapaAreaBefore = TabData.loadMapArea
+        # LoadMapMagBefore = TabData.loadMapMag
         JoistArea = TabData.joistArea
         storyName = TabData.storyName
+        LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDict)
         seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
                                                   JoistArea)
+
         print(seismicInstance.seismicPara)
         print(midLineDict)
+        MainShearwall(seismicInstance.seismicPara, midLineDict)
+
         print("FINAL")
 
 
@@ -111,7 +116,7 @@ class ControlTab:
         joistOutput = Joist_output(self.joists)
 
         # SHEAR WALL
-        self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
+        # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
         self.joistArea = JoistSumArea(self.joists)
         self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
         ShearWallSync(self.shearWalls, generalProp.height, db)
@@ -246,6 +251,26 @@ def LoadMapArea(loadMaps):
     return areaListFull, magListFull
 
 
+def LoadMapAreaNew(midLine):
+    areaListFull = []
+    magListFull = []
+    controlLines = [str(i) for i in range(1000)]  # 1000 is just a big number
+    for i, loadMapTab in midLine.items():
+        magList = []
+        areaList = []
+        for LoadProp in loadMapTab:
+            line = list(LoadProp.keys())[0]
+            if line in controlLines:
+                for loadMap in LoadProp.values():
+                    for load in loadMap:
+                        areaList.append(load["area"])
+                        magList.append(load["magnitude"])
+        areaListFull.append(areaList)
+        magListFull.append(magList)
+
+    return areaListFull, magListFull
+
+
 def JoistSumArea(joists):
     JoistArea = []
     for joistTab in joists:
@@ -262,7 +287,7 @@ def StoryName(item):
     storyNumber = len(item)
     for i in range(storyNumber):
         if i < storyNumber - 1:
-            storyList.append(f"Story{i + 1}")
+            storyList.append(f"{i + 1}")
         else:
             storyList.append("Roof")
     storyList.reverse()
