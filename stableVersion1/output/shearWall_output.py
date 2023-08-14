@@ -130,7 +130,7 @@ class ShearWall_output:
                     ' start, end, Rd, Rl, Rlr, Rs, Left_Bottom_End,'
                     ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?)',
                     [
-                        shearWallId, str(self.Story), line, label, round(self.end - self.start, max(n1, n2)),
+                        shearWallId, str(StoryName), line, label, round(self.end - self.start, max(n1, n2)),
                         height[story],
                         str(opening_width), interior_exterior, self_weight, start_load, end_load, dead_load, live_load,
                         lr_load,
