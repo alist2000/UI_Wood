@@ -1,7 +1,7 @@
 from joist_prop import JoistLoad
 from PySide6.QtWidgets import QMainWindow, QApplication, QToolBar, QStatusBar, QVBoxLayout, QWidget, QDialog, QLabel, \
-    QSpinBox, QDialogButtonBox, QListWidget, QListWidgetItem, QPushButton, QTextEdit
-from PySide6.QtGui import QAction
+    QSpinBox, QDialogButtonBox, QListWidget, QListWidgetItem, QPushButton, QTextEdit, QTableWidgetItem
+from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QSpinBox, QDialogButtonBox
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
@@ -42,7 +42,7 @@ class set_uniform_load(QDialog):
 
         dialog = UniformLoadDialog(self.load_data)
         dialog.button_box.accepted.connect(dialog.accept_control)  # Change from dialog.accept to self.accept
-
+        deadSuperExist = False
         if dialog.exec() == QDialog.Accepted:
             name = self.load_data["name"]
             for i in self.all_set_load.keys():
@@ -50,8 +50,20 @@ class set_uniform_load(QDialog):
                     self.load_data["name"] = name + " "
 
             self.all_set_load[self.load_data["name"]] = self.load_data["properties"]
+            for load in self.load_data["properties"]:
+                loadType = load["type"]
+                if loadType == "Dead Super":
+                    deadSuperExist = True
+
             # Add a new row to the list widget if OK was clicked
             item = QListWidgetItem(self.load_data["name"])
+            self.loadSetId += 1
+            if not deadSuperExist:
+                item.setIcon(QIcon("D:/git/Wood/UI_Wood/stableVersion1/images/warning.png"))
+                item.setToolTip(
+                    "<html><body<h1 >Warning!</h1>"
+                    "Super Dead is not defined.<ul><li>Please enter 'super dead' loads for all load sets, Or the seismic analysis will not be carried out.</li><li>In set dead loads are defined"
+                    "but super dead loads are left empty, They will be assumed 10 psf greater than dead loads.</li></ul></body></html>")
             self.listWidget.addItem(item)
 
     def delete_row(self):
@@ -61,8 +73,8 @@ class set_uniform_load(QDialog):
             self.all_set_load.pop(name)
             self.listWidget.takeItem(self.listWidget.row(item))
 
-
     def modify_row(self):
+        deadSuperExist = False
         # Open the add dialog with the values of the selected row
         for item in self.listWidget.selectedItems():
             name = item.text()
@@ -84,9 +96,21 @@ class set_uniform_load(QDialog):
                 # Delete
                 self.listWidget.takeItem(self.listWidget.row(item))
 
-                # Create a new one
+                for load in dialog.uniform_load.load_data["properties"]:
+                    loadType = load["type"]
+                    if loadType == "Dead Super":
+                        deadSuperExist = True
+
+                # Add a new row to the list widget if OK was clicked
                 item = QListWidgetItem(dialog.uniform_load.load_data["name"])
+                if not deadSuperExist:
+                    item.setIcon(QIcon("D:/git/Wood/UI_Wood/stableVersion1/images/warning.png"))
+                    item.setToolTip(
+                        "<html><body><h1>Warning!</h1>Super Dead is not defined.<li>Please enter 'super dead' loads for all load sets, Or the seismic analysis will not be carried out.</li><li>In set dead loads are defined"
+                        "but super dead loads are left empty, They will be assumed 10 psf greater than dead loads.</li></body></html>")
+
                 self.listWidget.addItem(item)
+                self.load_data = dialog.uniform_load.load_data
 
     # SLOT
     def uniform_load_exe(self):
@@ -148,11 +172,9 @@ class UniformLoad(QWidget):
         self.populate_table()
 
     def populate_table(self):
-        print("jslkjfja", self.load_data["properties"])
         print(self.load_data)
         for i, row_data in enumerate(self.load_data["properties"]):
             loadName = self.load_data["name"]
-            # print(loadName)
             self.add_item(loadName, row_data, i)
 
     def add_item(self, name=None, row_data=None, i=0):
@@ -178,6 +200,7 @@ class UniformLoad(QWidget):
                         """)
 
         spinBox = QDoubleSpinBox()
+        spinBox.setDecimals(4)
         spinBox.setRange(0, 1000000)
 
         if row_data:  # if row_data is provided
@@ -203,8 +226,9 @@ class UniformLoad(QWidget):
         for row in range(1, self.tableWidget.rowCount()):
             comboBox = self.tableWidget.cellWidget(row, 0)
             spinBox = self.tableWidget.cellWidget(row, 1)
+            loadType = comboBox.currentText()
             self.load_data["properties"].append({
-                'type': comboBox.currentText(),
+                'type': loadType,
                 'magnitude': spinBox.value()
             })
             print(f"Row {row + 1}: Combo box value: {comboBox.currentText()}, Spin box value: {spinBox.value()}")
