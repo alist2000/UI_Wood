@@ -28,9 +28,14 @@ class mainSync(Data):
 
     def Run_and_Analysis(self):
         midLineDict = {}
-        for currentTab in range(self.tabWidgetCount):
+
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
             midLineData = self.grid[currentTab].run_control()
-            midLineDict[str(currentTab)] = midLineData
+            if currentTab == self.tabWidgetCount - 1:
+                storyName = "Roof"
+            else:
+                storyName = str(currentTab + 1)
+            midLineDict[storyName] = midLineData
             saveImage(self.grid, currentTab)
 
         self.saveFunc()
