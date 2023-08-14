@@ -38,7 +38,7 @@ class midline_area_calc:
         area = width * height / (magnification_factor ** 2)
 
         # self.midline_area_dict = {"area": area, "magnitude": magnitude, "type": Type}
-        self.midline_area_dict = {"area": area, "magnitude": magnitude}
+        self.midline_area_dict = {"area": area, "magnitude": magnitude * 1000}
 
 
 class joist_in_midline:
@@ -72,7 +72,8 @@ class control:
                 joist_grid_intersection = range_intersection(gridRange, joist_range)
                 if joist_grid_intersection:
                     joistLoadTotal = JoistProp["load"]["total_area"]
-                    for load in joistLoadTotal:
+                    loadSetEdited = self.ControlDeadSuperExist(joistLoadTotal)
+                    for load in loadSetEdited:
                         if load["type"] == "Dead Super":
                             midline = midline_area_calc(load["magnitude"],
                                                         joist_grid_intersection,
@@ -81,7 +82,8 @@ class control:
                             lineProp.append(midline.midline_area_dict)
 
                     joistLoadCustom = JoistProp["load"]["custom_area"]
-                    for load in joistLoadCustom:
+                    loadSetEdited = self.ControlDeadSuperExist(joistLoadCustom)
+                    for load in loadSetEdited:
                         load_x_range = (load["x1"], load["x2"])
                         load_y_range = (load["y1"], load["y2"])
                         midlineRange = midline_range(direction, load_x_range, load_y_range, gridRange)
@@ -102,11 +104,31 @@ class control:
                         x_range = midlineRange.x_range
                         y_range = midlineRange.y_range
                         if x_range and y_range:
-                            for load in load_set["load"]:
+                            loadSetEdited = self.ControlDeadSuperExist(load_set["load"])
+                            for load in loadSetEdited:
+
                                 if load["type"] == "Dead Super":
                                     midline = midline_area_calc(load["magnitude"], x_range, y_range,
                                                                 )
                                     lineProp.append(midline.midline_area_dict)
+
+    @staticmethod
+    def ControlDeadSuperExist(loads):
+        loadTypes = []
+        loadMags = []
+        for load in loads:
+            loadTypes.append(load["type"])
+            loadMags.append(load["magnitude"])
+        if "Dead Super" in loadTypes:
+            return loads
+        elif "Dead" in loadTypes:
+            deadIndex = loadTypes.index("Dead")
+            SuperDeadMag = loadMags[deadIndex] + 0.01  # consider dead super = dead + 10 psf
+            loads.append({
+                "type": "Dead Super",
+                "magnitude": SuperDeadMag
+            })
+        return loads
 
 # joist = {"<joist_new.joistRectangle(0x29616f25bb0, pos=0,0) at 0x0000029617CDB000>": {'label': 'J1',
 #                                                                                       'coordinate': [(35.0, 95.0),
