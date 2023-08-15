@@ -7,8 +7,7 @@ from PySide6.QtWidgets import QMainWindow, QGraphicsScene, QToolBar, QFileDialog
 from PySide6.QtGui import QPixmap, QAction, QKeyEvent
 from PySide6.QtCore import Qt, QPoint
 
-from set_uniform_load_new import set_uniform_load
-# from set_uniform_load import set_uniform_load
+from set_uniform_load import set_uniform_load
 from replicate import Replicate
 from save import Save
 
@@ -106,6 +105,8 @@ class load_seismic_dialog:
     def create_spin_box(self, i, layout, spin_boxes):
         spinbox = QDoubleSpinBox()
         spinbox.setValue(self.mainPage.spin_values[i])
+        spinbox.setRange(0.1, 1000)
+        spinbox.setDecimals(4)
         layout.addWidget(spinbox)
         spin_boxes.append(spinbox)
 

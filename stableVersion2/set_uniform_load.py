@@ -10,14 +10,18 @@ from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
 from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QPen, QColor
 
+import uuid
+
 
 class set_uniform_load(QDialog):
     def __init__(self, mainPage):
         super(set_uniform_load, self).__init__()
-        self.loadSetId = 1
+        self.EditLoadMapLoadSet = None
+        self.loadSetId = uuid.uuid4()
         self.set_uniforms = None
         self.load_data = {"id": self.loadSetId, "name": "", "properties": []}
         self.all_set_load = {}
+        self.mainPage = mainPage
 
         self.setWindowTitle("Set Uniform Load")
         # Create buttons
@@ -40,17 +44,19 @@ class set_uniform_load(QDialog):
         self.setLayout(layout)
 
     def open_add_dialog(self):
+        self.EditLoadMapLoadSet = EditLoadMapLoadSet(self.mainPage.mainPage.grid)
 
         dialog = UniformLoadDialog(self.load_data)
         dialog.button_box.accepted.connect(dialog.accept_control)  # Change from dialog.accept to self.accept
         deadSuperExist = False
         if dialog.exec() == QDialog.Accepted:
+            self.loadSetId = uuid.uuid4()
             name = self.load_data["name"]
             for i in self.all_set_load.keys():
                 if name == i:
                     self.load_data["name"] = name + " "
 
-            self.all_set_load[self.load_data["name"]] = self.load_data["properties"]
+            self.all_set_load[str(self.loadSetId)] = {self.load_data["name"]: self.load_data["properties"]}
             for load in self.load_data["properties"]:
                 loadType = load["type"]
                 if loadType == "Dead Super":
@@ -58,7 +64,6 @@ class set_uniform_load(QDialog):
 
             # Add a new row to the list widget if OK was clicked
             item = QListWidgetItem(self.load_data["name"])
-            self.loadSetId += 1
             if not deadSuperExist:
                 item.setIcon(QIcon("D:/git/Wood/UI_Wood/stableVersion1/images/warning.png"))
                 item.setToolTip(
@@ -66,33 +71,47 @@ class set_uniform_load(QDialog):
                     "Super Dead is not defined.<ul><li>Please enter 'super dead' loads for all load sets, Or the seismic analysis will not be carried out.</li><li>In set dead loads are defined"
                     "but super dead loads are left empty, They will be assumed 10 psf greater than dead loads.</li></ul></body></html>")
             self.listWidget.addItem(item)
+            self.EditLoadMapLoadSet.edit(self.all_set_load)
 
     def delete_row(self):
         # Delete the selected row
         for item in self.listWidget.selectedItems():
             name = item.text()
-            self.all_set_load.pop(name)
-            self.listWidget.takeItem(self.listWidget.row(item))
+            for keys, items in self.all_set_load.items():
+                nameItem = list(items.keys())[0]
+                if nameItem == name:
+                    self.all_set_load.pop(keys)
+                    self.listWidget.takeItem(self.listWidget.row(item))
+                    break
 
     def modify_row(self):
+        self.EditLoadMapLoadSet = EditLoadMapLoadSet(self.mainPage.mainPage.grid)
         deadSuperExist = False
         # Open the add dialog with the values of the selected row
         for item in self.listWidget.selectedItems():
             name = item.text()
-            load_data = self.all_set_load[name]
-            load_data_dict = {"name": name, "properties": load_data}
-            dialog = UniformLoadDialog(load_data_dict)
-            dialog.button_box.accepted.connect(dialog.accept_control)  # Change from dialog.accept to self.accept
+            mainId = "0"
+            for keys, items in self.all_set_load.items():
+                nameItem = list(items.keys())[0]
+                if nameItem == name:
+                    load_data = list(self.all_set_load[keys].values())[0]
+                    load_data_dict = {"name": name, "properties": load_data}
+                    dialog = UniformLoadDialog(load_data_dict)
+                    dialog.button_box.accepted.connect(
+                        dialog.accept_control)  # Change from dialog.accept to self.accept
+                    mainId = keys
+                    break
 
             if dialog.exec() == QDialog.Accepted:
-                self.all_set_load.pop(name)
+                self.all_set_load.pop(mainId)
 
                 name = dialog.uniform_load.load_data["name"]
                 for i in self.all_set_load.keys():
                     if name == i:
                         dialog.uniform_load.load_data["name"] = name + " "
 
-                self.all_set_load[dialog.uniform_load.load_data["name"]] = dialog.uniform_load.load_data["properties"]
+                self.all_set_load[mainId] = {
+                    dialog.uniform_load.load_data["name"]: dialog.uniform_load.load_data["properties"]}
 
                 # Delete
                 self.listWidget.takeItem(self.listWidget.row(item))
@@ -112,6 +131,7 @@ class set_uniform_load(QDialog):
 
                 self.listWidget.addItem(item)
                 self.load_data = dialog.uniform_load.load_data
+                self.EditLoadMapLoadSet.edit(self.all_set_load)
 
     # SLOT
     def uniform_load_exe(self):
@@ -164,11 +184,6 @@ class UniformLoad(QWidget):
         self.buttonAdd.clicked.connect(self.add_item)
         self.buttonDelete.clicked.connect(self.delete_item)
         self.row_values = []
-
-        # self.buttonOK = QPushButton("OK")
-        # self.layout.addWidget(self.buttonOK)
-
-        # self.buttonOK.clicked.connect(self.print_values)
 
         self.populate_table()
 
@@ -233,3 +248,36 @@ class UniformLoad(QWidget):
                 'magnitude': spinBox.value()
             })
             print(f"Row {row + 1}: Combo box value: {comboBox.currentText()}, Spin box value: {spinBox.value()}")
+
+
+class EditLoadMapLoadSet:
+    def __init__(self, grid):
+        loadMaps = []
+        for items in grid:
+            loads = items.load_instance
+            loadMaps.append(list(loads.rect_prop.values()))
+            # for load in loads["rect_prop"].values():
+            #     loadID = load["id"]
+            # loadMaps.append(items[])
+
+        self.loadMaps = loadMaps
+
+    def edit(self, loadSets):
+        print("LOAD SET IN EDIT FUNCTION", loadSets)
+        for loads in self.loadMaps:
+            for load in loads:
+                loadID = load["id"]
+                loadSetTarget = loadSets[loadID]
+                loadSetEdited = self.EditLoadSet(loadSetTarget)
+                load["load"] = loadSetEdited
+                load["label"] = list(loadSetTarget.keys())[0]
+
+                # ADD ALL LOAD SET NAMES FOR PROPERTIES.
+                load["load_set"] = [list(loadSet.keys())[0] for loadSet in loadSets.values()]
+
+    # EDIT LOAD SET\
+    @staticmethod
+    def EditLoadSet(loadSet):
+        newLoadSet = {list(loadSet.keys())[0]: list(loadSet.values())[0]}
+        print(newLoadSet)
+        return newLoadSet

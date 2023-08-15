@@ -2,8 +2,7 @@ import itertools
 
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor, QKeyEvent
-from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QColorDialog
+from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton
 
 from post_new import magnification_factor
 from image import image_control
@@ -28,6 +27,7 @@ class loadDrawing(QGraphicsRectItem):
         self.snapPoint = snapPoint
         self.snapLine = snapLine
         self.toolBar = toolBar
+        self.EditedLoadSet = None
         self.load_number = 1
 
         self.scene_pos = None
@@ -43,6 +43,9 @@ class loadDrawing(QGraphicsRectItem):
         # note spacing x = width, spacing y = height
 
     def draw_load_mousePress(self, main_self, event, properties=None):
+        self.EditedLoadSet = EditLoadSet(self.toolBar.dialogPage2.all_set_load)
+        print("hhhhhh", self.toolBar.dialogPage2.all_set_load)
+        print("llllllll", self.EditedLoadSet)
         if properties:  # for copy/load
             coordinate = properties["coordinate"]
             x1, y1 = coordinate[0]
@@ -54,35 +57,23 @@ class loadDrawing(QGraphicsRectItem):
             rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
 
             rect_item = loadRectangle(rect_x, rect_y, rect_w, rect_h, self.rect_prop,
-                                      self.toolBar.dialogPage2.all_set_load)
-            # image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item)
-            # rect_item.image = image
+                                      self.EditedLoadSet)
 
             rect_item.setBrush(QBrush(QColor.fromRgb(222, 143, 111, 80)))
             rect_item.setPen(QPen(Qt.black))
             self.scene.addItem(rect_item)
             self.scene.removeItem(self.temp_rect)
-            dialog = Choose_load_and_color(self.toolBar.dialogPage2.all_set_load)
 
-            # result = dialog.exec()
-            # dialog = ColorDialog(self)
-            # result = dialog.exec()
-            # print(dialog.color)
-            # print(result)
             rect_item.setBrush(QColor(properties["color"]))
-            print(f"Value chosen in combo box: {dialog.combo_box.currentText()}")
-            if dialog.combo_box.currentText():
-                load = self.toolBar.dialogPage2.all_set_load[
-                    dialog.combo_box.currentText()]
-            else:
-                load = []
 
             # Save coordinates of the rectangle corners
             self.rect_prop[rect_item] = {"label": properties["label"],
                                          "coordinate": [(x1_main, y1_main), (x1_main, y2_main),
                                                         (x2_main, y2_main), (x2_main, y1_main)],
                                          "color": properties["color"],
-                                         "load": properties["load"]}
+                                         "load": properties["load"],
+                                         "id": properties["id"]
+                                         }
             joist_line_creator(self.rect_prop[rect_item])
             print(self.rect_prop)
             self.load_number += 1
@@ -116,7 +107,7 @@ class loadDrawing(QGraphicsRectItem):
                         self.temp_rect.setRect(rect_x, rect_y, rect_w, rect_h)
 
                         rect_item = loadRectangle(rect_x, rect_y, rect_w, rect_h, self.rect_prop,
-                                                  self.toolBar.dialogPage2.all_set_load)
+                                                  self.EditedLoadSet)
                         # image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item)
                         # rect_item.image = image
 
@@ -124,27 +115,26 @@ class loadDrawing(QGraphicsRectItem):
                         rect_item.setPen(QPen(Qt.black))
                         self.scene.addItem(rect_item)
                         self.scene.removeItem(self.temp_rect)
-                        dialog = Choose_load_and_color(self.toolBar.dialogPage2.all_set_load)
+                        dialog = Choose_load_and_color(self.EditedLoadSet)
 
                         result = dialog.exec()
-                        # dialog = ColorDialog(self)
-                        # result = dialog.exec()
-                        # print(dialog.color)
-                        # print(result)
                         rect_item.setBrush(QColor(dialog.color))
                         print(f"Value chosen in combo box: {dialog.combo_box.currentText()}")
+                        load = []
+                        Id = None
                         if dialog.combo_box.currentText():
-                            load = self.toolBar.dialogPage2.all_set_load[
-                                dialog.combo_box.currentText()]
-                        else:
-                            load = []
+                            for Id, loadSet in self.toolBar.dialogPage2.all_set_load.items():
+                                if list(loadSet.keys())[0] == dialog.combo_box.currentText():
+                                    load = list(self.toolBar.dialogPage2.all_set_load[Id].values())[0]
+                                    break
 
                         # Save coordinates of the rectangle corners
                         self.rect_prop[rect_item] = {"label": dialog.combo_box.currentText(),
                                                      "coordinate": [(x1_main, y1_main), (x1_main, y2_main),
                                                                     (x2_main, y2_main), (x2_main, y1_main)],
                                                      "color": dialog.color,
-                                                     "load": load}
+                                                     "load": load,
+                                                     "id": Id}
                         joist_line_creator(self.rect_prop[rect_item])
                         print(self.rect_prop)
                         self.load_number += 1
@@ -233,6 +223,8 @@ class loadRectangle(QGraphicsRectItem):
             load_joint_coordinates = find_coordinate(center[0], center[1], width, height)
             self.load_properties_page = LoadProperties(self, self.rect_prop, center, load_joint_coordinates,
                                                        self.all_load, self.scene())
+            print("RECT", self.rect_prop[self])
+            print("LOAD SETS ", self.all_load)
             self.load_properties_page.show()
 
 
@@ -246,3 +238,12 @@ def find_coordinate(xc, yc, width, height):
     # all_coordinates = itertools.product([x1, x2], [y1, y2])
     # all_coordinates_list = [i for i in all_coordinates]
     return all_coordinates_list
+
+
+# EDIT LOAD SET
+def EditLoadSet(loadSet):
+    newLoadSet = {}
+    for ID, value in loadSet.items():
+        newLoadSet[list(value.keys())[0]] = list(value.values())[0]
+    print(newLoadSet)
+    return newLoadSet

@@ -8,8 +8,7 @@ from StudWall import studWallDrawing
 from back.input import receiver
 from output.beam_output import beam_output
 from joist_new import joistDrawing
-# from load_map import loadDrawing
-from load_map_new import loadDrawing
+from load_map import loadDrawing
 from mouse import SelectableLineItem
 from post_new import PostDrawing
 # from main import magnification_factor

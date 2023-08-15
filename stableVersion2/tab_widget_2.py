@@ -7,8 +7,7 @@ from grid import GridWidget
 
 from post_new import PostButton
 from joist_new import JoistButton
-# from load_map import LoadButton
-from load_map_new import LoadButton
+from load_map import LoadButton
 from Beam import BeamButton
 from ShearWall import ShearWallButton
 from StudWall import StudWallButton
