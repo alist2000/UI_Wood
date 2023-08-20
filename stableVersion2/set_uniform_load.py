@@ -267,6 +267,8 @@ class EditLoadMapLoadSet:
         for loads in self.loadMaps:
             for load in loads:
                 loadID = load["id"]
+                if not loadID:
+                    loadID = list(loadSets.keys())[0]
                 loadSetTarget = loadSets[loadID]
                 loadSetEdited = self.EditLoadSet(loadSetTarget)
                 load["load"] = loadSetEdited
@@ -275,9 +277,9 @@ class EditLoadMapLoadSet:
                 # ADD ALL LOAD SET NAMES FOR PROPERTIES.
                 load["load_set"] = [list(loadSet.keys())[0] for loadSet in loadSets.values()]
 
-    # EDIT LOAD SET\
+    # EDIT LOAD SET
     @staticmethod
     def EditLoadSet(loadSet):
-        newLoadSet = {list(loadSet.keys())[0]: list(loadSet.values())[0]}
+        newLoadSet = list(loadSet.values())[0]
         print(newLoadSet)
         return newLoadSet
