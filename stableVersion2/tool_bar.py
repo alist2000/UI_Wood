@@ -20,7 +20,7 @@ class ToolBar:
         self.dialogPage3 = Replicate(self)
         self.savePage = Save(self)
 
-        self.spin_values = [0, 0, 0, 0, 0, 0, 0]
+        self.spin_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
         self.combo_values = ["I & II"]
         self.create_tool_bar()
 
