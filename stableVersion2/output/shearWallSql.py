@@ -7,6 +7,10 @@ class shearWallSQL:
         self.conn = sqlite3.connect('../../Output/ShearWall_Input.db')
         # Create a cursor object
         self.cursor = self.conn.cursor()
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = self.cursor.fetchall()
+        for table in tables:
+            self.cursor.execute(f"DROP TABLE IF EXISTS {table[0]}")
 
     def createTable(self):
         self.cursor.execute("DROP TABLE IF EXISTS WallTable")
@@ -42,3 +46,80 @@ class shearWallSQL:
         """)
 
         self.conn.commit()
+
+
+class SeismicParamsSQL:
+    def __init__(self):
+        # Connect to SQLite database
+        self.conn = sqlite3.connect('../../Output/Seismic/SeismicParameters.db')
+        # Create a cursor object
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = self.cursor.fetchall()
+        for table in tables:
+            self.cursor.execute(f"DROP TABLE IF EXISTS {table[0]}")
+
+    def seismicParams(self):
+        self.cursor.execute("DROP TABLE IF EXISTS seismicParams")
+
+        # Create table
+        self.cursor.execute("""
+            CREATE TABLE seismicParams (
+                S1 FLOAT,
+                Ss FLOAT,
+                Fa FLOAT,
+                Fv FLOAT,
+                I FLOAT,
+                T_model FLOAT,
+                R_factor FLOAT,
+                risk_category TEXT
+            )
+        """)
+
+        self.conn.commit()
+
+    def loadData(self, storyName):
+        tableName = f"Total_Load_Story_{storyName}"
+        self.cursor.execute(f"DROP TABLE IF EXISTS {tableName}")
+
+        # Create table
+        self.cursor.execute(f"""
+            CREATE TABLE {tableName} (
+                Story TEXT,
+                joist_area FLOAT,
+                load_area FLOAT,
+                load_magnitude FLOAT
+            )
+        """)
+
+        self.conn.commit()
+        return tableName
+
+
+class MidlineSQL:
+    def __init__(self):
+        # Connect to SQLite database
+        self.conn = sqlite3.connect('../../Output/Seismic/Midline.db')
+        # Create a cursor object
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = self.cursor.fetchall()
+        for table in tables:
+            self.cursor.execute(f"DROP TABLE IF EXISTS {table[0]}")
+
+    def loadData(self, storyName, line):
+        tableName = f"Story_{storyName}_Line_{line}"
+        self.cursor.execute(f"DROP TABLE IF EXISTS {tableName}")
+
+        # Create table
+        self.cursor.execute(f"""
+            CREATE TABLE {tableName} (
+                Story TEXT,
+                Line TEXT,
+                load_area FLOAT,
+                load_magnitude FLOAT
+            )
+        """)
+
+        self.conn.commit()
+        return tableName
