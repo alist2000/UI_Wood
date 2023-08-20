@@ -31,6 +31,7 @@ class GridWidget(QGraphicsView):
         self.dragging_pixmap = False
 
         self.grid = {"vertical": [], "horizontal": []}
+        self.lineLabels = []
         self.x = x
         self.y = y
 
@@ -69,6 +70,7 @@ class GridWidget(QGraphicsView):
                 "label": label,
                 "position": y_list[i]
             })
+            self.lineLabels.append(label)
         for i in range(v_grid_number):
             line_vertical = SelectableLineItem(x_list[i], 0, x_list[i], height_manual)
             # snap
@@ -80,6 +82,7 @@ class GridWidget(QGraphicsView):
                 "label": f"{i + 1}",
                 "position": x_list[i]
             })
+            self.lineLabels.append(str(i + 1))
 
         # Add Snap Points (grid joint points)
         for x in x_list:
@@ -161,7 +164,7 @@ class GridWidget(QGraphicsView):
         # print("RUN CLICK", data.midline.midline_dict)
         # for i in data.midline.midline_dict:
         #     print(i)
-        return data.midline.midline_dict
+        return data.midline.midline_dict, self.lineLabels
 
     def wheelEvent(self, event):
         zoomInFactor = 1.25
