@@ -1,11 +1,7 @@
-import sys
-
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\11.5")
-from post_new import magnification_factor
-from back.load_control import range_intersection
-
-from output.beam_output import ControlDistributetLoad, ControlLineLoad, CombineDistributes
-from output.shearWallSql import shearWallSQL
+from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion2.back.load_control import range_intersection
+from UI_Wood.stableVersion2.output.beam_output import ControlDistributetLoad, ControlLineLoad, CombineDistributes
+from UI_Wood.stableVersion2.output.shearWallSql import shearWallSQL
 
 
 class EditLabel:
@@ -71,6 +67,7 @@ class EditLabel:
 class ShearWall_output:
     def __init__(self, shearWalls, height):
         self.shearWallProperties = {}
+        self.shearWallExistLine = {}
 
         self_weight_dict = {"I": 10, "E": 20}
 
@@ -81,11 +78,16 @@ class ShearWall_output:
         for story, shearWallsTab in enumerate(shearWalls):
             self.Story = story + 1
             shearWallProperties_everyTab = []
+            if self.Story == self.roof_level_number:
+                StoryName = "Roof"
+            else:
+                StoryName = self.Story
+            self.shearWallExistLine[str(StoryName)] = set()
             for ShearWallItem in shearWallsTab:
-
                 label = ShearWallItem["label"][2:]
                 self.length = ShearWallItem["length"] / magnification_factor
                 line = ShearWallItem["line_label"]
+                self.shearWallExistLine[str(StoryName)].add(line)
                 opening_width = 0  # for now
                 interior_exterior = ShearWallItem["interior_exterior"][0].upper()
                 self_weight = self_weight_dict[interior_exterior]
@@ -120,10 +122,6 @@ class ShearWall_output:
                                                                decimal_number)
                 start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
                     self.finalDistributedLoad.loadSet)
-                if self.Story == self.roof_level_number:
-                    StoryName = "Roof"
-                else:
-                    StoryName = self.Story
                 db.cursor.execute(
                     'INSERT INTO WallTable (ID, Story, Line, Wall_Label,'
                     ' Wall_Length, Story_Height, Opening_Width, Int_Ext,  Wall_Self_Weight,'
