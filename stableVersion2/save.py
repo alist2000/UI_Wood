@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog
 import json
-import sys
 
 
 # Subject
@@ -29,12 +28,12 @@ class Save(Subject):
     def save_data(self):
         # Define the data to save
         self.data = {
-            'general_information': {"project_name": "",
-                                    "company": "",
-                                    "designer": "",
-                                    "client": "",
-                                    "comment": "",
-                                    "unit_system": "us".upper(),
+            'general_information': {"project_name": self.mainPage.mainPage.information_properties["project_name"],
+                                    "company": self.mainPage.mainPage.information_properties["company"],
+                                    "designer": self.mainPage.mainPage.information_properties["designer"],
+                                    "client": self.mainPage.mainPage.information_properties["client"],
+                                    "comment": self.mainPage.mainPage.information_properties["comment"],
+                                    "unit_system": self.mainPage.mainPage.information_properties["unit_system"],
                                     "section": ""},
             'general_properties': self.mainPage.mainPage.inputs,
             "seismic_parameters": {},
