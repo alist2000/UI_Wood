@@ -169,34 +169,43 @@ class MidlineEdit:
                         line[line_label] += line2[line_label2]
 
 
-def NoShearWallLines(names_set):
-    # Connect to the SQLite database
-    conn = sqlite3.connect('../../Output/ShearWall_Input.db')
-
-    # Create a cursor object
-    cursor = conn.cursor()
-
-    # Execute the query
-    cursor.execute("SELECT Story, Line FROM wallTable")
-
-    # Fetch all the rows
-    rows = cursor.fetchall()
-
-    # Close the connection
-    conn.close()
-    stories = set()
-    for row in rows:
-        stories.add(row[0])
-    stories = list(stories)
-    stories.sort()
+def NoShearWallLines(shearWallLines, names_set):
     noShearWalls = {}
-    for story in stories:
+    for story, lines in shearWallLines.items():
         noShearWalls[story] = set()
-        for row in rows:
-            if row[0] == story:
-                noShearWalls[story].add(row[1])
-        noShearWalls[story] = names_set - noShearWalls[story]
-
+        noShearWalls[story] = names_set - lines
         noShearWalls[story] = list(noShearWalls[story])
         noShearWalls[story].sort()
     return noShearWalls
+
+# def NoShearWallLines(names_set):
+#     # Connect to the SQLite database
+#     conn = sqlite3.connect('../../Output/ShearWall_Input.db')
+#
+#     # Create a cursor object
+#     cursor = conn.cursor()
+#
+#     # Execute the query
+#     cursor.execute("SELECT Story, Line FROM wallTable")
+#
+#     # Fetch all the rows
+#     rows = cursor.fetchall()
+#
+#     # Close the connection
+#     conn.close()
+#     stories = set()
+#     for row in rows:
+#         stories.add(row[0])
+#     stories = list(stories)
+#     stories.sort()
+#     noShearWalls = {}
+#     for story in stories:
+#         noShearWalls[story] = set()
+#         for row in rows:
+#             if row[0] == story:
+#                 noShearWalls[story].add(row[1])
+#         noShearWalls[story] = names_set - noShearWalls[story]
+#
+#         noShearWalls[story] = list(noShearWalls[story])
+#         noShearWalls[story].sort()
+#     return noShearWalls
