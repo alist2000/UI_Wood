@@ -13,6 +13,7 @@ from UI_Wood.stableVersion2.Sync.postSync import PostSync
 from UI_Wood.stableVersion2.Sync.beamSync import beamAnalysisSync
 from UI_Wood.stableVersion2.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
     NoShearWallLines, MidlineEdit
+from UI_Wood.stableVersion2.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion2.post_new import magnification_factor
 
 
@@ -39,14 +40,15 @@ class mainSync(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         TabData = ControlTab(self.tab, generalProp, self.general_information)
+        shearWallExistLine = TabData.shearWallSync.shearWallOutPut.shearWallExistLine
         # LoadMapaAreaBefore = TabData.loadMapArea
         # LoadMapMagBefore = TabData.loadMapMag
         JoistArea = TabData.joistArea
         storyName = TabData.storyName
-        noShearWallLines = NoShearWallLines(set(lineLabels))
+        noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
         midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
         midLineDictEdited = midLineInstance.newMidline
-        boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
+        # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
         LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
         seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
                                                   JoistArea)
@@ -85,6 +87,7 @@ class ControlTab:
         self.beams = []
         self.joists = []
         self.shearWalls = []
+        self.studWalls = []
         self.loadMaps = []
 
         for i, Tab in self.tab.items():
@@ -92,11 +95,13 @@ class ControlTab:
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
+            studWall = Tab["studWall"]
             loadMap = Tab["loadMap"]
             self.posts.append(post)
             self.beams.append(beam)
             self.joists.append(joist)
             self.shearWalls.append(shearWall)
+            self.studWalls.append(studWall)
             self.loadMaps.append(loadMap)
 
         # CREATE DB FOR OUTPUT.
@@ -117,7 +122,8 @@ class ControlTab:
         # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
         self.joistArea = JoistSumArea(self.joists)
         self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
-        ShearWallSync(self.shearWalls, generalProp.height, db)
+        self.shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, db)
+        self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
 
         # print(beamAnalysisInstance.reactionTab)
         # print("ALL POSTS : ", self.posts)
