@@ -35,14 +35,15 @@ class ShearWallPostIntersection:
                         CheckIntersection(value, value2)
 
 
-class shearWall_control:
-    def __init__(self, shearWall, joist, beam):
+class shearWall_control:  # stud wall also, item = studWall
+    def __init__(self, shearWall, joist, beam, item=None):
         self.shearWall = shearWall
         self.joist = joist
         self.beam = beam
         beam_control_joist(self.shearWall, self.joist)
-        BeamOnShearWall(self.beam, self.shearWall)
-        ShearWallPostIntersection(self.shearWall)
+        if item != "studWall":
+            BeamOnShearWall(self.beam, self.shearWall)
+            ShearWallPostIntersection(self.shearWall)
 
 
 # WORK ON START END AND COORDINATE OF INTERSECTION AND AREA AND SOMETHING LIKE THIS
