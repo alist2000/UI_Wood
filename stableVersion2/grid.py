@@ -98,7 +98,7 @@ class GridWidget(QGraphicsView):
                                                    snapLine)
         self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, self.shearWall_instance,
                                          snapPoint, snapLine)
-        self.studWall_instance = studWallDrawing(studWall, self.x, self.y, self.scene, snapPoint, snapLine)
+        self.studWall_instance = studWallDrawing(studWall, self.x, self.y, self.grid, self.scene, snapPoint, snapLine)
 
         # CONTROL ON OTHER BUTTONS
         self.post_instance.other_button = [self.beam_instance, self.joist_instance, self.shearWall_instance,
