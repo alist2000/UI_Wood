@@ -1,13 +1,15 @@
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel
+    QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 
 from pointer_control import beam_end_point
 from post_new import magnification_factor
 from DeActivate import deActive
+from beam_prop import lineLoad
 
 from back.beam_control import beam_line_creator
+from UI_Wood.stableVersion2.pointer_control import pointer_control_studWall
 
 
 class StudWallButton(QWidget):
@@ -17,12 +19,13 @@ class StudWallButton(QWidget):
 
 
 class studWallDrawing(QGraphicsRectItem):
-    def __init__(self, studWallButton, x, y, scene, snapPoint, snapLine):
+    def __init__(self, studWallButton, x, y, grid, scene, snapPoint, snapLine):
         super().__init__()
         self.studWall = studWallButton
         self.scene = scene
         self.snapPoint = snapPoint
         self.snapLine = snapLine
+        self.grid = grid
 
         self.current_rect = None
         self.start_pos = None
@@ -39,11 +42,12 @@ class studWallDrawing(QGraphicsRectItem):
         self.studWall_number = 1
         self.studWall_loc = []  # for every single studWall
 
-    def draw_studWall_mousePress(self, main_self, event, coordinate=None):
-        if coordinate:  # for copy/load
+    def draw_studWall_mousePress(self, main_self, event, prop=None):
+        if prop:  # for copy/load
+            coordinate = prop["coordinate"]
             x1, y1 = coordinate[0]
             x2, y2 = coordinate[1]
-            self.finalize_rectangle_copy((x1, y1), (x2, y2))
+            self.finalize_rectangle_copy((x1, y1), (x2, y2), prop)
         else:
             if event.button() == Qt.LeftButton:
 
@@ -81,8 +85,19 @@ class studWallDrawing(QGraphicsRectItem):
                             start_point = self.studWall_loc[0]
                             final_end_point = beam_end_point(start_point, end_point)
                             self.studWall_loc.append(final_end_point)
+                            l = self.length(start_point, end_point)
+                            self.direction, self.interior_exterior = pointer_control_studWall(start_point, end_point,
+                                                                                              self.grid)
+
                             self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
-                                                                          "coordinate": [start_point, final_end_point]}
+                                                                          "coordinate": [start_point, final_end_point],
+                                                                          "length": l,
+                                                                          "direction": self.direction,
+                                                                          "interior_exterior": self.interior_exterior,
+                                                                          "thickness": "4 in",  # in
+                                                                          "load": {"point": [], "line": [],
+                                                                                   "reaction": []}
+                                                                          }
 
                             beam_line_creator(self.studWall_rect_prop[self.current_rect])
 
@@ -154,7 +169,7 @@ class studWallDrawing(QGraphicsRectItem):
         # self.current_rect = None
         self.start_pos = None
 
-    def finalize_rectangle_copy(self, start, end):
+    def finalize_rectangle_copy(self, start, end, prop):
         self.studWall_loc.append(start)
 
         x1, y1 = start
@@ -182,8 +197,22 @@ class studWallDrawing(QGraphicsRectItem):
         start_point = self.studWall_loc[0]
         final_end_point = beam_end_point(start_point, end_point)
         self.studWall_loc.append(final_end_point)
+        l = self.length(start, end)
+        self.direction, self.interior_exterior = pointer_control_studWall(start_point, end_point,
+                                                                          self.grid)
+        try:
+            thickness = prop["thickness"]
+        except KeyError:
+            thickness = "4 in"
+
         self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
-                                                      "coordinate": [start_point, final_end_point]}
+                                                      "coordinate": [start_point, final_end_point],
+                                                      "length": l,
+                                                      "direction": self.direction,
+                                                      "interior_exterior": self.interior_exterior,
+                                                      "thickness": thickness,  # in
+                                                      "load": {"point": [], "line": [], "reaction": []}
+                                                      }
 
         beam_line_creator(self.studWall_rect_prop[self.current_rect])
 
@@ -198,6 +227,15 @@ class studWallDrawing(QGraphicsRectItem):
         self.snapPoint.add_point(self.studWall_loc[1][0], self.studWall_loc[1][1])
 
         self.studWall_loc.clear()
+
+    @staticmethod
+    def length(start, end):
+        x1 = start[0]
+        x2 = end[0]
+        y1 = start[1]
+        y2 = end[1]
+        l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+        return round(l, 2)
 
     # SLOT
     def studWall_selector(self):
@@ -258,6 +296,8 @@ class StudWallProperties(QDialog):
         self.direction = None
         self.rectItem = rectItem
         self.rect_prop = rect_prop
+        self.thickness = None
+        self.thickness_default = rect_prop[rectItem]["thickness"]
 
         # IMAGE
         self.scene = scene
@@ -270,10 +310,12 @@ class StudWallProperties(QDialog):
         self.tab_widget = QTabWidget()
         self.tab_widget.setWindowTitle("Object Data")
         self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_box.accepted.connect(self.accept)  # Change from dialog.accept to self.accept
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
 
         self.create_geometry_tab()
+        self.create_assignment_tab()
+        self.lineLoad = lineLoad(self.tab_widget, self.rect_prop[self.rectItem])
 
         v_layout.addWidget(self.tab_widget)
         v_layout.addWidget(button_box)
@@ -285,6 +327,8 @@ class StudWallProperties(QDialog):
 
     def accept_control(self):
         print(self.rect_prop)
+        self.lineLoad.print_values()
+        self.accept()
 
     def create_geometry_tab(self):
         start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][0]])
@@ -323,6 +367,33 @@ class StudWallProperties(QDialog):
         v_layout.addLayout(h_layout2)
         v_layout.addLayout(h_layout3)
         tab.setLayout(v_layout)
+
+    def create_assignment_tab(self):
+        tab = QWidget()
+        self.tab_widget.addTab(tab, f"Assignments")
+        label1 = QLabel("Stud Wall Thickness")
+        self.thickness = thickness = QComboBox()
+        thickness.addItems(["4 in", "6 in"])
+        self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.thickness.currentTextChanged.connect(self.thickness_control)
+
+        # LAYOUT
+        h_layout1 = QHBoxLayout()
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(thickness)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout1)
+
+        tab.setLayout(v_layout)
+        # return self.direction
+        # SLOT
+
+    def thickness_control(self):
+        self.thickness_default = self.thickness.currentText()
+        self.rect_prop[self.rectItem]["thickness"] = self.thickness_default
 
     @staticmethod
     def length(start, end):
