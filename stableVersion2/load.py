@@ -1,9 +1,10 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QListWidgetItem, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QListWidgetItem, QFileDialog, QLineEdit, QComboBox
 import json
 import sys
 import uuid
 
-from tab_widget_2 import secondTabWidget
+from tab_widget_2 import secondTabWidget, information_properties
+from InformationSaver import InformationSaver
 
 
 class Load:
@@ -11,6 +12,13 @@ class Load:
         self.mainPage = mainPage
         self.data = None
         self.tabWidget = None
+        self.line_edit_projectTitle = None
+        self.line_edit_company = None
+        self.line_edit_designer = None
+        self.line_edit_client = None
+        self.line_edit_comment = None
+        self.unit_combo = None
+        # InformationSaver.line_edit_projectTitle, InformationSaver.line_edit_company, InformationSaver.line_edit_designer, InformationSaver.line_edit_client, InformationSaver.line_edit_comment, InformationSaver.unit_combo = self.general_info_items
 
     def load_control(self):
         options = QFileDialog.Options()
@@ -26,6 +34,23 @@ class Load:
             drawing(self.data, self.tabWidget.grid)
 
     def create_main_tab(self):
+        # Set Information Properties
+        self.line_edit_projectTitle = QLineEdit(self.data["general_information"]["project_name"])
+        InformationSaver.line_edit_projectTitle = self.line_edit_projectTitle
+        self.line_edit_company = QLineEdit(self.data["general_information"]["company"])
+        InformationSaver.line_edit_company = self.line_edit_company
+        self.line_edit_designer = QLineEdit(self.data["general_information"]["designer"])
+        InformationSaver.line_edit_designer = self.line_edit_designer
+        self.line_edit_client = QLineEdit(self.data["general_information"]["client"])
+        InformationSaver.line_edit_client = self.line_edit_client
+        self.line_edit_comment = QLineEdit(self.data["general_information"]["comment"])
+        InformationSaver.line_edit_comment = self.line_edit_comment
+        self.unit_combo = QComboBox()
+        self.unit_combo.addItem(self.data["general_information"]["unit_system"])
+        self.unit_combo.setCurrentText(self.data["general_information"]["unit_system"])
+        InformationSaver.unit_combo = self.unit_combo
+
+        # set second tab features.
         general_properties = self.data["general_properties"]
         self.tabWidget = secondTabWidget(general_properties)
 
