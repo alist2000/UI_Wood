@@ -4,10 +4,9 @@ import itertools
 from PySide6 import QtWidgets
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
-sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
-from Sync.data import Update
-from post_new import magnification_factor
-from back.load_control import range_intersection
+from UI_Wood.stableVersion2.Sync.data import Update
+from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion2.back.load_control import range_intersection
 
 
 class checkModel(Update):
@@ -16,15 +15,19 @@ class checkModel(Update):
         self.grid = grid
         self.tabWidgetCount = tabWidgetCount
         self.warningPage = None
+        self.warnings = {}
+        self.shearWallLinesExist = {}
 
     def update(self, subject):
         self.tab = subject.data["tab"]
         self.warnings = {}
         for tabNumber, tabItems in self.tab.items():
+            self.shearWallLinesExist[tabNumber] = set()
             story = int(tabNumber) + 1
             post = tabItems["post"]
             beam = tabItems["beam"]
             shearWall = tabItems["shearWall"]
+            self.find_shearWall_lines(shearWall, self.shearWallLinesExist[tabNumber])
             joist = tabItems["joist"]
             studWall = tabItems["studWall"]
 
@@ -50,11 +53,26 @@ class checkModel(Update):
             self.warnings[tabNumber]["overlap"]["shearWall"] = shearWallCheck.warningList
             self.warnings[tabNumber]["overlap"]["studWall"] = studWallCheck.warningList
 
+    def check_shear_wall_exist_boundary(self, lineLabels):
+        for tabNumber, item in self.shearWallLinesExist.items():
+            noShearWallLines = set(lineLabels) - item
+            instance = noShearWallWarning()
+            self.warnings[tabNumber]["shearWallBoundary"] = instance(noShearWallLines, tabNumber)
+
+    @staticmethod
+    def find_shearWall_lines(shearWall, mySet):
+        for prop in shearWall:
+            mySet.add(prop["line_label"])
+
     # SLOT
     def check_model_run(self):
+        lineLabels = None
         for currentTab in range(self.tabWidgetCount):
-            self.grid[currentTab].run_control()
+            midLineData, lineLabels = self.grid[currentTab].run_control()
+
         self.saveFunc()
+        self.check_shear_wall_exist_boundary(lineLabels)
+
         self.warningPage = warningPage(self.warnings)
         print(self.warnings)
 
@@ -250,7 +268,6 @@ class overlapArea(overlapWaning):
             if len(intersection_index) > 1:
                 self.findItems(intersection_index)
 
-
     def findItems(self, indexes):
         labels = []
         range_x = []
@@ -403,14 +420,21 @@ class warningPage(QtWidgets.QMainWindow):
     def storyWarnings(story_warning, story_number):
         instability = story_warning["instability"]
         overlap = story_warning["overlap"]
+        boundary = story_warning["shearWallBoundary"]
         header = f"""<h2><input type="checkbox" checked onclick="toggleList('list{str(story_number)}Items')"> Story {str(story_number)} </h2><ul id="list{str(story_number)}Items" class="warningList">"""
 
         instability_error_text = ""
         overlap_error_text = ""
+        boundary_error_text = ""
 
         for item in instability:
             text = item["warning"]
             instability_error_text += f"""
+                                    <li style="list-style: linear-gradient(rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), white);">{text}</li>"""
+
+        for item in boundary:
+            text = item["warning"]
+            boundary_error_text += f"""
                                     <li style="list-style: linear-gradient(rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), white);">{text}</li>"""
 
         for item in overlap.values():
@@ -419,289 +443,36 @@ class warningPage(QtWidgets.QMainWindow):
                 overlap_error_text += f"""
                                     <li style="list-style: linear-gradient(rgb(242, 146, 29),rgb(242, 146, 29), rgb(242, 146, 29), rgb(242, 146, 29), white);">{text}</li>"""
 
-        if not instability_error_text and not overlap_error_text:
+        if not instability_error_text and not overlap_error_text and not boundary_error_text:
             instability_error_text = "No Warning!"
 
-        finalText = header + instability_error_text + overlap_error_text + """</ul> """
+        finalText = header + instability_error_text + boundary_error_text + overlap_error_text + """</ul> """
         return finalText
-# beams = [{'label': 'B2', 'coordinate': [(221.0, 70.0), (76.0, 70.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 145.0,
-#           'line': {'properties': {'slope': True, 'c': 70.0, 'range': (76.0, 221.0)}}, 'direction': 'E-W',
-#           'support': [{'label': 'P1', 'type': 'post', 'coordinate': (221.0, 70.0), 'range': 'start'}],
-#           'joist': [{'label': 'J1', 'intersection_range': (76.0, 216.0), 'tributary_depth': (70.0, 110.0)}]},
-#          {'label': 'B3', 'coordinate': [(76.0, 70.0), (76.0, 0.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 70.0,
-#           'line': {'properties': {'slope': False, 'c': 76.0, 'range': (0.0, 70.0)}}, 'direction': 'N-S',
-#           'support': [{'label': 'B2', 'type': 'beam_end_support', 'coordinate': (76.0, 70.0), 'range': 'start'}],
-#           'joist': []},
-#          {'label': 'B4', 'coordinate': [(76.0, 70.0), (76.0, 335.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}},
-#           'length': 265.0, 'line': {'properties': {'slope': False, 'c': 76.0, 'range': (70.0, 335.0)}},
-#           'direction': 'N-S', 'support': [
-#              {'label': 'B2', 'type': 'beam_end_support', 'coordinate': (76.0, 70.0), 'range': 'start'},
-#              {'label': 'B3', 'type': 'beam_start_support', 'coordinate': (76.0, 70.0), 'range': 'start'}], 'joist': [
-#              {'label': 'J1', 'intersection_range': (70.0, 274.0), 'tributary_depth': (76.0, 146.0)},
-#              {'label': 'J2', 'intersection_range': (274.0, 335.0), 'tributary_depth': (76.0, 116.0)}]},
-#          {'label': 'B5', 'coordinate': [(344.0, 70.0), (344.0, 192.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 122.0,
-#           'line': {'properties': {'slope': False, 'c': 344.0, 'range': (70.0, 192.0)}}, 'direction': 'N-S',
-#           'support': [], 'joist': []},
-#          {'label': 'B6', 'coordinate': [(344.0, 169.0), (344.0, 105.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 64.0,
-#           'line': {'properties': {'slope': False, 'c': 344.0, 'range': (105.0, 169.0)}}, 'direction': 'N-S',
-#           'support': [{'label': 'B5', 'type': 'beam_mid_support', 'coordinate': (344.0, 169.0), 'range': 'start'},
-#                       {'label': 'B5', 'type': 'beam_mid_support', 'coordinate': (344.0, 105.0), 'range': 'end'}],
-#           'joist': []},
-#          {'label': 'B7', 'coordinate': [(76.0, 213.0), (261.0, 213.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 185.0,
-#           'line': {'properties': {'slope': True, 'c': 213.0, 'range': (76.0, 261.0)}}, 'direction': 'E-W',
-#           'support': [{'label': 'B4', 'type': 'beam_mid_support', 'coordinate': (76.0, 213.0), 'range': 'start'}],
-#           'joist': []},
-#          {'label': 'B8', 'coordinate': [(144.0, 213.0), (144.0, 25.0)],
-#           'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 188.0,
-#           'line': {'properties': {'slope': False, 'c': 144.0, 'range': (25.0, 213.0)}}, 'direction': 'N-S',
-#           'support': [{'label': 'B7', 'type': 'beam_mid_support', 'coordinate': (144.0, 213.0), 'range': 'start'}],
-#           'joist': []}
-#
-#          ]
-#
-# joists = [
-#     {'label': 'J1', 'coordinate': [(76.0, 70.0), (76.0, 274.0), (216.0, 274.0), (216.0, 70.0)], 'direction': 'E-W',
-#      'load': {'total_area': [], 'custom_area': [], 'load_map': []}, 'line': {
-#         'point': [((76.0, 70.0), (76.0, 274.0)), ((76.0, 274.0), (216.0, 274.0)), ((216.0, 274.0), (216.0, 70.0)),
-#                   ((216.0, 70.0), (76.0, 70.0))], 'properties': [{'slope': False, 'c': 76.0, 'range': (70.0, 274.0)},
-#                                                                  {'slope': True, 'c': 274.0, 'range': (76.0, 216.0)},
-#                                                                  {'slope': False, 'c': 216.0, 'range': (70.0, 274.0)},
-#                                                                  {'slope': True, 'c': 70.0, 'range': (76.0, 216.0)}]},
-#      'support': [{'label': 'B4', 'type': 'beam', 'intersection_range': (70.0, 274.0)}]},
-#     {'label': 'J2', 'coordinate': [(76.0, 274.0), (76.0, 363.0), (253.0, 363.0), (253.0, 274.0)], 'direction': 'N-S',
-#      'load': {'total_area': [], 'custom_area': [], 'load_map': []}, 'line': {
-#         'point': [((76.0, 274.0), (76.0, 363.0)), ((76.0, 363.0), (253.0, 363.0)), ((253.0, 363.0), (253.0, 274.0)),
-#                   ((253.0, 274.0), (76.0, 274.0))], 'properties': [{'slope': False, 'c': 76.0, 'range': (274.0, 363.0)},
-#                                                                    {'slope': True, 'c': 363.0, 'range': (76.0, 253.0)},
-#                                                                    {'slope': False, 'c': 253.0,
-#                                                                     'range': (274.0, 363.0)},
-#                                                                    {'slope': True, 'c': 274.0,
-#                                                                     'range': (76.0, 253.0)}]}, 'support': []},
-#     {'label': 'J3', 'coordinate': [(287.0, 229.0), (287.0, 303.0), (380.0, 303.0), (380.0, 229.0)], 'direction': 'N-S',
-#      'load': {'total_area': [], 'custom_area': [], 'load_map': []}, 'line': {
-#         'point': [((287.0, 229.0), (287.0, 303.0)), ((287.0, 303.0), (380.0, 303.0)), ((380.0, 303.0), (380.0, 229.0)),
-#                   ((380.0, 229.0), (287.0, 229.0))],
-#         'properties': [{'slope': False, 'c': 287.0, 'range': (229.0, 303.0)},
-#                        {'slope': True, 'c': 303.0, 'range': (287.0, 380.0)},
-#                        {'slope': False, 'c': 380.0, 'range': (229.0, 303.0)},
-#                        {'slope': True, 'c': 229.0, 'range': (287.0, 380.0)}]}, 'support': []}]
-# joists2 = {"<joist_new.joistRectangle(0x1ff456a4f60, pos=0,0) at 0x000001FF4803C400>": {'label': 'J1',
-#                                                                                         'coordinate': [(207.0, 131.0),
-#                                                                                                        (207.0, 251.0),
-#                                                                                                        (323.0, 251.0),
-#                                                                                                        (323.0, 131.0)],
-#                                                                                         'direction': 'N-S',
-#                                                                                         'load': {'total_area': [],
-#                                                                                                  'custom_area': [],
-#                                                                                                  'load_map': []},
-#                                                                                         'line': {'point': [((207.0,
-#                                                                                                              131.0), (
-#                                                                                                                 207.0,
-#                                                                                                                 251.0)),
-#                                                                                                            ((
-#                                                                                                                 207.0,
-#                                                                                                                 251.0),
-#                                                                                                             (
-#                                                                                                                 323.0,
-#                                                                                                                 251.0)),
-#                                                                                                            ((323.0,
-#                                                                                                              251.0), (
-#                                                                                                                 323.0,
-#                                                                                                                 131.0)),
-#                                                                                                            ((
-#                                                                                                                 323.0,
-#                                                                                                                 131.0),
-#                                                                                                             (
-#                                                                                                                 207.0,
-#                                                                                                                 131.0))],
-#                                                                                                  'properties': [
-#                                                                                                      {'slope': False,
-#                                                                                                       'c': 207.0,
-#                                                                                                       'range': (
-#                                                                                                           131.0,
-#                                                                                                           251.0)},
-#                                                                                                      {'slope': True,
-#                                                                                                       'c': 251.0,
-#                                                                                                       'range': (
-#                                                                                                           207.0,
-#                                                                                                           323.0)},
-#                                                                                                      {'slope': False,
-#                                                                                                       'c': 323.0,
-#                                                                                                       'range': (
-#                                                                                                           131.0,
-#                                                                                                           251.0)},
-#                                                                                                      {'slope': True,
-#                                                                                                       'c': 131.0,
-#                                                                                                       'range': (
-#                                                                                                           207.0,
-#                                                                                                           323.0)}]},
-#                                                                                         'support': [{'label': 'B3',
-#                                                                                                      'type': 'beam',
-#                                                                                                      'intersection_range': (
-#                                                                                                          207.0,
-#                                                                                                          269.0)}]},
-#            " <joist_new.joistRectangle(0x1ff456a48e0, pos=0,0) at 0x000001FF4803E200>": {'label': 'J2',
-#                                                                                          'coordinate': [(8.0, 38.0),
-#                                                                                                         (8.0, 251.0),
-#                                                                                                         (207.0, 251.0),
-#                                                                                                         (207.0, 38.0)],
-#                                                                                          'direction': 'N-S',
-#                                                                                          'load': {'total_area': [],
-#                                                                                                   'custom_area': [],
-#                                                                                                   'load_map': []},
-#                                                                                          'line': {'point': [(
-#                                                                                              (8.0, 38.0),
-#                                                                                              (8.0,
-#                                                                                               251.0)), ((
-#                                                                                                             8.0,
-#                                                                                                             251.0),
-#                                                                                                         (
-#                                                                                                             207.0,
-#                                                                                                             251.0)),
-#                                                                                              ((207.0,
-#                                                                                                251.0), (
-#                                                                                                   207.0,
-#                                                                                                   38.0)), ((
-#                                                                                                                207.0,
-#                                                                                                                38.0),
-#                                                                                                            (
-#                                                                                                                8.0,
-#                                                                                                                38.0))],
-#                                                                                              'properties': [
-#                                                                                                  {'slope': False,
-#                                                                                                   'c': 8.0,
-#                                                                                                   'range': (
-#                                                                                                       38.0, 251.0)},
-#                                                                                                  {'slope': True,
-#                                                                                                   'c': 251.0,
-#                                                                                                   'range': (
-#                                                                                                       8.0, 207.0)},
-#                                                                                                  {'slope': False,
-#                                                                                                   'c': 207.0,
-#                                                                                                   'range': (
-#                                                                                                       38.0, 251.0)},
-#                                                                                                  {'slope': True,
-#                                                                                                   'c': 38.0,
-#                                                                                                   'range': (
-#                                                                                                       8.0, 207.0)}]},
-#                                                                                          'support': [{'label': 'B3',
-#                                                                                                       'type': 'beam',
-#                                                                                                       'intersection_range': (
-#                                                                                                           89.0,
-#                                                                                                           207.0)}]},
-#            "<joist_new.joistRectangle(0x1ff456a5120, pos=0,0) at 0x000001FF4803E6C0>": {'label': 'J3',
-#                                                                                         'coordinate': [(113.0, 178.0),
-#                                                                                                        (113.0, 342.0),
-#                                                                                                        (260.0, 342.0),
-#                                                                                                        (260.0, 178.0)],
-#                                                                                         'direction': 'N-S',
-#                                                                                         'load': {'total_area': [],
-#                                                                                                  'custom_area': [],
-#                                                                                                  'load_map': []},
-#                                                                                         'line': {'point': [((113.0,
-#                                                                                                              178.0), (
-#                                                                                                                 113.0,
-#                                                                                                                 342.0)),
-#                                                                                                            ((
-#                                                                                                                 113.0,
-#                                                                                                                 342.0),
-#                                                                                                             (
-#                                                                                                                 260.0,
-#                                                                                                                 342.0)),
-#                                                                                                            ((260.0,
-#                                                                                                              342.0), (
-#                                                                                                                 260.0,
-#                                                                                                                 178.0)),
-#                                                                                                            ((
-#                                                                                                                 260.0,
-#                                                                                                                 178.0),
-#                                                                                                             (
-#                                                                                                                 113.0,
-#                                                                                                                 178.0))],
-#                                                                                                  'properties': [
-#                                                                                                      {'slope': False,
-#                                                                                                       'c': 113.0,
-#                                                                                                       'range': (
-#                                                                                                           178.0,
-#                                                                                                           342.0)},
-#                                                                                                      {'slope': True,
-#                                                                                                       'c': 342.0,
-#                                                                                                       'range': (
-#                                                                                                           113.0,
-#                                                                                                           260.0)},
-#                                                                                                      {'slope': False,
-#                                                                                                       'c': 260.0,
-#                                                                                                       'range': (
-#                                                                                                           178.0,
-#                                                                                                           342.0)},
-#                                                                                                      {'slope': True,
-#                                                                                                       'c': 178.0,
-#                                                                                                       'range': (
-#                                                                                                           113.0,
-#                                                                                                           260.0)}]},
-#                                                                                         'support': []}
-#            }
-#
-# beams2 = [{'label': 'B1', 'coordinate': [(89.0, 80.0), (217.0, 80.0)],
-#            'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 128.0,
-#            'line': {'properties': {'slope': True, 'c': 80.0, 'range': (89.0, 217.0)}}, 'direction': 'E-W',
-#            'support': [{'label': 'P1', 'type': 'post', 'coordinate': (89.0, 80.0), 'range': 'start'}], 'joist': []},
-#           {'label': 'B2', 'coordinate': [(89.0, 80.0), (89.0, 324.0)],
-#            'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 244.0,
-#            'line': {'properties': {'slope': False, 'c': 89.0, 'range': (80.0, 324.0)}}, 'direction': 'N-S',
-#            'support': [{'label': 'P1', 'type': 'post', 'coordinate': (89.0, 80.0), 'range': 'start'}], 'joist': []},
-#           {'label': 'B3', 'coordinate': [(89.0, 251.0), (269.0, 251.0)],
-#            'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}}, 'length': 180.0,
-#            'line': {'properties': {'slope': True, 'c': 251.0, 'range': (89.0, 269.0)}}, 'direction': 'E-W',
-#            'support': [{'label': 'B2', 'type': 'beam_mid_support', 'coordinate': (89.0, 251.0), 'range': 'start'}],
-#            'joist': []},
-#           {'label': 'B4', 'coordinate': [(89.0, 151.0), (89.0, 229.0)],
-#            'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}},
-#            'length': 78.0, 'line': {'properties': {'slope': False, 'c': 89.0, 'range': (151.0, 229.0)}},
-#            'direction': 'N-S', 'support': [
-#               {'label': 'B2', 'type': 'beam_mid_support', 'coordinate': (89.0, 151.0), 'range': 'start'},
-#               {'label': 'B2', 'type': 'beam_mid_support', 'coordinate': (89.0, 229.0), 'range': 'end'}], 'joist': []}
-#           ]
-#
-# shearWall = [{'label': 'SW1', 'coordinate': [(400.0, 67.0), (400.0, 257.0)], 'length': 190.0,
-#               'post': {'label_start': 'SWP1', 'label_end': 'SWP2',
-#                        'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1ff456993e0, pos=0,0) at 0x000001FF48005600>",
-#                        'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1ff45699e20, pos=0,0) at 0x000001FF48005640>",
-#                        'start_center': (400.0, 77.0), 'end_center': (400.0, 247.0)}, 'direction': 'N-S',
-#               'interior_exterior': 'exterior', 'line_label': 'B', 'thickness': '4 in',
-#               'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}},
-#               'line': {'properties': {'slope': False, 'c': 400.0, 'range': (67.0, 257.0)}}, 'joist': [], 'beam': [],
-#               'shearWall_intersection': []},
-#              {'label': 'SW2', 'coordinate': [(404.0, 77.0), (404.0, 247.0)], 'length': 170.0,
-#               'post': {'label_start': 'SWP3', 'label_end': 'SWP4',
-#                        'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1ff45699ae0, pos=0,0) at 0x000001FF48006180>",
-#                        'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1ff45699f60, pos=0,0) at 0x000001FF480061C0>",
-#                        'start_center': (404.0, 87.0), 'end_center': (404.0, 237.0)}, 'direction': 'N-S',
-#               'interior_exterior': 'exterior', 'line_label': 'B', 'thickness': '4 in',
-#               'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}},
-#               'line': {'properties': {'slope': False, 'c': 404.0, 'range': (77.0, 247.0)}}, 'joist': [], 'beam': []},
-#              {'label': 'SW3', 'coordinate': [(404.0, 77.0), (404.0, 213.0)], 'length': 136.0,
-#               'post': {'label_start': 'SWP5', 'label_end': 'SWP6',
-#                        'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1ff456a43e0, pos=0,0) at 0x000001FF48005E40>",
-#                        'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1ff456a4e20, pos=0,0) at 0x000001FF48005BC0>",
-#                        'start_center': (404.0, 87.0), 'end_center': (404.0, 203.0)}, 'direction': 'N-S',
-#               'interior_exterior': 'exterior', 'line_label': 'B', 'thickness': '4 in',
-#               'load': {'point': [], 'line': [], 'joist_load': {'assignment': [], 'load_map': []}},
-#               'line': {'properties': {'slope': False, 'c': 404.0, 'range': (77.0, 213.0)}}, 'joist': [], 'beam': [],
-#               'shearWall_intersection': []}
-#              ]
-# a = overlapLine(beams2, 1, "Beam")
-# b = overlapLine(shearWall, 1, "ShearWall")
-# print(a.warningList)
-# print(b.warningList)
-# c = overlapArea(list(joists2.values()), 1)
-# print(c.warningList)
-#
-# a = Instable(beams, joists, 1)
-# print(a.warningList)
+
+
+class noShearWallWarning:
+    def __call__(self, lineList, story):
+        lineListNew = list(lineList)
+        lineListNew.sort()
+        lines = ""
+        for i, line in enumerate(lineListNew):
+            lines += line
+            if i < len(lineListNew) - 1:
+                lines += ", "
+        if lines:
+            warning = {
+                "story": story,
+                "warning": f'Boundary shear line "{lines}" have no shear walls. It will occur conflict.'
+            }
+            return [warning]
+        else:
+            return []
+
+
+class CheckModelAfterRun:
+    def __init__(self, *args):
+        self.Warnings = {}
+        boundaryNoShearWall = args[0]
+        if boundaryNoShearWall:
+            self.Warnings["shearWall"]
+            pass
