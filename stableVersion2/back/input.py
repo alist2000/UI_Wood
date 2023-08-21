@@ -24,6 +24,7 @@ class receiver:
         self.beam_properties = beam_control(beam, post, shearWall, joist)
         self.joist_properties = joist_support_control(joist, beam, shearWall, studWall)
         self.shearWall_properties = shearWall_control(shearWall, joist, beam)
+        self.studWall_properties = shearWall_control(studWall, joist, beam, "studWall")
         self.midline = joist_in_midline(joist, grid)
 
     # def beam_control(self):
