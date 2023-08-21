@@ -67,7 +67,7 @@ class drawing:
     @staticmethod
     def draw_studWall(grid, data):
         for studWall in data["studWall"]:
-            grid.studWall_instance.draw_studWall_mousePress(None, None, studWall["coordinate"])
+            grid.studWall_instance.draw_studWall_mousePress(None, None, studWall)
 
     @staticmethod
     def draw_loadMap(grid, data):
