@@ -131,7 +131,8 @@ def pointer_control_shearWall(x, y, gridProp):
     horizontal_dict = {item["position"]: item["label"] for item in horizontal}
     vertical_dict = {item["position"]: item["label"] for item in vertical}
 
-    if (x_start <= x <= x_end and y in horizontal_dict.keys()) and (y_start <= y <= y_end and x in vertical_dict.keys()):
+    if (x_start <= x <= x_end and y in horizontal_dict.keys()) and (
+            y_start <= y <= y_end and x in vertical_dict.keys()):
         line = [vertical_dict[x], horizontal_dict[y]]
 
         if (y == y_start or y == y_end) and (x == x_start or x == x_end):
@@ -157,3 +158,32 @@ def pointer_control_shearWall(x, y, gridProp):
         return True, "N-S", int_ext, line
     else:
         return False, "", "", ""
+
+
+def pointer_control_studWall(start, end, gridProp):
+    x1, y1 = start
+    x2, y2 = end
+    width = abs(x2 - x1)
+    height = abs(y2 - y1)
+    vertical = gridProp["vertical"]
+    horizontal = gridProp["horizontal"]
+    x_start = vertical[0]["position"]
+    x_end = vertical[-1]["position"]
+    y_start = horizontal[0]["position"]
+    y_end = horizontal[-1]["position"]
+    if width > height:
+        direction = "E-W"
+        if (y1 == y_start or y1 == y_end) and (y2 == y_start or y2 == y_end):
+            int_ext = "exterior"
+        else:
+
+            int_ext = "interior"
+
+    else:
+        direction = "N-S"
+        if (x1 == x_start or x1 == x_end) and (x2 == x_start or x2 == x_end):
+            int_ext = "exterior"
+        else:
+            int_ext = "interior"
+
+    return direction, int_ext
