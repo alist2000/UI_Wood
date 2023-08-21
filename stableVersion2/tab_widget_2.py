@@ -15,6 +15,7 @@ from action import save_tabs, load_tabs
 from tool_bar import ToolBar
 from back.check_model import checkModel
 from Sync.mainSync import mainSync
+from InformationSaver import InformationSaver
 
 
 class secondTabWidget(QMainWindow):
@@ -33,6 +34,9 @@ class secondTabWidget(QMainWindow):
         self.v_spacing = inputs.get("v_spacing")
         self.setWindowTitle("Grid")
         self.tabWidget.setMinimumSize(600, 500)
+
+        # INFORMATION PROPERTIES
+        self.information_properties = information_properties()
 
         self.setCentralWidget(self.tabWidget)
         self.toolBar = ToolBar(self)
@@ -145,3 +149,13 @@ class secondTabWidget(QMainWindow):
 
     def tabs(self):
         return [self.tabWidget.widget(i) for i in range(self.tabWidget.count())]
+
+
+def information_properties():
+    information_prop = {"project_name": InformationSaver.line_edit_projectTitle.text(),
+                        "company": InformationSaver.line_edit_company.text(),
+                        "designer": InformationSaver.line_edit_designer.text(),
+                        "client": InformationSaver.line_edit_client.text(),
+                        "comment": InformationSaver.line_edit_comment.text(),
+                        "unit_system": InformationSaver.unit_combo.currentText().upper()}
+    return information_prop
