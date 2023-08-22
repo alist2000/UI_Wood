@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QPushButton, QVBoxLayout, QLabel, QCheckBox, \
+from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QHBoxLayout, QVBoxLayout, QLabel, QCheckBox, \
     QComboBox, QStyledItemDelegate, QFrame, QDialogButtonBox
 from PySide6.QtGui import QStandardItem, QFontMetrics, QPalette
 from PySide6.QtCore import Qt, QEvent
@@ -32,6 +32,14 @@ class CheckableComboBox(QComboBox):
             size = super().sizeHint(option, index)
             size.setHeight(20)
             return size
+
+    def selectDeselectAll(self, checked):
+        if checked:
+            for i in range(self.model().rowCount()):
+                self.model().item(i).setCheckState(Qt.Checked)
+        else:
+            for i in range(self.model().rowCount()):
+                self.model().item(i).setCheckState(Qt.Unchecked)
 
     def eventFilter(self, object, event):
         if object == self.lineEdit():
@@ -135,6 +143,11 @@ class Replicate:
         self.label2 = QLabel("Select Target Stories:")
         self.target_story = CheckableComboBox()
         self.target_story.addItems([f"Story{i + 1}" for i in range(len(self.mainPage.mainPage.grid))])
+        selectAllButton = QCheckBox("Select/Deselect")
+        selectAllButton.stateChanged.connect(self.target_story.selectDeselectAll)
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(self.label2)
+        h_layout.addWidget(selectAllButton)
 
         # Set up check boxes
         self.checkbox_post = QCheckBox("Post")
@@ -147,7 +160,8 @@ class Replicate:
         # Add labels, combo boxes and check boxes to layout
         self.layout.addWidget(self.label1)
         self.layout.addWidget(self.source_story)
-        self.layout.addWidget(self.label2)
+        # self.layout.addWidget(self.label2)
+        self.layout.addLayout(h_layout)
         self.layout.addWidget(self.target_story)
         self.layout.addWidget(self.checkbox_post)
         self.layout.addWidget(self.checkbox_beam)
