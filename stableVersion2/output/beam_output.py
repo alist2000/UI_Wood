@@ -1,12 +1,16 @@
-import sys
-
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\11.5")
-from post_new import magnification_factor
-from back.load_control import range_intersection
+from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion2.back.load_control import range_intersection
 
 
 class beam_output:
     def __init__(self, beam):
+        """
+        The function initializes a class instance with a beam parameter, and then iterates over the beam properties to
+        create a list of beam properties.
+
+        :param beam: The `beam` parameter is a list that contains properties of a beam. Each item in the list represents a
+        property of the beam
+        """
         self.beam = beam
 
         # self.beamProperties = {}
@@ -20,6 +24,13 @@ class beam_output:
 
 class beam_output_handler:
     def __init__(self, beamProp):
+        """
+        The function initializes a beam object with properties such as length, direction, support, and loads, based on the
+        input beam properties.
+
+        :param beamProp: The `beamProp` parameter is a dictionary that contains properties of a beam. It has the following
+        keys:
+        """
         self.beamProp = beamProp
         self.length = beamProp["length"] / magnification_factor
         self.direction = beamProp["direction"]
@@ -70,6 +81,18 @@ class beam_output_handler:
 
 class ControlSupport:
     def __init__(self, beamProp, direction_index, support_list):
+        """
+        The function initializes a beam object with properties such as start and end coordinates, length, and support types.
+
+        :param beamProp: The `beamProp` parameter is a dictionary that contains properties of a beam. It likely includes
+        information such as the coordinates of the beam's start and end points, as well as information about any supports
+        that are attached to the beam
+        :param direction_index: The `direction_index` parameter is used to specify the index of the coordinate direction
+        that is being considered. It is used to access the appropriate coordinate values from the `beamProp` dictionary
+        :param support_list: The `support_list` parameter is a list that stores tuples containing the support location and
+        support type for each support in the beam. Each tuple has two elements: the support location (`support_loc`) and the
+        support type (`type_support`)
+        """
         for support in beamProp["support"]:
             loc = support["coordinate"][direction_index] / magnification_factor
             self.start = min(beamProp["coordinate"][0][direction_index],
@@ -95,8 +118,17 @@ class ControlSupport:
         return loc
 
 
+# The `ControlDistributetLoad` class is used to distribute and control the load based on given ranges and load values.
 class ControlDistributetLoad:
     def __init__(self, load, start):
+        """
+        The function initializes a class instance and processes a given load to create a load set.
+
+        :param load: The `load` parameter is a list of dictionaries. Each dictionary represents a load item and contains the
+        following keys:
+        :param start: The "start" parameter is the starting point or reference point for the load. It is used to calculate
+        the relative positions of the load items
+        """
         self.load = load
         self.all_indexes = []
         self.loadSet = []
@@ -129,6 +161,17 @@ class ControlDistributetLoad:
 
 class ControlLineLoad:
     def __init__(self, load, beamProp, direction_index):
+        """
+        The function initializes a class instance with load, beam properties, and direction index, and then performs various
+        calculations and operations on the load and beam properties.
+
+        :param load: The `load` parameter is a list of dictionaries. Each dictionary represents a load and contains the
+        following keys:
+        :param beamProp: The `beamProp` parameter is a dictionary that contains information about the beam's properties. It
+        has the following structure:
+        :param direction_index: The `direction_index` parameter is an index that specifies the direction of the beam. It is
+        used to access the appropriate coordinate values from the `beamProp` dictionary
+        """
         self.start = min(beamProp["coordinate"][0][direction_index],
                          beamProp["coordinate"][1][direction_index]) / magnification_factor
         self.end = max(beamProp["coordinate"][0][direction_index],
@@ -202,6 +245,17 @@ class ControlLineLoad:
 
 class CombineDistributes:
     def __init__(self, distributeLoad, lineLoad, decimalNumber):
+        """
+        The function initializes some variables and creates a load set based on the given distributeLoad and lineLoad
+        inputs.
+
+        :param distributeLoad: The `distributeLoad` parameter is a list of dictionaries. Each dictionary represents a load
+        with the following keys:
+        :param lineLoad: The `lineLoad` parameter is a list of dictionaries. Each dictionary represents a line load and has
+        the following keys:
+        :param decimalNumber: The parameter `decimalNumber` is used to specify the number of decimal places to round the
+        start and end values of the load ranges. It is used in the `round()` function calls in the code snippet
+        """
         self.distributeLoad = distributeLoad
         self.lineLoad = lineLoad
         self.all_indexes = []
@@ -240,6 +294,17 @@ class CombineDistributes:
 
 class ControlPointLoad:
     def __init__(self, load, beamProp, direction_index):
+        """
+        The function initializes a class instance with a load, beam properties, and a direction index, and then performs
+        some calculations and creates a load set based on the input data.
+
+        :param load: The `load` parameter is a list of dictionaries. Each dictionary represents a load and contains the
+        following keys:
+        :param beamProp: The parameter `beamProp` is a dictionary that contains information about the beam. It has the
+        following structure:
+        :param direction_index: The `direction_index` parameter is an index that specifies the direction in which the beam
+        is being analyzed. It is used to access the appropriate coordinate values from the `beamProp` dictionary
+        """
         self.load = load
         self.all_indexes = []
         self.loadSet = []
@@ -278,6 +343,17 @@ class ControlPointLoad:
 
 class ControlReactionLoad:
     def __init__(self, load, beamProp, direction_index):
+        """
+        The function initializes a class instance with a load, beam properties, and a direction index, and creates a load
+        set based on the load and beam properties.
+
+        :param load: The `load` parameter is a list of dictionaries. Each dictionary represents a load and contains two
+        key-value pairs:
+        :param beamProp: The `beamProp` parameter is a dictionary that contains information about the beam properties. It
+        has the following structure:
+        :param direction_index: The `direction_index` parameter is an index that specifies the direction in which the load
+        is applied. It is used to access the appropriate coordinate values from the `beamProp` dictionary
+        """
         self.load = load
         self.loadSet = []
 
@@ -293,6 +369,15 @@ class ControlReactionLoad:
 
 class CombinePointLoads:
     def __init__(self, pointLoad, reactionLoad):
+        """
+        The above function initializes a class instance with point loads and reaction loads, combines them based on their
+        start coordinates, and adds them to a load set.
+
+        :param pointLoad: The parameter "pointLoad" is a list of dictionaries. Each dictionary represents a point load and
+        has two keys: "start" and "load"
+        :param reactionLoad: The parameter "reactionLoad" is a list of dictionaries. Each dictionary represents a reaction
+        load and has two key-value pairs: "start" and "load"
+        """
         start1 = [i["start"] for i in pointLoad]
         start2 = [i["start"] for i in reactionLoad]
         start = list(set(start1 + start2))
@@ -317,6 +402,15 @@ class CombinePointLoads:
 
 class ControlLoadType:
     def __init__(self, loadList):
+        """
+        The function takes a list of dictionaries as input, extracts the "type" and "magnitude" values from each dictionary,
+        groups the dictionaries based on their "type" value, sums the "magnitude" values for each group, and updates the
+        original list of dictionaries with the grouped and summed values.
+
+        :param loadList: The `loadList` parameter is a list of dictionaries. Each dictionary represents an item and contains
+        a key "load" which maps to a list of dictionaries. Each dictionary in the "load" list represents a load and contains
+        keys "type" and "magnitude" which map to the type and magnitude
+        """
         self.all_indexes2 = []
 
         for item in loadList:
