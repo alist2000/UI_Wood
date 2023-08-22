@@ -174,7 +174,7 @@ class CustomRectItem(QGraphicsRectItem):
     def __init__(self, post_prop, *args, **kwargs):
         super(CustomRectItem, self).__init__(*args, **kwargs)
         # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        self.setFlag(QGraphicsItem.ItemIsMovable, False)
         self.setBrush(QBrush(QColor("#E76161")))
 
         # Properties
