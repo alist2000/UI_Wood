@@ -208,17 +208,22 @@ class GridWidget(QGraphicsView):
             # 1 (draw mode) and 2(delete mode)
             self.load_instance.draw_load_mousePress(self, event)
         else:
-            if self.menu.pixmapItem:
-                # First check if the pixmap is under the mouse cursor when pressed
-                if self.menu.pixmapItem.contains(self.mapToScene(event.pos())):
-                    self.dragging_pixmap = True  # set a flag indicating that pixmap dragging is in process
-                else:
-                    self.dragging_pixmap = False
-                    self.scene.clearSelection()
-                #     # Call base function if pixmap is not intended to be moved
-                #     super().mousePressEvent(event)
-
-                #   self.scene.clearSelection()
+            if event.button() == Qt.LeftButton:
+                self.setRenderHint(QPainter.Antialiasing)
+                self.setRenderHint(QPainter.SmoothPixmapTransform)
+                self.setDragMode(QGraphicsView.ScrollHandDrag)
+                self.viewport().setCursor(Qt.OpenHandCursor)
+        if self.menu.pixmapItem:
+            # First check if the pixmap is under the mouse cursor when pressed
+            if self.menu.pixmapItem.contains(self.mapToScene(event.pos())):
+                self.dragging_pixmap = True  # set a flag indicating that pixmap dragging is in process
+            else:
+                self.dragging_pixmap = False
+                self.scene.clearSelection()
+            #     # Call base function if pixmap is not intended to be moved
+            #     super().mousePressEvent(event)
+        super().mousePressEvent(event)
+            #   self.scene.clearSelection()
 
         # data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
         #                 self.joist_instance.rect_prop,
@@ -260,9 +265,13 @@ class GridWidget(QGraphicsView):
 
         # else:
         #     # Call base function  if pixmap is not intended to be moved
-        #     super().mouseMoveEvent(event)
+        super().mouseMoveEvent(event)
 
-    # def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event):
+        self.setDragMode(QGraphicsView.NoDrag)
+        self.setCursor(Qt.ArrowCursor)
+        super().mouseReleaseEvent(event)
+
     #     # reset pixmap dragging flag
     #     self.dragging_pixmap = False
     #     self.scene.clearSelection()
