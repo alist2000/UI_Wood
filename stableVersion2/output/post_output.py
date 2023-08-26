@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
-
-from post_new import magnification_factor
+from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion2.output.postSql import PostSQL, WritePostInputSQL
 
 
 class post_output:
@@ -15,9 +14,12 @@ class post_output:
         pointLoadCalculator = PointLoadCalculator()
         reactionLoadCalculator = ReactionLoadCalculator()
         LoadRoot(posts, pointLoadCalculator, reactionLoadCalculator)
+        self.inputDB = PostSQL()
+
         self.create_dict()
 
     def create_dict(self):
+        postId = 1
         for i, postTab in enumerate(self.posts):
             for Post in list(postTab.values())[0]:
                 loadSet = Post["load"]["point"] + Post["load"]["reaction"]
@@ -25,13 +27,15 @@ class post_output:
                 properties = {
                     "label": Post["label"],
                     "coordinate": (
-                    Post["coordinate"][0] / magnification_factor, Post["coordinate"][1] / magnification_factor),
+                        Post["coordinate"][0] / magnification_factor, Post["coordinate"][1] / magnification_factor),
                     "story": i + 1,
                     "width": float(Post["wall_width"][0]),
                     "height": self.height[i],
                     "load": loadControl.load_list
                 }
                 self.postProperties.append(properties)
+                WritePostInputSQL(properties, postId, self.inputDB)
+                postId += 1
 
 
 class LoadCalculator(ABC):
@@ -102,4 +106,3 @@ class ControlLoadType:
                     "type": type_list[i],
                     "magnitude": load_mag
                 })
-

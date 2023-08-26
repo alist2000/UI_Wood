@@ -1,9 +1,7 @@
-import sys
-
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\11.5")
-from post_new import magnification_factor
-from back.load_control import range_intersection
-from output.beam_output import ControlDistributetLoad
+from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion2.back.load_control import range_intersection
+from UI_Wood.stableVersion2.output.beam_output import ControlDistributetLoad
+from UI_Wood.stableVersion2.output.joistSql import joistSQL, WriteJoistInputSQL
 
 
 class Joist_output:
@@ -16,6 +14,8 @@ class Joist_output:
 class FindJoistInArea:
     def __init__(self, joists):
         self.allJoists = []
+        joistAreaId = 1
+        joistDB = joistSQL()
         for story, joistTab in enumerate(joists):
             tabJoists = []
             for joist in joistTab:
@@ -46,11 +46,20 @@ class FindJoistInArea:
                     "story": story + 1,
                     "coordinate": joist["coordinate"],
                     "direction": joist["direction"],
+                    "length": length,
                     "joist_item": []
                 }
+
+                joistId = 1
+                WriteJoistInputSQLInstance = WriteJoistInputSQL(joistProp, joistAreaId, joistDB)
+
                 for load in self.finalLoadSet:
-                    joistProp["joist_item"].append({"length": length, "support": self.support, "load": load})
+                    joistItem = {"length": length, "support": self.support, "load": load}
+                    joistProp["joist_item"].append(joistItem)
+                    WriteJoistInputSQLInstance.distLoadTable(joistId, joistItem)
+                    joistId += 1
                 tabJoists.append(joistProp)
+                joistAreaId += 1
             self.allJoists.append(tabJoists)
 
     def length(self, joist):
