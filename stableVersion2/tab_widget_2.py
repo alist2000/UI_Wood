@@ -137,12 +137,18 @@ class secondTabWidget(QMainWindow):
 
         tool_bar = QToolBar("RunToolBar")
         self.addToolBar(tool_bar)
+        report_generator = QAction('Report Generator', self)
+        report_generator.setEnabled(False)
+        self.mainSync.send_report_generator(report_generator)
+
         run = QAction('RUN', self)
         check_model = QAction('Check Model', self)
         run.triggered.connect(self.mainSync.Run_and_Analysis)
         check_model.triggered.connect(self.checkModel.check_model_run)
+
         tool_bar.addAction(check_model)
         tool_bar.addAction(run)
+        tool_bar.addAction(report_generator)
 
         # Show the QTabWidget
         self.tabWidget.show()
