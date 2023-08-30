@@ -225,7 +225,7 @@ class copyObject:
                         targetTab.shearWall_instance.draw_shearWall_mousePress(None, None, shearWallProp)
                 elif item == "studWall":
                     for studWallProp in studWallObjects:
-                        targetTab.studWall_instance.draw_studWall_mousePress(None, None, studWallProp["coordinate"])
+                        targetTab.studWall_instance.draw_studWall_mousePress(None, None, studWallProp)
                 elif item == "loadMap":
                     for loadProp in loadMapObjects:
                         targetTab.load_instance.draw_load_mousePress(None, None, loadProp)
