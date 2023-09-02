@@ -1,10 +1,11 @@
 from PySide6.QtCore import Qt, Signal, QObject, QEvent
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem, QGraphicsProxyWidget
 
 from DeActivate import deActive
 from post_prop import PostProperties
+from dimension import CoordinateLabel
 
 import itertools
 
@@ -43,6 +44,7 @@ class PostDrawing(QGraphicsRectItem):
         self.preview_rect_item = None
         self.scene_pos = None
         self.other_button = None
+        self.coordinateLabel = None
 
         # Label
         self.post_number = 1
@@ -62,6 +64,9 @@ class PostDrawing(QGraphicsRectItem):
             return True
         else:
             if event.button() == Qt.LeftButton and self.post_drawing_mode == 1:
+                if self.coordinateLabel:
+                    self.scene.removeItem(self.coordinateLabel)
+
                 pos = main_self.mapToScene(event.pos())
                 snapped_pos = self.snapPoint.snap(pos)
                 rect = self.add_rectangle(snapped_pos.x(), snapped_pos.y())
@@ -81,10 +86,22 @@ class PostDrawing(QGraphicsRectItem):
                     self.scene.removeItem(item)
 
     def draw_post_mouseMove(self, main_self, event):
+        if self.coordinateLabel:
+            self.scene.removeItem(self.coordinateLabel)
         pos = main_self.mapToScene(event.pos())
         snapped_pos = self.snapPoint.snap(pos)
         if self.post_drawing_mode == 1:
             self.update_preview_rect(snapped_pos.x(), snapped_pos.y())
+            self.coordinateLabel = QGraphicsProxyWidget()
+
+            coordinate = CoordinateLabel(snapped_pos.x(), snapped_pos.y(), magnification_factor)
+
+            self.coordinateLabel.setWidget(coordinate)
+            self.scene.addItem(self.coordinateLabel)
+
+            self.coordinateLabel.setPos(snapped_pos.x() - (self.post_dimension / 2),
+                                        snapped_pos.y() - self.post_dimension)
+            # self.coordinateLabel.setRotation(0)
         return True
 
     def add_rectangle(self, x, y):
@@ -185,5 +202,9 @@ class CustomRectItem(QGraphicsRectItem):
         pos = self.boundingRect().center().toTuple()
         # properties page open
         if event.button() == Qt.RightButton:
-            self.post_properties_page = PostProperties(self, self.post_prop)
-            self.post_properties_page.show()
+            try:
+                wallWidth_default = self.post_prop[self]["wall_width"]
+                self.post_properties_page = PostProperties(self, self.post_prop)
+                self.post_properties_page.show()
+            except KeyError:
+                pass
