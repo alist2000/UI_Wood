@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, QPointF, QRect, QSize, QPoint
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QGraphicsProxyWidget
 
 from DeActivate import deActive
 from back.beam_control import beam_line_creator
@@ -9,6 +9,7 @@ from beam_prop import lineLoad
 from pointer_control import beam_end_point, pointer_control_shearWall
 from post_new import magnification_factor
 from offset import Offset
+from dimension import DimensionLabel
 
 
 class ShearWallButton(QWidget):
@@ -25,6 +26,7 @@ class shearWallDrawing(QGraphicsRectItem):
         self.scene = scene
         self.snapPoint = snapPoint
         self.snapLine = snapLine
+        self.dimension = None
         self.offset = 0
         x_list, y_list = edit_spacing(x, y)
 
@@ -63,6 +65,8 @@ class shearWallDrawing(QGraphicsRectItem):
                 if pos == snapped_pos:
                     snapped_pos = self.snapLine.snap(pos)
                 if self.shearWall_select_status == 2:
+                    if self.dimension:
+                        self.scene.removeItem(self.dimension)
                     item = main_self.itemAt(event.position().toPoint())
 
                     # Check if the clicked item is a start or end rectangle
@@ -98,6 +102,8 @@ class shearWallDrawing(QGraphicsRectItem):
 
                 else:
                     if self.current_rect:
+                        if self.dimension:
+                            self.scene.removeItem(self.dimension)
                         snapped_pos = self.snapPoint.snap(pos)
                         # if snap to some point we don't need to check with snap line
                         if pos == snapped_pos:
@@ -145,6 +151,7 @@ class shearWallDrawing(QGraphicsRectItem):
                             self.shearWall_loc.clear()
 
                     else:
+                        self.dimension = QGraphicsProxyWidget()
                         print(pos)
                         snapped_pos = self.snapPoint.snap(pos)
                         # if snap to some point we don't need to check with snap line
@@ -167,6 +174,7 @@ class shearWallDrawing(QGraphicsRectItem):
 
     def draw_shearWall_mouseMove(self, main_self, event):
         if self.current_rect and (self.start_pos or self.start_pos == QPointF(0.000000, 0.000000)):
+
             pos = main_self.mapToScene(event.pos())
             # snapped_pos = self.snap_to_grid(pos)
             snapped_pos = self.snapPoint.snap(pos)
@@ -195,11 +203,28 @@ class shearWallDrawing(QGraphicsRectItem):
                 self.current_rect.setRect(min(start_pos.x(), snapped_pos.x()),
                                           start_pos.y() - self.shearWall_width / 2, abs(width),
                                           self.shearWall_width)
+                dimension = DimensionLabel(width, magnification_factor)
+
+                self.dimension.setWidget(dimension)
+
+                self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
+                                      self.start_pos.y() - 1.1 * self.shearWall_width)
+                self.dimension.setRotation(0)
+
             else:
                 # Move vertically, keep horizontal dimension constant
                 self.current_rect.setRect(start_pos.x() - self.shearWall_width / 2,
                                           min(start_pos.y(), snapped_pos.y()), self.shearWall_width,
                                           abs(height))
+                dimension = DimensionLabel(height, magnification_factor)
+
+                self.dimension.setWidget(dimension)
+
+                self.dimension.setPos(self.start_pos.x() - 1.1 * self.shearWall_width,
+                                      (self.start_pos.y() + snapped_pos.y()) / 2)
+                self.dimension.setRotation(-90)
+
+            self.scene.addItem(self.dimension)
 
     def finalize_rectangle(self, pos, direction):
         snapped_pos = self.snapPoint.snap(pos)

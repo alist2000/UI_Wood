@@ -1,13 +1,14 @@
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QGraphicsProxyWidget
 
 from pointer_control import control_post_range, range_post, beam_end_point, selectable_beam_range, \
     control_selectable_beam_range
 from post_new import magnification_factor
 from DeActivate import deActive
 from beam_prop import BeamProperties
+from dimension import DimensionLabel
 
 
 class BeamButton(QWidget):
@@ -33,6 +34,7 @@ class beamDrawing(QGraphicsRectItem):
         self.beam_width = magnification_factor / 2  # Set beam width
         # self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
         self.post_dimension = magnification_factor  # Set post dimension
+        self.dimension = None
 
         # BEAM PROPERTIES
         # START / END
@@ -71,6 +73,8 @@ class beamDrawing(QGraphicsRectItem):
 
                 else:
                     if self.current_rect:
+                        if self.dimension:
+                            self.scene.removeItem(self.dimension)
                         snapped_pos = self.snapPoint.snap(pos)
                         # if snap to some point we don't need to check with snap line
                         if pos == snapped_pos:
@@ -104,6 +108,7 @@ class beamDrawing(QGraphicsRectItem):
                             self.beam_loc.clear()
 
                     else:
+                        self.dimension = QGraphicsProxyWidget()
                         snapped_pos = self.snapPoint.snap(pos)
                         # Start point just snap to point not line.
                         point = snapped_pos.toTuple()
@@ -143,7 +148,11 @@ class beamDrawing(QGraphicsRectItem):
                             self.scene.addItem(self.current_rect)
 
     def draw_beam_mouseMove(self, main_self, event):
+
         if self.current_rect and (self.start_pos or self.start_pos == QPointF(0.000000, 0.000000)):
+            if self.dimension:
+                self.scene.removeItem(self.dimension)
+
             pos = main_self.mapToScene(event.pos())
             # snapped_pos = self.snap_to_grid(pos)
             snapped_pos = self.snapPoint.snap(pos)
@@ -152,16 +161,33 @@ class beamDrawing(QGraphicsRectItem):
                 snapped_pos = self.snapLine.snap(pos)
             width = snapped_pos.x() - self.start_pos.x()
             height = snapped_pos.y() - self.start_pos.y()
-
             if abs(width) > abs(height):
                 # Move horizontally, keep vertical dimension constant
                 self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
                                           self.start_pos.y() - self.beam_width / 2, abs(width), self.beam_width)
+                dimension = DimensionLabel(width, magnification_factor)
+
+                self.dimension.setWidget(dimension)
+
+                self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
+                                      self.start_pos.y() - 2 * self.beam_width)
+                self.dimension.setRotation(0)
+
+
             else:
                 # Move vertically, keep horizontal dimension constant
                 self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2,
                                           min(self.start_pos.y(), snapped_pos.y()), self.beam_width,
                                           abs(height))
+                dimension = DimensionLabel(height, magnification_factor)
+
+                self.dimension.setWidget(dimension)
+
+                self.dimension.setPos(self.start_pos.x() - 2 * self.beam_width,
+                                      (self.start_pos.y() + snapped_pos.y()) / 2)
+                self.dimension.setRotation(-90)
+
+            self.scene.addItem(self.dimension)
 
     def finalize_rectangle(self, pos):
         snapped_pos = self.snapPoint.snap(pos)
