@@ -99,12 +99,20 @@ class WriteBeamInputSQL:
         length = self.beamProp["length"]
         start = self.beamProp["coordinate"][0]
         end = self.beamProp["coordinate"][1]
+        constantCoordinate = self.beamProp["start"]
+        direction = self.beamProp["direction"]
+        if direction == "N-S":
+            startCoord = (constantCoordinate, start)
+            endCoord = (constantCoordinate, end)
+        else:
+            startCoord = (start, constantCoordinate)
+            endCoord = (end, constantCoordinate)
         self.db.cursor.execute(
             'INSERT INTO beamTable (ID, Story, Label, Length,'
             ' Coordinate_start, Coordinate_end) values(?, ?, ?, ?, ?, ?)',
             [
-                self.beamID, str(self.story), label, length, str(start),
-                str(end)
+                self.beamID, str(self.story), label, length, str(startCoord),
+                str(endCoord)
             ])
         self.db.conn.commit()
 
