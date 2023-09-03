@@ -33,7 +33,13 @@ class beamAnalysisSync:
                         beam_support.append(supportLabel)
 
             beamDesignedList = []
+
+            # if beam support was an empty list
+            if not beam_support:
+                beam_support = "True"
             while beam_support:
+                if beam_support == "True":
+                    beam_support = []
                 beam_support, self.reaction_list, beamDesignedList, reactionInstance, beamId = self.DesignPrimaryBeam(
                     beam_support, beamId,
                     self.reaction_list,
