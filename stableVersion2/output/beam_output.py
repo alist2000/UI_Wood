@@ -37,13 +37,16 @@ class beam_output_handler:
         self.support_list = []
         if self.direction == "N-S":
             self.direction_index = 1
+            constant_index = 0
         else:
             self.direction_index = 0
+            constant_index = 1
 
         self.start = min(beamProp["coordinate"][0][self.direction_index],
                          beamProp["coordinate"][1][self.direction_index]) / magnification_factor
         self.end = max(beamProp["coordinate"][0][self.direction_index],
                        beamProp["coordinate"][1][self.direction_index]) / magnification_factor
+        constantCoordinate = beamProp["coordinate"][0][constant_index] / magnification_factor
         n1 = len(str(self.start).split(".")[1])
         n2 = len(str(self.end).split(".")[1])
         decimal_number = max(n1, n2)
@@ -73,7 +76,9 @@ class beam_output_handler:
                 "load": {
                     "point": self.finalPointLoad.loadSet,
                     "distributed": self.finalDistributedLoad.loadSet
-                }
+                },
+                "start": constantCoordinate,
+                "direction": self.direction
             }
         else:
             self.beamProp_dict = {}
