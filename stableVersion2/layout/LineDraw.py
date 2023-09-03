@@ -185,16 +185,16 @@ class LineDraw:
 
 
 class BeamLabel:
-    def __init__(self, x, y, scene, label, direction):
+    def __init__(self, x, y, scene, label, direction, halfLength=30, startDist1=7, startDist2=30):
         # Create a QPainterPath object
         path = QPainterPath()
         path.moveTo(x, y)
         if direction == "E-W":
-            path.lineTo(x + 30, y - 30)
-            path.lineTo(x - 30, y - 30)
+            path.lineTo(x + halfLength, y - halfLength)
+            path.lineTo(x - halfLength, y - halfLength)
         else:
-            path.lineTo(x + 30, y - 30)
-            path.lineTo(x + 30, y + 30)
+            path.lineTo(x + halfLength, y - halfLength)
+            path.lineTo(x + halfLength, y + halfLength)
         path.closeSubpath()
 
         # Create a QGraphicsPathItem and set the path
@@ -208,11 +208,11 @@ class BeamLabel:
         LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
         Label.setWidget(LabelText)
         if direction == "N-S":
-            Label.setPos(x + 30, y - 7)
+            Label.setPos(x + startDist2, y - startDist1)
             Label.setRotation(90)
 
         else:
-            Label.setPos(x - 7, y - 30)
+            Label.setPos(x - startDist1, y - startDist2)
 
         scene.addItem(Label)
 
