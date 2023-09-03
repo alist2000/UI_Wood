@@ -1,4 +1,4 @@
-import UI_Wood.stableVersion1.mouse
+from UI_Wood.stableVersion2.layout.LineDraw import BeamLabel
 from UI_Wood.stableVersion2.post_new import magnification_factor, CustomRectItem
 from UI_Wood.stableVersion2.mouse import SelectableLineItem
 
@@ -72,31 +72,4 @@ class PostLabel:
         line1.setLine(QLineF(QPointF(x + 10, y - 50), QPointF(x + 30, y - 50)))
         scene.addItem(line)
         scene.addItem(line1)
-        Label = QGraphicsProxyWidget()
-        LabelText = QLabel(label)
-        LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
-        Label.setWidget(LabelText)
-        Label.setPos(x + 32, y - 65)
-        scene.addItem(Label)
-
-        # qp = QPainter(self)
-        #
-        # # Set the pen
-        # pen = QPen(QColor(0, 0, 0), 2)  # Black color, 2 pixels wide
-        # qp.setPen(pen)
-        #
-        # # Set the brush
-        # brush = QBrush(QColor(255, 0, 0, 100))  # Red color
-        # qp.setBrush(brush)
-        #
-        # # Create the QPainterPath object and add the triangle to it
-        # path = QPainterPath()
-        # path.moveTo(x, y)
-        # path.lineTo(x + 5, y + 50)
-        # path.lineTo(x + 20, y + 50)
-        #
-        # # Rotate the QPainter object
-        # # qp.rotate(-45)
-        #
-        # # Draw the path
-        # qp.drawPath(path)
+        BeamLabel(x + 30, y - 50, scene, label, "E-W", 12, 6, 30)
