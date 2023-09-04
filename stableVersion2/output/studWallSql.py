@@ -20,6 +20,8 @@ class studWallSQL:
             CREATE TABLE {tableName} (
                 ID INT,
                 Story TEXT,
+                Coordinate_start TEXT,
+                Coordinate_end TEXT,
                 Wall_Label TEXT,
                 Wall_Length FLOAT,
                 Story_Height FLOAT,

@@ -20,6 +20,8 @@ class shearWallSQL:
             CREATE TABLE WallTable (
                 ID INT,
                 Story TEXT,
+                Coordinate_start TEXT,
+                Coordinate_end TEXT,
                 Line TEXT,
                 Wall_Label TEXT,
                 Wall_Length FLOAT,
