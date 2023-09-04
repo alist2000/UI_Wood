@@ -37,14 +37,23 @@ class StudWall_output:
                 if direction == "N-S":
                     orientation = "NS"
                     direction_index = 1
+                    constant_index = 0
                 else:
                     orientation = "EW"
                     direction_index = 0
+                    constant_index = 1
 
                 self.start = min(StudWallItem["coordinate"][0][direction_index],
                                  StudWallItem["coordinate"][1][direction_index]) / magnification_factor
                 self.end = max(StudWallItem["coordinate"][0][direction_index],
                                StudWallItem["coordinate"][1][direction_index]) / magnification_factor
+                constant = StudWallItem["coordinate"][0][constant_index] / magnification_factor
+                if direction == "N-S":
+                    coordinateStart = (constant, self.start)
+                    coordinateEnd = (constant, self.end)
+                else:
+                    coordinateStart = (self.start, constant)
+                    coordinateEnd = (self.end, constant)
 
                 n1 = len(str(self.start).split(".")[1])
                 n2 = len(str(self.end).split(".")[1])
@@ -59,11 +68,12 @@ class StudWall_output:
                 start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
                     self.finalDistributedLoad.loadSet)
                 db.cursor.execute(
-                    'INSERT INTO WallTable (ID, Story, Wall_Label,'
+                    'INSERT INTO WallTable (ID, Story, Coordinate_start, Coordinate_end, Wall_Label,'
                     ' Wall_Length, Story_Height, Int_Ext,  Wall_Self_Weight, Wall_Width,'
-                    ' start, end, Rd, Rl, Rlr, Rs, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    ' start, end, Rd, Rl, Rlr, Rs, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     [
-                        studWallId, str(StoryName), label, round(self.end - self.start, max(n1, n2)),
+                        studWallId, str(StoryName), str(coordinateStart), str(coordinateEnd), label,
+                        round(self.end - self.start, max(n1, n2)),
                         height[story],
                         interior_exterior, self_weight, int(StudWallItem["thickness"][0]),
                         start_load,

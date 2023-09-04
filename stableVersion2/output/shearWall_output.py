@@ -95,14 +95,23 @@ class ShearWall_output:
                 if direction == "N-S":
                     orientation = "NS"
                     direction_index = 1
+                    constant_index = 0
                 else:
                     orientation = "EW"
                     direction_index = 0
+                    constant_index = 1
 
                 self.start = min(ShearWallItem["coordinate"][0][direction_index],
                                  ShearWallItem["coordinate"][1][direction_index]) / magnification_factor
                 self.end = max(ShearWallItem["coordinate"][0][direction_index],
                                ShearWallItem["coordinate"][1][direction_index]) / magnification_factor
+                constant = ShearWallItem["coordinate"][0][constant_index] / magnification_factor
+                if direction == "N-S":
+                    coordinateStart = (constant, self.start)
+                    coordinateEnd = (constant, self.end)
+                else:
+                    coordinateStart = (self.start, constant)
+                    coordinateEnd = (self.end, constant)
 
                 # reaction control
                 Pd, Pl, Pe = self.reaction_control(ShearWallItem["load"]["reaction"], direction_index)
@@ -123,12 +132,13 @@ class ShearWall_output:
                 start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
                     self.finalDistributedLoad.loadSet)
                 db.cursor.execute(
-                    'INSERT INTO WallTable (ID, Story, Line, Wall_Label,'
+                    'INSERT INTO WallTable (ID, Story, Coordinate_start, Coordinate_end, Line, Wall_Label,'
                     ' Wall_Length, Story_Height, Opening_Width, Int_Ext,  Wall_Self_Weight,'
                     ' start, end, Rd, Rl, Rlr, Rs, Left_Bottom_End,'
-                    ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?)',
+                    ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     [
-                        shearWallId, str(StoryName), line, label, round(self.end - self.start, max(n1, n2)),
+                        shearWallId, str(StoryName), str(coordinateStart), str(coordinateEnd), line, label,
+                        round(self.end - self.start, max(n1, n2)),
                         height[story],
                         str(opening_width), interior_exterior, self_weight, start_load, end_load, dead_load, live_load,
                         lr_load,
