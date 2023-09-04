@@ -1,4 +1,5 @@
 import sqlite3
+from UI_Wood.stableVersion2.post_new import magnification_factor
 
 
 class joistSQL:
@@ -64,8 +65,10 @@ class WriteJoistInputSQL:
         length = self.joistProp["length"]
         story = self.joistProp["story"]
         direction = self.joistProp["direction"]
-        start = self.joistProp["coordinate"][0]
-        end = self.joistProp["coordinate"][2]
+        start = (self.joistProp["coordinate"][0][0] / magnification_factor,
+                 self.joistProp["coordinate"][0][1] / magnification_factor)
+        end = (self.joistProp["coordinate"][2][0] / magnification_factor,
+               self.joistProp["coordinate"][2][1] / magnification_factor)
         self.db.cursor.execute(
             'INSERT INTO joistTable (ID, Story, Label,Orientation, Length,'
             'Coordinate_start, Coordinate_end) values(?, ?, ?, ?, ?, ?, ?)',
