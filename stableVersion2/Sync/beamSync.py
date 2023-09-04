@@ -47,36 +47,6 @@ class beamAnalysisSync:
                     Posts, ShearWalls,
                     beamDesignedList)
 
-            # for beamNum, beam_ in enumerate(beamOutput.beamProperties):
-            #     # beam with no support are empty(False)
-            #     if beam_:
-            #         label = beam_["label"]
-            #
-            #         if label not in beam_support:
-            #             # BEAM SHOULD ANALYZE FIRST
-            #             beam_analysis = MainBeam(beam_)
-            #             if beam_analysis.query[0] != "No Section Was Adequate":
-            #                 # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
-            #                 beam_analysis.query.insert(0, str(beamId))
-            #                 beam_analysis.query.insert(1, str(tabNumber + 1))
-            #                 beam_analysis.query.insert(2, beam_["label"])
-            #
-            #                 db.cursor1.execute(
-            #                     'INSERT INTO BEAM (ID, STORY, LABEL, LENGTH, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr,DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range,RD, RL, RLr, RE) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            #                     beam_analysis.query)
-            #                 db.conn1.commit()
-            #
-            #                 Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
-            #                 beamId += 1
-            #                 pass
-
-            # # assign beam reactions
-            # for reaction in self.reaction_list:
-            #     assign_beam_reaction(reaction, self.beam)
-
-            # reactionInstance = Reaction_On(beamTab, Posts[tabNumber], ShearWalls[tabNumber], self.reaction_list)
-            # reactionInstance.do_beam()
-
             beamOutput = beam_output(beamTab)
             for beamNum, beam_ in enumerate(beamOutput.beamProperties):
                 InputReport = BeamInput(beam_, generalInfo)
@@ -100,10 +70,8 @@ class beamAnalysisSync:
                                 'INSERT INTO BEAM (ID, STORY, LABEL, LENGTH, SIZE,Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr,DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range,RD, RL, RLr, RE) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 beam_analysis.query)
                             db.conn1.commit()
-                            Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
-                            beamId += 1
-
-                            pass
+                        Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
+                        beamId += 1
 
             reactionInstance.do_post()
             self.reactionTab.append(self.reaction_list)
@@ -131,9 +99,8 @@ class beamAnalysisSync:
                             beam_analysis.query)
                         db.conn1.commit()
 
-                        Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], reaction_list)
-                        beamId += 1
-                        pass
+                    Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], reaction_list)
+                    beamId += 1
 
         # # assign beam reactions
         # for reaction in self.reaction_list:
