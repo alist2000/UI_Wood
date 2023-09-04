@@ -15,6 +15,8 @@ from UI_Wood.stableVersion2.Sync.shearWallSync import ShearWallSync, ControlSeis
     NoShearWallLines, MidlineEdit
 from UI_Wood.stableVersion2.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion2.report.ReportGenerator import ReportGeneratorTab
+from UI_Wood.stableVersion2.layout.tab_widget2 import secondTabWidgetLayout
 
 
 class mainSync(Data):
@@ -23,8 +25,20 @@ class mainSync(Data):
         self.saveFunc = saveFunc
         self.grid = grid
         self.tabWidgetCount = tabWidgetCount
+        self.reportGenerator = None
+        self.ReportTab = None
+
+    def send_report_generator(self, reportGenerator):
+        self.reportGenerator = reportGenerator
+        self.reportGenerator.triggered.connect(self.runn)
+
+    def runn(self):
+        self.ReportTab = ReportGeneratorTab(self.tabWidgetCount)
+        secondTabWidgetLayout(self.general_properties, self.ReportTab)
+        print("REPORT GENERATOR BUTTON CLICKED")
 
     def Run_and_Analysis(self):
+        self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
@@ -56,7 +70,7 @@ class mainSync(Data):
 
         print(seismicInstance.seismicPara)
         print(midLineDictEdited)
-        MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+        # MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
 
         print("FINAL")
 
@@ -110,7 +124,7 @@ class ControlTab:
         db.post_table()
 
         # BEAM
-        # beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, generalInfo, db)
+        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, generalInfo, db)
 
         # POST
         PostSync(self.posts, generalProp.height, generalInfo, db)
