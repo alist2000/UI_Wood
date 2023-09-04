@@ -5,6 +5,7 @@ from functools import partial
 
 import sqlite3
 from UI_Wood.stableVersion2.replicate import CheckableComboBox
+from UI_Wood.stableVersion2.post_new import magnification_factor
 
 
 class ReportGeneratorTab(QWidget):
@@ -93,6 +94,26 @@ class ReportGeneratorTab(QWidget):
         self.result["shearWall"] = shearWallList
         self.result["studWall"] = studWallList
 
+    def LayoutOutput(self):
+        Posts = self.mainTable.PostsLayout
+        Beams = self.mainTable.BeamsLayout
+        Joists = self.mainTable.JoistsLayout
+        ShearWalls = self.mainTable.ShearWallsLayout
+        StudWalls = self.mainTable.StudWallsLayout
+        return Posts, Beams, Joists, ShearWalls, StudWalls
+
+
+def dataExtract(Dict):
+    keys = list(Dict.values())[0].keys()
+    finalList = []
+    for item in keys:
+        myList = []
+        for value in Dict.values():
+            myList.append(value[item])
+
+        finalList.append(myList)
+    return finalList
+
 
 class ReportMainTable:
     def __init__(self, tab_widget, storyCount):
@@ -108,8 +129,11 @@ class ReportMainTable:
         studWallTable = "WallTable"
         paths = [postPath, beamPath, joistPath, ShearWallPath, StudWallPath]
         tableNames = [postTable, beamTable, joistTable, shearWallTable, studWallTable]
+        itemNames = ["post", "beam", "joist", "shearWall", "studWall"]
         [self.Posts, self.Beams, self.Joists, self.ShearWalls, self.StudWalls] = list(
             map(self.itemList, paths, tableNames))
+        [self.PostsLayout, self.BeamsLayout, self.JoistsLayout, self.ShearWallsLayout, self.StudWallsLayout] = list(
+            map(self.itemListLayout, paths, tableNames, itemNames))
 
         self.StudWalls = self.changeLabel(self.StudWalls, "ST")
         self.ShearWalls = self.changeLabel(self.ShearWalls, "SW")
@@ -271,3 +295,63 @@ class ReportMainTable:
                 newItem = name + item
                 newDict[story].append(newItem)
         return newDict
+
+    @staticmethod
+    def itemListLayout(path, tableName, itemName):
+        # Connect to the SQLite database
+        conn = sqlite3.connect(path)
+
+        # Create a cursor object
+        cursor = conn.cursor()
+        if itemName == "post":
+            cursor.execute(f"SELECT Story, Label, Coordinate FROM {tableName}")
+        elif itemName == "joist":
+            cursor.execute(f"SELECT Story, Label, Orientation, Coordinate_start, Coordinate_end FROM {tableName}")
+
+        else:
+            # Execute the query
+            try:
+                cursor.execute(f"SELECT Story, Label, Coordinate_start, Coordinate_end FROM {tableName}")
+            except sqlite3.OperationalError:
+                cursor.execute(f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end FROM {tableName}")
+
+        # Fetch all the rows
+        rows = cursor.fetchall()
+
+        # Close the connection
+        conn.close()
+        stories = set()
+        for row in rows:
+            stories.add(row[0])
+        stories = list(stories)
+        stories.sort()
+        items = {}
+        for story in stories:
+            if itemName == "joist":
+                items[story] = {"label": [], "coordinate": [], "direction": []}
+            else:
+                items[story] = {"label": [], "coordinate": []}
+
+            for row in rows:
+                if row[0] == story:
+                    items[story]["label"].append(row[1])
+                    if itemName == "post":
+                        items[story]["coordinate"].append(StrToTuple(row[2]))
+                    elif itemName == "joist":
+                        items[story]["direction"].append(row[2])
+                        items[story]["coordinate"].append([StrToTuple(row[3]),
+                                                           StrToTuple(row[4])])
+                    else:
+                        items[story]["coordinate"].append([StrToTuple(row[2]),
+                                                           StrToTuple(row[3])])
+
+            # items[story] = list(items[story])
+            # items[story].sort()
+            # items[story].sort(key=len)
+        return items
+
+
+def StrToTuple(string):
+    b = string.split(",")
+    Tuple = (float(b[0].strip()[1:]) * magnification_factor, float(b[1].strip()[:-2]) * magnification_factor)
+    return Tuple
