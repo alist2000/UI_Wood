@@ -67,11 +67,12 @@ class checkModel(Update):
     # SLOT
     def check_model_run(self):
         lineLabels = None
+        boundaryLineLabels = None
         for currentTab in range(self.tabWidgetCount):
-            midLineData, lineLabels = self.grid[currentTab].run_control()
+            midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
 
         self.saveFunc()
-        self.check_shear_wall_exist_boundary(lineLabels)
+        self.check_shear_wall_exist_boundary(boundaryLineLabels)
 
         self.warningPage = warningPage(self.warnings)
         print(self.warnings)

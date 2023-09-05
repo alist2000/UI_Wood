@@ -41,8 +41,9 @@ class mainSync(Data):
         self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
+        boundaryLineLabels = None
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
-            midLineData, lineLabels = self.grid[currentTab].run_control()
+            midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
             if currentTab == self.tabWidgetCount - 1:
                 storyName = "Roof"
             else:
