@@ -58,7 +58,7 @@ class GridWidget(QGraphicsView):
         x_list, y_list = self.edit_spacing()
 
         pen = QPen(Qt.black, 1, Qt.SolidLine)
-
+        h_line_label = []
         for i in range(h_grid_number):
             line_horizontal = SelectableLineItem(0, y_list[i], width_manual, y_list[i])
             # snap
@@ -70,7 +70,10 @@ class GridWidget(QGraphicsView):
                 "label": label,
                 "position": y_list[i]
             })
+            h_line_label.append(label)
             self.lineLabels.append(label)
+
+        v_line_label = []
         for i in range(v_grid_number):
             line_vertical = SelectableLineItem(x_list[i], 0, x_list[i], height_manual)
             # snap
@@ -82,8 +85,14 @@ class GridWidget(QGraphicsView):
                 "label": f"{i + 1}",
                 "position": x_list[i]
             })
+            v_line_label.append(str(i + 1))
             self.lineLabels.append(str(i + 1))
 
+        h_line_label.sort()
+        h_line_label.sort(key=len)
+        v_line_label.sort()
+        v_line_label.sort(key=len)
+        self.boundaryLineLabels = [min(h_line_label), max(h_line_label), min(v_line_label), max(v_line_label)]
         # Add Snap Points (grid joint points)
         for x in x_list:
             for y in y_list:
@@ -164,7 +173,7 @@ class GridWidget(QGraphicsView):
         # print("RUN CLICK", data.midline.midline_dict)
         # for i in data.midline.midline_dict:
         #     print(i)
-        return data.midline.midline_dict, self.lineLabels
+        return data.midline.midline_dict, self.lineLabels, self.boundaryLineLabels
 
     def wheelEvent(self, event):
         zoomInFactor = 1.25
@@ -223,7 +232,7 @@ class GridWidget(QGraphicsView):
             #     # Call base function if pixmap is not intended to be moved
             #     super().mousePressEvent(event)
         super().mousePressEvent(event)
-            #   self.scene.clearSelection()
+        #   self.scene.clearSelection()
 
         # data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
         #                 self.joist_instance.rect_prop,
