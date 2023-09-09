@@ -78,7 +78,8 @@ class beam_output_handler:
                     "distributed": self.finalDistributedLoad.loadSet
                 },
                 "start": constantCoordinate,
-                "direction": self.direction
+                "direction": self.direction,
+                "floor": beamProp["floor"]
             }
         else:
             self.beamProp_dict = {}

@@ -63,6 +63,10 @@ class joistDrawing(QGraphicsRectItem):
             rect_item.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
             rect_item.setPen(QPen(Qt.black))
             self.scene.addItem(rect_item)
+            try:
+                floor = properties["floor"]
+            except:
+                floor = True
 
             # Save coordinates of the rectangle corners
             self.rect_prop[rect_item] = {"label": f"J{self.joist_number}",
@@ -70,7 +74,8 @@ class joistDrawing(QGraphicsRectItem):
                                                         (x2_main, y2_main), (x2_main, y1_main)],
                                          "direction": properties["direction"],
                                          "load": {"total_area": properties["load"]["total_area"],
-                                                  "custom_area": properties["load"]["custom_area"], "load_map": []}}
+                                                  "custom_area": properties["load"]["custom_area"], "load_map": []},
+                                         "floor": floor}
             joist_line_creator(self.rect_prop[rect_item])
             print(self.rect_prop)
             self.joist_number += 1
@@ -118,7 +123,8 @@ class joistDrawing(QGraphicsRectItem):
                                                      "coordinate": [(x1_main, y1_main), (x1_main, y2_main),
                                                                     (x2_main, y2_main), (x2_main, y1_main)],
                                                      "direction": "N-S",
-                                                     "load": {"total_area": [], "custom_area": [], "load_map": []}}
+                                                     "load": {"total_area": [], "custom_area": [], "load_map": []},
+                                                     "floor": True}
                         joist_line_creator(self.rect_prop[rect_item])
                         print(self.rect_prop)
                         self.joist_number += 1

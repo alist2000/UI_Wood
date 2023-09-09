@@ -30,6 +30,7 @@ class FindJoistInArea:
                     self.line_index = 1
                 self.start = None
                 self.end = None
+                floor = joist["floor"]
                 length = self.length(joist)
                 self.support = [(0, (1, 1, 0), (length, (1, 1, 0)))]
                 self.loadSets = self.joist_seperator(joist)
@@ -54,7 +55,7 @@ class FindJoistInArea:
                 WriteJoistInputSQLInstance = WriteJoistInputSQL(joistProp, joistAreaId, joistDB)
 
                 for load in self.finalLoadSet:
-                    joistItem = {"length": length, "support": self.support, "load": load}
+                    joistItem = {"length": length, "support": self.support, "load": load, "floor": floor}
                     joistProp["joist_item"].append(joistItem)
                     WriteJoistInputSQLInstance.distLoadTable(joistId, joistItem)
                     joistId += 1

@@ -11,6 +11,7 @@ class BeamProperties(QDialog):
         self.direction = None
         self.rectItem = rectItem
         self.rect_prop = rect_prop
+        self.beamDepth = None
 
         # IMAGE
         self.scene = scene
@@ -27,6 +28,7 @@ class BeamProperties(QDialog):
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
 
         self.create_geometry_tab()
+        self.create_assignment_tab()
         self.lineLoad = lineLoad(self.tab_widget, self.rect_prop[self.rectItem])
         self.pointLoad = pointLoad_line(self.tab_widget, self.rect_prop[self.rectItem])
 
@@ -82,6 +84,44 @@ class BeamProperties(QDialog):
         v_layout.addLayout(h_layout2)
         v_layout.addLayout(h_layout3)
         tab.setLayout(v_layout)
+
+    def create_assignment_tab(self):
+        tab = QWidget()
+        self.tab_widget.addTab(tab, f"Assignments")
+        label1 = QLabel("Beam Depth")
+        self.beamDepth = beamDepth = QComboBox()
+        beamDepth.addItems(["10 in", "12 in"])
+        floor = self.rect_prop[self.rectItem]["floor"]
+        if floor:
+            floorText = "12 in"
+        else:
+            floorText = "10 in"
+
+        self.beamDepth.setCurrentText(floorText)
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.beamDepth.currentTextChanged.connect(self.beam_depth_control)
+
+        # LAYOUT
+        h_layout1 = QHBoxLayout()
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(beamDepth)
+
+        v_layout = QVBoxLayout()
+        v_layout.addLayout(h_layout1)
+
+        tab.setLayout(v_layout)
+        # return self.direction
+
+        # SLOT
+
+    def beam_depth_control(self):
+        depth = self.beamDepth.currentText()
+        if "10" in depth:
+            floor = False
+        else:
+            floor = True
+        self.rect_prop[self.rectItem]["floor"] = floor
 
     @staticmethod
     def length(start, end):

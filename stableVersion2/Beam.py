@@ -91,7 +91,8 @@ class beamDrawing(QGraphicsRectItem):
                             self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                                       "coordinate": [
                                                                           start_point, final_end_point],
-                                                                      "load": {"point": [], "line": [], "reaction": []}}
+                                                                      "load": {"point": [], "line": [], "reaction": []},
+                                                                      "floor": True}
                             self.add_length(self.beam_rect_prop[self.current_rect])
 
                             print(self.beam_rect_prop)
@@ -234,12 +235,17 @@ class beamDrawing(QGraphicsRectItem):
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
         final_end_point = beam_end_point(start, end)
         self.beam_loc.append(final_end_point)
+        try:
+            floor = properties["floor"]
+        except:
+            floor = True
         self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                   "coordinate": [
                                                       start, final_end_point],
                                                   "load": {"point": properties["load"]["point"],
                                                            "line": properties["load"]["line"],
-                                                           "reaction": []}}
+                                                           "reaction": []},
+                                                  "floor": floor}
         self.add_length(self.beam_rect_prop[self.current_rect])
 
         print(self.beam_rect_prop)

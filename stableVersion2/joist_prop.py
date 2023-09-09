@@ -20,6 +20,7 @@ class JoistProperties(QDialog):
         self.joint_coordinate = joint_coordinate
         self.position = center_position
         self.loadRect = []
+        self.joistDepth = None
 
         # IMAGE
         self.image = image
@@ -159,7 +160,7 @@ class JoistProperties(QDialog):
 
     def create_direction_tab(self):
         tab = QWidget()
-        self.tab_widget.addTab(tab, f"Direction")
+        self.tab_widget.addTab(tab, f"Assignment")
         label1 = QLabel("Joist Direction")
         self.direction = direction = QComboBox()
         direction.addItems(["N-S", "E-W"])
@@ -168,16 +169,41 @@ class JoistProperties(QDialog):
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
         self.direction.currentTextChanged.connect(self.direction_control)
 
+        label2 = QLabel("Joist Depth")
+        self.joistDepth = joistDepth = QComboBox()
+        joistDepth.addItems(["10 in", "12 in"])
+        floor = self.rect_prop[self.rectItem]["floor"]
+        if floor:
+            floorText = "12 in"
+        else:
+            floorText = "10 in"
+
+        self.joistDepth.setCurrentText(floorText)
+        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
+        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.joistDepth.currentTextChanged.connect(self.joist_depth_control)
+
         # LAYOUT
         h_layout1 = QHBoxLayout()
         h_layout1.addWidget(label1)
         h_layout1.addWidget(direction)
+        h_layout1.addWidget(label2)
+        h_layout1.addWidget(joistDepth)
 
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout1)
 
         tab.setLayout(v_layout)
         # return self.direction
+
+    # SLOT  
+    def joist_depth_control(self):
+        depth = self.joistDepth.currentText()
+        if "10" in depth:
+            floor = False
+        else:
+            floor = True
+        self.rect_prop[self.rectItem]["floor"] = floor
 
     # SLOT
     def direction_control(self):
