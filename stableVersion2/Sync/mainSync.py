@@ -10,6 +10,7 @@ from WOOD_DESIGN.reports import Sqlreports
 from UI_Wood.stableVersion2.Sync.data import Data
 from UI_Wood.stableVersion2.Sync.Image import saveImage
 from UI_Wood.stableVersion2.Sync.postSync import PostSync
+from UI_Wood.stableVersion2.Sync.joistSync import joistAnalysisSync
 from UI_Wood.stableVersion2.Sync.beamSync import beamAnalysisSync
 from UI_Wood.stableVersion2.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
     NoShearWallLines, MidlineEdit
@@ -122,6 +123,7 @@ class ControlTab:
         # CREATE DB FOR OUTPUT.
         db = Sqlreports()
         db.beam_table()
+        db.joist_table()
         db.post_table()
 
         # BEAM
@@ -131,7 +133,7 @@ class ControlTab:
         PostSync(self.posts, generalProp.height, generalInfo, db)
 
         # JOIST
-        joistOutput = Joist_output(self.joists)
+        joistAnalysisInstance = joistAnalysisSync(self.joists, db)
 
         # SHEAR WALL
         # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
