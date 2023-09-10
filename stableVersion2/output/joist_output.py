@@ -32,11 +32,12 @@ class FindJoistInArea:
                 self.end = None
                 floor = joist["floor"]
                 length = self.length(joist)
-                self.support = [(0, (1, 1, 0), (length, (1, 1, 0)))]
+                self.support = [(0, (1, 1, 0)), (length, (1, 1, 0))]
                 self.loadSets = self.joist_seperator(joist)
                 self.finalLoadSet = []
                 for load in self.loadSets:
                     item = ControlDistributetLoad(load, self.start)
+
                     self.finalLoadSet.append(item.loadSet)
 
                 # distributed = ControlDistributetLoad(self.loadSets, self.start)
@@ -53,9 +54,12 @@ class FindJoistInArea:
 
                 joistId = 1
                 WriteJoistInputSQLInstance = WriteJoistInputSQL(joistProp, joistAreaId, joistDB)
+                finalLoadSetEdited = self.DeleteSimilarLoads()
+                for load in finalLoadSetEdited:
+                    control_load_range(load, length)
 
-                for load in self.finalLoadSet:
-                    joistItem = {"length": length, "support": self.support, "load": load, "floor": floor}
+                    joistItem = {"length": length, "support": self.support, "load": {"distributed": load, "point": []},
+                                 "floor": floor}
                     joistProp["joist_item"].append(joistItem)
                     WriteJoistInputSQLInstance.distLoadTable(joistId, joistItem)
                     joistId += 1
@@ -118,3 +122,26 @@ class FindJoistInArea:
             if loadSet:
                 loadSetMain.append(loadSet)
         return loadSetMain
+
+    def DeleteSimilarLoads(self):
+        finalLoadSet = []
+        for load in self.finalLoadSet:
+            if load not in finalLoadSet:
+                finalLoadSet.append(load)
+        return finalLoadSet
+
+
+def control_load_range(loads, length):
+    for load in loads:
+        start = load["start"]
+        end = load["end"]
+        if end > length:
+            end = length
+        if start < 0:
+            start = 0
+        if end < 0:
+            end = 0
+        if start > length:
+            start = length
+        load["start"] = start
+        load["end"] = end

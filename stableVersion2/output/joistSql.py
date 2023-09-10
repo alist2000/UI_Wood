@@ -79,9 +79,9 @@ class WriteJoistInputSQL:
         self.db.conn.commit()
 
     def distLoadTable(self, number, joistItem):
-        pointLoads = joistItem["load"]
+        distLoads = joistItem["load"]["distributed"]
 
-        for locLoad in pointLoads:
+        for locLoad in distLoads:
             start = locLoad["start"]
             end = locLoad["end"]
             for load in locLoad["load"]:
