@@ -98,7 +98,7 @@ class studWallDrawing(QGraphicsRectItem):
                                                                           "length": l,
                                                                           "direction": self.direction,
                                                                           "interior_exterior": self.interior_exterior,
-                                                                          "thickness": "4 in",  # in
+                                                                          "thickness": "6 in",  # in
                                                                           "load": {"point": [], "line": [],
                                                                                    "reaction": []}
                                                                           }
@@ -225,9 +225,12 @@ class studWallDrawing(QGraphicsRectItem):
         self.direction, self.interior_exterior = pointer_control_studWall(start_point, end_point,
                                                                           self.grid)
         try:
-            thickness = prop["thickness"]
+            if self.interior_exterior == "exterior":
+                thickness = "6 in"
+            else:
+                thickness = prop["thickness"]
         except KeyError:
-            thickness = "4 in"
+            thickness = "6 in"
 
         self.studWall_rect_prop[self.current_rect] = {"label": f"ST{self.studWall_number}",
                                                       "coordinate": [start_point, final_end_point],
@@ -397,8 +400,12 @@ class StudWallProperties(QDialog):
         self.tab_widget.addTab(tab, f"Assignments")
         label1 = QLabel("Stud Wall Thickness")
         self.thickness = thickness = QComboBox()
-        thickness.addItems(["4 in", "6 in"])
-        self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
+        if self.rect_prop[self.rectItem]["interior_exterior"] == "exterior":
+            thickness.addItems(["6 in"])
+            self.thickness.setCurrentText("6 in")
+        else:
+            thickness.addItems(["4 in", "6 in"])
+            self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
         self.thickness.currentTextChanged.connect(self.thickness_control)
