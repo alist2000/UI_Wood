@@ -3,6 +3,7 @@ import string
 
 from UI_Wood.stableVersion2.output.studWall_output import StudWall_output
 from UI_Wood.stableVersion2.output.shearWall_output import EditLabel
+from WOOD_DESIGN.mainstud import MainStud
 
 
 class StudWallSync:
@@ -11,4 +12,6 @@ class StudWallSync:
         studWallEdited = list(reversed(studWallEditedInstance.shearWalls_rev))
         self.studWallOutPut = StudWall_output(studWallEdited, height)
         print("*** STUD PROP IS HERE", self.studWallOutPut.studWallProperties)
+        studInstance = MainStud()
+        print(studInstance.query)
         studWallId = 1
