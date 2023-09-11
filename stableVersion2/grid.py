@@ -263,6 +263,10 @@ class GridWidget(QGraphicsView):
             self.studWall_instance.draw_studWall_mouseMove(self, event)
         elif self.load_instance.load_status == 1:
             self.load_instance.draw_load_mouseMove(self, event)
+        # elif self.post_instance.post_drawing_mode == 0 or self.post_instance.post_drawing_mode == 2:
+        if self.post_instance.post_drawing_mode != 1:
+            if self.post_instance.coordinateLabel:
+                self.post_instance.scene.removeItem(self.post_instance.coordinateLabel)
 
             # If pixmap dragging flag is set, move pixmap
         if self.menu.pixmapItem:
