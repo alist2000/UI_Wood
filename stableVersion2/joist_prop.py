@@ -108,10 +108,6 @@ class JoistProperties(QDialog):
         label7 = QLabel("Total Area")
         joint7 = QLabel(f"{area}")
 
-        label8 = QLabel("Joist Exist")
-
-        post_exist = QLabel("Yes")
-
         # control post existence
         # if self.position in self.Joist_position_list:
         #     post_exist = QLabel("Yes")
@@ -143,9 +139,6 @@ class JoistProperties(QDialog):
         h_layout7 = QHBoxLayout()
         h_layout7.addWidget(label7)
         h_layout7.addWidget(joint7)
-        h_layout8 = QHBoxLayout()
-        h_layout8.addWidget(label8)
-        h_layout8.addWidget(post_exist)
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout0)
         v_layout.addLayout(h_layout1)
@@ -155,7 +148,6 @@ class JoistProperties(QDialog):
         v_layout.addLayout(h_layout5)
         v_layout.addLayout(h_layout6)
         v_layout.addLayout(h_layout7)
-        v_layout.addLayout(h_layout8)
         tab.setLayout(v_layout)
 
     def create_direction_tab(self):
