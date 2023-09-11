@@ -82,10 +82,10 @@ class LoadProperties(QDialog):
         print(self.rect_prop)
 
     def create_geometry_tab(self):
-        point1 = tuple([i / magnification_factor for i in self.joint_coordinate[0]])
-        point2 = tuple([i / magnification_factor for i in self.joint_coordinate[1]])
-        point3 = tuple([i / magnification_factor for i in self.joint_coordinate[2]])
-        point4 = tuple([i / magnification_factor for i in self.joint_coordinate[3]])
+        point1 = tuple([round(i / magnification_factor, 2) for i in self.joint_coordinate[0]])
+        point2 = tuple([round(i / magnification_factor, 2) for i in self.joint_coordinate[1]])
+        point3 = tuple([round(i / magnification_factor, 2) for i in self.joint_coordinate[2]])
+        point4 = tuple([round(i / magnification_factor, 2) for i in self.joint_coordinate[3]])
         xc, yc, area = calculate_centroid_and_area(self.joint_coordinate, magnification_factor)
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
@@ -105,7 +105,7 @@ class LoadProperties(QDialog):
         # label6 = QLabel("Centroid Y")
         # joint6 = QLabel(f"{yc}")
         label7 = QLabel("Total Area")
-        joint7 = QLabel(f"{area}")
+        joint7 = QLabel(f"{round(area, 2)}")
 
         # label8 = QLabel("Load Exist")
         # 

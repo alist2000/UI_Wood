@@ -551,10 +551,10 @@ class ShearWallProperties(QDialog):
         self.accept()
 
     def create_geometry_tab(self):
-        start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][0]])
-        end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["coordinate"][1]])
-        Post_start = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["post"]["start_center"]])
-        Post_end = tuple([i / magnification_factor for i in self.rect_prop[self.rectItem]["post"]["end_center"]])
+        start = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["coordinate"][0]])
+        end = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["coordinate"][1]])
+        Post_start = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["post"]["start_center"]])
+        Post_end = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["post"]["end_center"]])
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
         label0 = QLabel("Label")

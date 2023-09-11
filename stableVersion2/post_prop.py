@@ -48,9 +48,9 @@ class PostProperties(QDialog):
         # coordinate
         position = self.post_prop[self.rect]["coordinate"]
         label1 = QLabel("Global X")
-        x = QLabel(f"{position[0] / magnification_factor}")
+        x = QLabel(f"{round(position[0] / magnification_factor, 2)}")
         label2 = QLabel("Global Y")
-        y = QLabel(f"{position[1] / magnification_factor}")
+        y = QLabel(f"{round(position[1] / magnification_factor, 2)}")
 
         # label3 = QLabel("Post Exist")
 
