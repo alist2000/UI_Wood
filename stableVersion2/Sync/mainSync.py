@@ -34,7 +34,7 @@ class mainSync(Data):
         self.reportGenerator.triggered.connect(self.runn)
 
     def runn(self):
-        self.ReportTab = ReportGeneratorTab(self.tabWidgetCount)
+        self.ReportTab = ReportGeneratorTab(self.tabWidgetCount, self.general_information)
         secondTabWidgetLayout(self.general_properties, self.ReportTab)
         print("REPORT GENERATOR BUTTON CLICKED")
 
