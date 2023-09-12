@@ -7,10 +7,13 @@ import sqlite3
 from UI_Wood.stableVersion2.replicate import CheckableComboBox
 from UI_Wood.stableVersion2.post_new import magnification_factor
 
+from Report_Lab.version2.main import Main
+
 
 class ReportGeneratorTab(QWidget):
-    def __init__(self, storyCount):
+    def __init__(self, storyCount, general_information):
         super(ReportGeneratorTab, self).__init__()
+        self.general_information = general_information
         self.result = {}
         self.setWindowTitle("Report Generation")
 
@@ -88,11 +91,18 @@ class ReportGeneratorTab(QWidget):
         for studWall in studWalls:
             studWallList.append(studWall.currentData())
 
+        # report type
+        reportTypes = [i.text() for i in [self.option1, self.option2, self.option3] if i.isChecked()]
+
         self.result["post"] = postList
         self.result["beam"] = beamList
         self.result["joist"] = joistList
         self.result["shearWall"] = shearWallList
         self.result["studWall"] = studWallList
+
+        Main(reportTypes, self.result, self.general_information)
+
+        print("REPORTS GENERATED")
 
     def LayoutOutput(self):
         Posts = self.mainTable.PostsLayout
