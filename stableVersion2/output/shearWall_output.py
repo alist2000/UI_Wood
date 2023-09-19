@@ -236,15 +236,32 @@ class ShearWall_output:
         snow = []
         for item in loadSet:
             load = item["load"]
+            deadCheck = False
+            liveCheck = False
+            lrCheck = False
+            snowCheck = False
             for Load in load:
                 if Load["type"] == "Dead":
                     dead.append(Load["magnitude"])
+                    deadCheck = True
                 elif Load["type"] == "Live":
                     live.append(Load["magnitude"])
+                    liveCheck = True
                 elif Load["type"] == "Live Roof":
                     lr.append(Load["magnitude"])
+                    lrCheck = True
                 elif Load["type"] == "snow":
                     snow.append(Load["magnitude"])
+                    snowCheck = True
+
+            if not deadCheck:
+                dead.append(0)
+            if not liveCheck:
+                live.append(0)
+            if not lrCheck:
+                lr.append(0)
+            if not snowCheck:
+                snow.append(0)
 
         dead_string = list_to_string(dead)
 
