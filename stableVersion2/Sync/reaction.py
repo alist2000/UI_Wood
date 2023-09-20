@@ -11,7 +11,7 @@ class reaction_types:
         # self.load_names = ["Dead", "Live", "Live Roof", "Snow", "Seismic"]
         self.loc = list(reactions.keys())
         self.loads = list(reactions.values())
-        self.load_names = ["Dead", "Live", "Live Roof", "Seismic"]
+        self.load_names = ["Dead", "Live", "Live Roof", "Seismic", "Snow"]
 
 
 class Control_reaction(reaction_types):
