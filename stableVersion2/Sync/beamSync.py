@@ -20,8 +20,6 @@ class beamAnalysisSync:
         inputDB = beamSQL()
         for i, beamTab in enumerate(beam):
             self.reaction_list.clear()
-            beamOutput = beam_output(beamTab)
-
             tabNumber = i
             beam_support = []
 
@@ -49,10 +47,6 @@ class beamAnalysisSync:
 
             beamOutput = beam_output(beamTab)
             for beamNum, beam_ in enumerate(beamOutput.beamProperties):
-                InputReport = BeamInput(beam_, generalInfo)
-                value = InputReport.input
-                report = Main(value, value, value,
-                              f"D:/git/Wood/UI_Wood/stableVersion1/report/Beam_output_{beam_['label']}_story_{str(i)}.pdf")
                 # beam with no support are empty(False)
                 if beam_:
                     WriteBeamInputSQL(beam_, str(tabNumber + 1), beamIdInput, inputDB)
@@ -60,15 +54,21 @@ class beamAnalysisSync:
                     if beam_["label"] not in beamDesignedList:
                         beam_analysis = MainBeam(beam_)
                         if beam_analysis.query[0] != "No Section Was Adequate":
+                            figs = beam_analysis.plots
+                            figs[0].write_image(
+                                f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
+                            figs[1].write_image(
+                                f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png")
                             # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
 
                             beam_analysis.query.insert(0, str(beamId))
                             beam_analysis.query.insert(1, str(tabNumber + 1))
                             beam_analysis.query.insert(2, beam_["label"])
+                            newQuery = roundAll(beam_analysis.query)
 
                             db.cursor1.execute(
                                 'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                                beam_analysis.query)
+                                newQuery)
                             db.conn1.commit()
                         Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
                         beamId += 1
@@ -87,16 +87,23 @@ class beamAnalysisSync:
                 if label not in beam_support and label not in beamDesigned:
                     # BEAM SHOULD ANALYZE FIRST
                     beam_analysis = MainBeam(beam_)
+
                     beamDesigned.append(label)
                     if beam_analysis.query[0] != "No Section Was Adequate":
+                        figs = beam_analysis.plots
+                        figs[0].write_image(
+                            f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
+                        figs[1].write_image(
+                            f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png")
                         # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
                         beam_analysis.query.insert(0, str(beamId))
                         beam_analysis.query.insert(1, str(tabNumber + 1))
                         beam_analysis.query.insert(2, beam_["label"])
+                        newQuery = roundAll(beam_analysis.query)
 
                         db.cursor1.execute(
                             'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                            beam_analysis.query)
+                            newQuery)
                         db.conn1.commit()
 
                     Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], reaction_list)
@@ -119,3 +126,15 @@ class beamAnalysisSync:
                 new_beam_support.append(beamLabel)
 
         return new_beam_support, reaction_list, beamDesigned, reactionInstance, beamId
+
+
+def roundAll(myList):
+    newList = []
+    for i in myList:
+        try:
+            newList.append(
+                round(float(i), 2)
+            )
+        except:
+            newList.append(i)
+    return newList
