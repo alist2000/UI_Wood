@@ -17,6 +17,7 @@ class checkModel(Update):
         self.warningPage = None
         self.warnings = {}
         self.shearWallLinesExist = {}
+        self.studWalls = {}
 
     def update(self, subject):
         self.tab = subject.data["tab"]
@@ -30,6 +31,7 @@ class checkModel(Update):
             self.find_shearWall_lines(shearWall, self.shearWallLinesExist[tabNumber])
             joist = tabItems["joist"]
             studWall = tabItems["studWall"]
+            self.studWalls[tabNumber] = studWall
 
             # INSTABILITY CHECK
             instableCheck = Instable(beam, joist, story)
@@ -419,35 +421,26 @@ class warningPage(QtWidgets.QMainWindow):
 
     @staticmethod
     def storyWarnings(story_warning, story_number):
-        instability = story_warning["instability"]
-        overlap = story_warning["overlap"]
-        boundary = story_warning["shearWallBoundary"]
+        warns = story_warning.values()
         header = f"""<h2><input type="checkbox" checked onclick="toggleList('list{str(story_number)}Items')"> Story {str(story_number)} </h2><ul id="list{str(story_number)}Items" class="warningList">"""
-
-        instability_error_text = ""
-        overlap_error_text = ""
-        boundary_error_text = ""
-
-        for item in instability:
-            text = item["warning"]
-            instability_error_text += f"""
+        warningText = ""
+        for item in warns:
+            if type(item) == dict:
+                for value in item.values():
+                    for detail in value:
+                        text = detail["warning"]
+                        warningText += f"""
+                                    <li style="list-style: linear-gradient(rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), white);">{text}</li>"""
+            else:
+                for detail in item:
+                    text = detail["warning"]
+                    warningText += f"""
                                     <li style="list-style: linear-gradient(rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), white);">{text}</li>"""
 
-        for item in boundary:
-            text = item["warning"]
-            boundary_error_text += f"""
-                                    <li style="list-style: linear-gradient(rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), rgb(253, 46, 46), white);">{text}</li>"""
+        if not warningText:
+            warningText = "No Warning!"
 
-        for item in overlap.values():
-            for detail in item:
-                text = detail["warning"]
-                overlap_error_text += f"""
-                                    <li style="list-style: linear-gradient(rgb(242, 146, 29),rgb(242, 146, 29), rgb(242, 146, 29), rgb(242, 146, 29), white);">{text}</li>"""
-
-        if not instability_error_text and not overlap_error_text and not boundary_error_text:
-            instability_error_text = "No Warning!"
-
-        finalText = header + instability_error_text + boundary_error_text + overlap_error_text + """</ul> """
+        finalText = header + warningText + """</ul> """
         return finalText
 
 
@@ -477,3 +470,688 @@ class CheckModelAfterRun:
         if boundaryNoShearWall:
             self.Warnings["shearWall"]
             pass
+
+
+class SameWidthStudWall:
+    def __init__(self, studWalls):
+        self.sameCoordinates = sameCoordinates = []
+        self.widthAll = widthAll = []
+        self.storiesAll = storiesAll = []
+        for story, studs in studWalls.items():
+            for stud in studs:
+                labels = [stud["label"]]
+                widths = [stud["thickness"]]
+                stories = [story]
+                coordMain = stud["coordinate"]
+                for story2, studs2 in studWalls.items():
+                    for stud2 in studs2:
+                        coord2 = stud2["coordinate"]
+                        if coordMain == coord2 and story != story2:
+                            labels.append(stud2["label"])
+                            widths.append(stud2["thickness"])
+                            stories.append(story2)
+
+                        if len(labels) > 1:
+                            sameCoordinates.append(labels)
+                            widthAll.append(widths)
+                            storiesAll.append(storiesAll)
+
+
+studs = {
+    0: [
+        {'label': 'ST1', 'coordinate': [(1240.0, 728.0), (1834.1781320826294, 728.0)], 'length': 594.18,
+         'direction': 'E-W',
+         'interior_exterior': 'interior', 'thickness': '4 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J9', 'label': 'Floor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead', 'magnitude': 0.215},
+                                                                                 {'type': 'Live', 'magnitude': 0.172},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.258}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1832.0},
+                                                                            {'from': 'J18', 'label': 'Corridor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead',
+                                                                                  'magnitude': 0.09753522528740803},
+                                                                                 {'type': 'Live',
+                                                                                  'magnitude': 0.19507045057481606},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.11704227034488963}],
+                                                                             'start': 1240.0, 'end': 1309.828262591694},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.35746477471259197},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.2859718197700736},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4289577296551103}],
+                                                                             'start': 1240.0, 'end': 1309.828262591694},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1752.0, 'end': 1832.0},
+                                                                            {'from': 'J21', 'label': 'Corridor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead', 'magnitude': 0.215},
+                                                                                 {'type': 'Live', 'magnitude': 0.43},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.258}],
+                                                                             'start': 1240.0,
+                                                                             'end': 1309.828262591694}]}},
+         'line': {'properties': {'slope': True, 'c': 728.0, 'range': (1240.0, 1834.1781320826294)}},
+         'joist': [
+             {'label': 'J9', 'intersection_range': (1312.0809220966387, 1832.0), 'tributary_depth': (728.0, 900.0)},
+             {'label': 'J18', 'intersection_range': (1240.0, 1752.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J19', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J21', 'intersection_range': (1240.0, 1312.0809220966387),
+              'tributary_depth': (728.0, 900.0)}]},
+        {'label': 'ST2', 'coordinate': [(1240.0, 654.9942848069184), (506.3660279514156, 654.9942848069184)],
+         'length': 733.63, 'direction': 'E-W', 'interior_exterior': 'interior', 'thickness': '4 in',
+         'load': {'point': [], 'line': [], 'reaction': [], 'joist_load': {'assignment': [], 'load_map': [
+             {'from': 'J11', 'label': 'Corridor', 'load': [{'type': 'Dead', 'magnitude': 0.16312857199567604},
+                                                           {'type': 'Live', 'magnitude': 0.3262571439913521},
+                                                           {'type': 'Dead Super', 'magnitude': 0.19575428639481124}],
+              'start': 717.513305817537, 'end': 1026.0}, {'from': 'J11', 'label': 'Floor',
+                                                          'load': [{'type': 'Dead', 'magnitude': 0.16312857199567604},
+                                                                   {'type': 'Live', 'magnitude': 0.13050285759654084},
+                                                                   {'type': 'Dead Super',
+                                                                    'magnitude': 0.19575428639481124}],
+                                                          'start': 506.3660279514156, 'end': 718.1177806742272},
+             {'from': 'J12', 'label': 'Corridor', 'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                           {'type': 'Live', 'magnitude': 0.012556162592111947},
+                                                           {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+              'start': 1028.0, 'end': 1240.0}, {'from': 'J12', 'label': 'Corridor',
+                                                'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                         {'type': 'Live', 'magnitude': 0.012556162592111947},
+                                                         {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+                                                'start': 717.513305817537, 'end': 1028.0},
+             {'from': 'J12', 'label': 'Floor',
+              'load': [{'type': 'Dead',
+                        'magnitude': 0.403093346708268},
+                       {'type': 'Live',
+                        'magnitude': 0.3224746773666144},
+                       {'type': 'Dead Super',
+                        'magnitude': 0.48371201604992164}],
+              'start': 506.3660279514156,
+              'end': 1240.0},
+             {'from': 'J12', 'label': 'Floor', 'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                        {'type': 'Live', 'magnitude': 0.005022465036844778},
+                                                        {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+              'start': 506.3660279514156, 'end': 718.1177806742272}, {'from': 'J20', 'label': 'Corridor', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.2606285719956761}, {'type': 'Live', 'magnitude': 0.5212571439913521},
+                 {'type': 'Dead Super', 'magnitude': 0.31275428639481123}], 'start': 1028.0, 'end': 1240.0},
+             {'from': 'J20', 'label': 'Corridor',
+              'load': [{'type': 'Dead', 'magnitude': 0.2606285719956761},
+                       {'type': 'Live', 'magnitude': 0.5212571439913521},
+                       {'type': 'Dead Super', 'magnitude': 0.31275428639481123}], 'start': 1026.0, 'end': 1028.0}]}},
+         'line': {'properties': {'slope': True, 'c': 654.9942848069184, 'range': (506.3660279514156, 1240.0)}},
+         'joist': [
+             {'label': 'J11', 'intersection_range': (506.3660279514156, 1026.0),
+              'tributary_depth': (654.9942848069184, 785.4971424034592)},
+             {'label': 'J12', 'intersection_range': (506.3660279514156, 1240.0),
+              'tributary_depth': (327.4971424034592, 654.9942848069184)},
+             {'label': 'J20', 'intersection_range': (1026.0, 1240.0),
+              'tributary_depth': (654.9942848069184, 863.4971424034592)}]},
+        {'label': 'ST3', 'coordinate': [(1423.0, 0.0), (2593.6509454272286, 0.0)], 'length': 1170.65,
+         'direction': 'E-W',
+         'interior_exterior': 'exterior', 'thickness': '6 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J13', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.37875000000000003},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.30300000000000005},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4545}], 'start': 2264.0,
+                                                                             'end': 2593.6509454272286},
+                                                                            {'from': 'J17', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.46174479692049913},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.36939583753639926},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.5540937563045989}],
+                                                                             'start': 1832.0, 'end': 2264.0},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1423.0, 'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1752.0, 'end': 1832.0}]}},
+         'line': {'properties': {'slope': True, 'c': 0.0, 'range': (1423.0, 2593.6509454272286)}},
+         'joist': [
+             {'label': 'J13', 'intersection_range': (2264.0, 2593.6509454272286), 'tributary_depth': (0.0, 303.0)},
+             {'label': 'J17', 'intersection_range': (1832.0, 2264.0), 'tributary_depth': (0.0, 369.39583753639926)},
+             {'label': 'J18', 'intersection_range': (1423.0, 1752.0), 'tributary_depth': (0.0, 364.0)},
+             {'label': 'J19', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (0.0, 364.0)}]}], 1: [
+        {'label': 'ST1', 'coordinate': [(1240.0, 728.0), (1834.1781320826294, 728.0)], 'length': 594.18,
+         'direction': 'E-W',
+         'interior_exterior': 'interior', 'thickness': '4 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J9', 'label': 'Floor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead', 'magnitude': 0.215},
+                                                                                 {'type': 'Live', 'magnitude': 0.172},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.258}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1832.0},
+                                                                            {'from': 'J18', 'label': 'Corridor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead',
+                                                                                  'magnitude': 0.09753522528740803},
+                                                                                 {'type': 'Live',
+                                                                                  'magnitude': 0.19507045057481606},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.11704227034488963}],
+                                                                             'start': 1240.0, 'end': 1309.828262591694},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.35746477471259197},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.2859718197700736},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4289577296551103}],
+                                                                             'start': 1240.0, 'end': 1309.828262591694},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1752.0, 'end': 1832.0},
+                                                                            {'from': 'J21', 'label': 'Corridor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead', 'magnitude': 0.215},
+                                                                                 {'type': 'Live', 'magnitude': 0.43},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.258}],
+                                                                             'start': 1240.0,
+                                                                             'end': 1309.828262591694}]}},
+         'line': {'properties': {'slope': True, 'c': 728.0, 'range': (1240.0, 1834.1781320826294)}},
+         'joist': [
+             {'label': 'J9', 'intersection_range': (1312.0809220966387, 1832.0), 'tributary_depth': (728.0, 900.0)},
+             {'label': 'J18', 'intersection_range': (1240.0, 1752.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J19', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J21', 'intersection_range': (1240.0, 1312.0809220966387),
+              'tributary_depth': (728.0, 900.0)}]},
+        {'label': 'ST2', 'coordinate': [(1240.0, 654.9942848069184), (506.3660279514156, 654.9942848069184)],
+         'length': 733.63, 'direction': 'E-W', 'interior_exterior': 'interior', 'thickness': '4 in',
+         'load': {'point': [], 'line': [], 'reaction': [], 'joist_load': {'assignment': [], 'load_map': [
+             {'from': 'J11', 'label': 'Corridor', 'load': [{'type': 'Dead', 'magnitude': 0.16312857199567604},
+                                                           {'type': 'Live', 'magnitude': 0.3262571439913521},
+                                                           {'type': 'Dead Super', 'magnitude': 0.19575428639481124}],
+              'start': 717.513305817537, 'end': 1026.0}, {'from': 'J11', 'label': 'Floor',
+                                                          'load': [{'type': 'Dead', 'magnitude': 0.16312857199567604},
+                                                                   {'type': 'Live', 'magnitude': 0.13050285759654084},
+                                                                   {'type': 'Dead Super',
+                                                                    'magnitude': 0.19575428639481124}],
+                                                          'start': 506.3660279514156, 'end': 718.1177806742272},
+             {'from': 'J12', 'label': 'Corridor', 'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                           {'type': 'Live', 'magnitude': 0.012556162592111947},
+                                                           {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+              'start': 1028.0, 'end': 1240.0}, {'from': 'J12', 'label': 'Corridor',
+                                                'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                         {'type': 'Live', 'magnitude': 0.012556162592111947},
+                                                         {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+                                                'start': 717.513305817537, 'end': 1028.0},
+             {'from': 'J12', 'label': 'Floor',
+              'load': [{'type': 'Dead',
+                        'magnitude': 0.403093346708268},
+                       {'type': 'Live',
+                        'magnitude': 0.3224746773666144},
+                       {'type': 'Dead Super',
+                        'magnitude': 0.48371201604992164}],
+              'start': 506.3660279514156,
+              'end': 1240.0},
+             {'from': 'J12', 'label': 'Floor', 'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                        {'type': 'Live', 'magnitude': 0.005022465036844778},
+                                                        {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+              'start': 506.3660279514156, 'end': 718.1177806742272}, {'from': 'J20', 'label': 'Corridor', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.2606285719956761}, {'type': 'Live', 'magnitude': 0.5212571439913521},
+                 {'type': 'Dead Super', 'magnitude': 0.31275428639481123}], 'start': 1028.0, 'end': 1240.0},
+             {'from': 'J20', 'label': 'Corridor',
+              'load': [{'type': 'Dead', 'magnitude': 0.2606285719956761},
+                       {'type': 'Live', 'magnitude': 0.5212571439913521},
+                       {'type': 'Dead Super', 'magnitude': 0.31275428639481123}], 'start': 1026.0, 'end': 1028.0}]}},
+         'line': {'properties': {'slope': True, 'c': 654.9942848069184, 'range': (506.3660279514156, 1240.0)}},
+         'joist': [
+             {'label': 'J11', 'intersection_range': (506.3660279514156, 1026.0),
+              'tributary_depth': (654.9942848069184, 785.4971424034592)},
+             {'label': 'J12', 'intersection_range': (506.3660279514156, 1240.0),
+              'tributary_depth': (327.4971424034592, 654.9942848069184)},
+             {'label': 'J20', 'intersection_range': (1026.0, 1240.0),
+              'tributary_depth': (654.9942848069184, 863.4971424034592)}]},
+        {'label': 'ST3', 'coordinate': [(1423.0, 0.0), (2593.6509454272286, 0.0)], 'length': 1170.65,
+         'direction': 'E-W',
+         'interior_exterior': 'exterior', 'thickness': '6 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J13', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.37875000000000003},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.30300000000000005},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4545}], 'start': 2264.0,
+                                                                             'end': 2593.6509454272286},
+                                                                            {'from': 'J17', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.46174479692049913},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.36939583753639926},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.5540937563045989}],
+                                                                             'start': 1832.0, 'end': 2264.0},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1423.0, 'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1752.0, 'end': 1832.0}]}},
+         'line': {'properties': {'slope': True, 'c': 0.0, 'range': (1423.0, 2593.6509454272286)}},
+         'joist': [
+             {'label': 'J13', 'intersection_range': (2264.0, 2593.6509454272286), 'tributary_depth': (0.0, 303.0)},
+             {'label': 'J17', 'intersection_range': (1832.0, 2264.0), 'tributary_depth': (0.0, 369.39583753639926)},
+             {'label': 'J18', 'intersection_range': (1423.0, 1752.0), 'tributary_depth': (0.0, 364.0)},
+             {'label': 'J19', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (0.0, 364.0)}]}], 2: [
+        {'label': 'ST1', 'coordinate': [(1240.0, 728.0), (1834.1781320826294, 728.0)], 'length': 594.18,
+         'direction': 'E-W',
+         'interior_exterior': 'interior', 'thickness': '4 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J9', 'label': 'Floor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead', 'magnitude': 0.215},
+                                                                                 {'type': 'Live', 'magnitude': 0.172},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.258}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1832.0},
+                                                                            {'from': 'J18', 'label': 'Corridor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead',
+                                                                                  'magnitude': 0.09753522528740803},
+                                                                                 {'type': 'Live',
+                                                                                  'magnitude': 0.19507045057481606},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.11704227034488963}],
+                                                                             'start': 1240.0, 'end': 1309.828262591694},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.35746477471259197},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.2859718197700736},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4289577296551103}],
+                                                                             'start': 1240.0, 'end': 1309.828262591694},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1752.0, 'end': 1832.0},
+                                                                            {'from': 'J21', 'label': 'Corridor',
+                                                                             'load': [
+                                                                                 {'type': 'Dead', 'magnitude': 0.215},
+                                                                                 {'type': 'Live', 'magnitude': 0.43},
+                                                                                 {'type': 'Dead Super',
+                                                                                  'magnitude': 0.258}],
+                                                                             'start': 1240.0,
+                                                                             'end': 1309.828262591694}]}},
+         'line': {'properties': {'slope': True, 'c': 728.0, 'range': (1240.0, 1834.1781320826294)}},
+         'joist': [
+             {'label': 'J9', 'intersection_range': (1312.0809220966387, 1832.0), 'tributary_depth': (728.0, 900.0)},
+             {'label': 'J18', 'intersection_range': (1240.0, 1752.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J19', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J21', 'intersection_range': (1240.0, 1312.0809220966387),
+              'tributary_depth': (728.0, 900.0)}]},
+        {'label': 'ST2', 'coordinate': [(1240.0, 654.9942848069184), (506.3660279514156, 654.9942848069184)],
+         'length': 733.63, 'direction': 'E-W', 'interior_exterior': 'interior', 'thickness': '4 in',
+         'load': {'point': [], 'line': [], 'reaction': [], 'joist_load': {'assignment': [], 'load_map': [
+             {'from': 'J11', 'label': 'Corridor', 'load': [{'type': 'Dead', 'magnitude': 0.16312857199567604},
+                                                           {'type': 'Live', 'magnitude': 0.3262571439913521},
+                                                           {'type': 'Dead Super', 'magnitude': 0.19575428639481124}],
+              'start': 717.513305817537, 'end': 1026.0}, {'from': 'J11', 'label': 'Floor',
+                                                          'load': [{'type': 'Dead', 'magnitude': 0.16312857199567604},
+                                                                   {'type': 'Live', 'magnitude': 0.13050285759654084},
+                                                                   {'type': 'Dead Super',
+                                                                    'magnitude': 0.19575428639481124}],
+                                                          'start': 506.3660279514156, 'end': 718.1177806742272},
+             {'from': 'J12', 'label': 'Corridor', 'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                           {'type': 'Live', 'magnitude': 0.012556162592111947},
+                                                           {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+              'start': 1028.0, 'end': 1240.0}, {'from': 'J12', 'label': 'Corridor',
+                                                'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                         {'type': 'Live', 'magnitude': 0.012556162592111947},
+                                                         {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+                                                'start': 717.513305817537, 'end': 1028.0},
+             {'from': 'J12', 'label': 'Floor',
+              'load': [{'type': 'Dead',
+                        'magnitude': 0.403093346708268},
+                       {'type': 'Live',
+                        'magnitude': 0.3224746773666144},
+                       {'type': 'Dead Super',
+                        'magnitude': 0.48371201604992164}],
+              'start': 506.3660279514156,
+              'end': 1240.0},
+             {'from': 'J12', 'label': 'Floor', 'load': [{'type': 'Dead', 'magnitude': 0.006278081296055974},
+                                                        {'type': 'Live', 'magnitude': 0.005022465036844778},
+                                                        {'type': 'Dead Super', 'magnitude': 0.007533697555267167}],
+              'start': 506.3660279514156, 'end': 718.1177806742272}, {'from': 'J20', 'label': 'Corridor', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.2606285719956761}, {'type': 'Live', 'magnitude': 0.5212571439913521},
+                 {'type': 'Dead Super', 'magnitude': 0.31275428639481123}], 'start': 1028.0, 'end': 1240.0},
+             {'from': 'J20', 'label': 'Corridor',
+              'load': [{'type': 'Dead', 'magnitude': 0.2606285719956761},
+                       {'type': 'Live', 'magnitude': 0.5212571439913521},
+                       {'type': 'Dead Super', 'magnitude': 0.31275428639481123}], 'start': 1026.0, 'end': 1028.0}]}},
+         'line': {'properties': {'slope': True, 'c': 654.9942848069184, 'range': (506.3660279514156, 1240.0)}},
+         'joist': [
+             {'label': 'J11', 'intersection_range': (506.3660279514156, 1026.0),
+              'tributary_depth': (654.9942848069184, 785.4971424034592)},
+             {'label': 'J12', 'intersection_range': (506.3660279514156, 1240.0),
+              'tributary_depth': (327.4971424034592, 654.9942848069184)},
+             {'label': 'J20', 'intersection_range': (1026.0, 1240.0),
+              'tributary_depth': (654.9942848069184, 863.4971424034592)}]},
+        {'label': 'ST3', 'coordinate': [(1423.0, 0.0), (2593.6509454272286, 0.0)], 'length': 1170.65,
+         'direction': 'E-W',
+         'interior_exterior': 'exterior', 'thickness': '6 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J13', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.37875000000000003},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.30300000000000005},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4545}], 'start': 2264.0,
+                                                                             'end': 2593.6509454272286},
+                                                                            {'from': 'J17', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.46174479692049913},
+                                                                                {'type': 'Live',
+                                                                                 'magnitude': 0.36939583753639926},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.5540937563045989}],
+                                                                             'start': 1832.0, 'end': 2264.0},
+                                                                            {'from': 'J18', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1423.0, 'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Floor', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.45499999999999996},
+                                                                                {'type': 'Live', 'magnitude': 0.364},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.546}],
+                                                                             'start': 1752.0, 'end': 1832.0}]}},
+         'line': {'properties': {'slope': True, 'c': 0.0, 'range': (1423.0, 2593.6509454272286)}},
+         'joist': [
+             {'label': 'J13', 'intersection_range': (2264.0, 2593.6509454272286), 'tributary_depth': (0.0, 303.0)},
+             {'label': 'J17', 'intersection_range': (1832.0, 2264.0), 'tributary_depth': (0.0, 369.39583753639926)},
+             {'label': 'J18', 'intersection_range': (1423.0, 1752.0), 'tributary_depth': (0.0, 364.0)},
+             {'label': 'J19', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (0.0, 364.0)}]}], 3: [
+        {'label': 'ST1', 'coordinate': [(1240.0, 728.0), (1834.1781320826294, 728.0)], 'length': 594.18,
+         'direction': 'E-W',
+         'interior_exterior': 'interior', 'thickness': '4 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J10', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.07051054236505752},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.03525527118252876},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.08813817795632191}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1832.0},
+                                                                            {'from': 'J10', 'label': 'Roof', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.10148945763494248},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.05074472881747124},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.1268618220436781}],
+                                                                             'start': 1312.0809220966387,
+                                                                             'end': 1832.0},
+                                                                            {'from': 'J19', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.33389215156045976},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.16694607578022988},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4173651894505747}],
+                                                                             'start': 1240.0, 'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.030107848439540248},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.015053924219770124},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.037634810549425315}],
+                                                                             'start': 1240.0, 'end': 1752.0},
+                                                                            {'from': 'J20', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.33389215156045976},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.16694607578022988},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4173651894505747}],
+                                                                             'start': 1752.0, 'end': 1832.0},
+                                                                            {'from': 'J20', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.030107848439540248},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.015053924219770124},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.037634810549425315}],
+                                                                             'start': 1752.0, 'end': 1832.0},
+                                                                            {'from': 'J22', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.07051054236505752},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.03525527118252876},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.08813817795632191}],
+                                                                             'start': 1240.0,
+                                                                             'end': 1312.0809220966387},
+                                                                            {'from': 'J22', 'label': 'Roof', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.10148945763494248},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.05074472881747124},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.1268618220436781}],
+                                                                             'start': 1240.0,
+                                                                             'end': 1312.0809220966387}]}},
+         'line': {'properties': {'slope': True, 'c': 728.0, 'range': (1240.0, 1834.1781320826294)}},
+         'joist': [
+             {'label': 'J10', 'intersection_range': (1312.0809220966387, 1832.0), 'tributary_depth': (728.0, 900.0)},
+             {'label': 'J19', 'intersection_range': (1240.0, 1752.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J20', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (364.0, 728.0)},
+             {'label': 'J22', 'intersection_range': (1240.0, 1312.0809220966387),
+              'tributary_depth': (728.0, 900.0)}]},
+        {'label': 'ST2', 'coordinate': [(1240.0, 654.9942848069184), (506.3660279514156, 654.9942848069184)],
+         'length': 733.63, 'direction': 'E-W', 'interior_exterior': 'interior', 'thickness': '6 in',
+         'load': {'point': [], 'line': [], 'reaction': [], 'joist_load': {'assignment': [], 'load_map': [
+             {'from': 'J12', 'label': 'solar', 'load': [{'type': 'Dead', 'magnitude': 0.04289786675354139},
+                                                        {'type': 'Live Roof', 'magnitude': 0.021448933376770694},
+                                                        {'type': 'Dead Super', 'magnitude': 0.05362233344192674}],
+              'start': 961.3975976590955, 'end': 1026.0}, {'from': 'J12', 'label': 'Roof',
+                                                           'load': [{'type': 'Dead', 'magnitude': 0.08760499084299943},
+                                                                    {'type': 'Live Roof',
+                                                                     'magnitude': 0.043802495421499714},
+                                                                    {'type': 'Dead Super',
+                                                                     'magnitude': 0.10950623855374927}],
+                                                           'start': 506.3660279514156, 'end': 1026.0},
+             {'from': 'J12', 'label': 'Roof', 'load': [{'type': 'Dead', 'magnitude': 0.04289786675354139},
+                                                       {'type': 'Live Roof', 'magnitude': 0.021448933376770694},
+                                                       {'type': 'Dead Super', 'magnitude': 0.05362233344192674}],
+              'start': 506.3660279514156, 'end': 961.3975976590955}, {'from': 'J13', 'label': 'mechanical', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.8441714688311102},
+                 {'type': 'Live Roof', 'magnitude': 0.12059592411873002},
+                 {'type': 'Dead Super', 'magnitude': 0.9044694308904753}], 'start': 556.6372528315096,
+                                                                      'end': 799.9508160499008},
+             {'from': 'J13', 'label': 'solar', 'load': [{'type': 'Dead', 'magnitude': 0.3252739723269172},
+                                                        {'type': 'Live Roof', 'magnitude': 0.1626369861634586},
+                                                        {'type': 'Dead Super', 'magnitude': 0.40659246540864646}],
+              'start': 961.3975976590955, 'end': 1240.0}, {'from': 'J13', 'label': 'Roof',
+                                                           'load': [
+                                                               {'type': 'Dead', 'magnitude': 0.0022231700765420327},
+                                                               {'type': 'Live Roof',
+                                                                'magnitude': 0.0011115850382710164},
+                                                               {'type': 'Dead Super',
+                                                                'magnitude': 0.002778962595677541}],
+                                                           'start': 961.3975976590955, 'end': 1240.0},
+             {'from': 'J13', 'label': 'Roof', 'load': [{'type': 'Dead', 'magnitude': 0.24119184823746004},
+                                                       {'type': 'Live Roof', 'magnitude': 0.12059592411873002},
+                                                       {'type': 'Dead Super', 'magnitude': 0.30148981029682503}],
+              'start': 799.9508160499008, 'end': 961.3975976590955}, {'from': 'J13', 'label': 'Roof', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.08630529416599916},
+                 {'type': 'Live Roof', 'magnitude': 0.04315264708299958},
+                 {'type': 'Dead Super', 'magnitude': 0.10788161770749896}], 'start': 506.3660279514156,
+                                                                      'end': 961.3975976590955},
+             {'from': 'J13', 'label': 'Roof', 'load': [{'type': 'Dead', 'magnitude': 0.24119184823746004},
+                                                       {'type': 'Live Roof', 'magnitude': 0.12059592411873002},
+                                                       {'type': 'Dead Super', 'magnitude': 0.30148981029682503}],
+              'start': 506.3660279514156, 'end': 556.6372528315096}, {'from': 'J21', 'label': 'solar', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.04289786675354139},
+                 {'type': 'Live Roof', 'magnitude': 0.021448933376770694},
+                 {'type': 'Dead Super', 'magnitude': 0.05362233344192674}], 'start': 1026.0, 'end': 1240.0},
+             {'from': 'J21', 'label': 'solar', 'load': [{'type': 'Dead', 'magnitude': 0.10061839080459775},
+                                                        {'type': 'Live Roof', 'magnitude': 0.050309195402298876},
+                                                        {'type': 'Dead Super', 'magnitude': 0.1257729885057472}],
+              'start': 1210.6567930613946, 'end': 1240.0}, {'from': 'J21', 'label': 'Roof',
+                                                            'load': [{'type': 'Dead', 'magnitude': 0.06498660003840166},
+                                                                     {'type': 'Live Roof',
+                                                                      'magnitude': 0.03249330001920083},
+                                                                     {'type': 'Dead Super',
+                                                                      'magnitude': 0.08123325004800208}],
+                                                            'start': 1026.0,
+                                                            'end': 1240.0}, {'from': 'J21', 'label': 'Roof', 'load': [
+                 {'type': 'Dead', 'magnitude': 0.10061839080459775},
+                 {'type': 'Live Roof', 'magnitude': 0.050309195402298876},
+                 {'type': 'Dead Super', 'magnitude': 0.1257729885057472}], 'start': 1026.0,
+                                                                             'end': 1210.6567930613946}]}},
+         'line': {'properties': {'slope': True, 'c': 654.9942848069184, 'range': (506.3660279514156, 1240.0)}},
+         'joist': [
+             {'label': 'J12', 'intersection_range': (506.3660279514156, 1026.0),
+              'tributary_depth': (654.9942848069184, 785.4971424034592)},
+             {'label': 'J13', 'intersection_range': (506.3660279514156, 1240.0),
+              'tributary_depth': (327.4971424034592, 654.9942848069184)},
+             {'label': 'J21', 'intersection_range': (1026.0, 1240.0),
+              'tributary_depth': (654.9942848069184, 863.4971424034592)}]},
+        {'label': 'ST3', 'coordinate': [(1423.0, 0.0), (2593.6509454272286, 0.0)], 'length': 1170.65,
+         'direction': 'E-W',
+         'interior_exterior': 'exterior', 'thickness': '6 in', 'load': {'point': [], 'line': [], 'reaction': [],
+                                                                        'joist_load': {'assignment': [], 'load_map': [
+                                                                            {'from': 'J14', 'label': 'Roof', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.30300000000000005},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.15150000000000002},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.37875000000000003}],
+                                                                             'start': 2264.0,
+                                                                             'end': 2593.6509454272286},
+                                                                            {'from': 'J18', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.03967552505639804},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.01983776252819902},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.04959440632049756}],
+                                                                             'start': 1832.0, 'end': 2264.0},
+                                                                            {'from': 'J18', 'label': 'Roof', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.3297203124800012},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.1648601562400006},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4121503906000015}],
+                                                                             'start': 1832.0, 'end': 2264.0},
+                                                                            {'from': 'J19', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.03427968751999878},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.01713984375999939},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.04284960939999849}],
+                                                                             'start': 1423.0, 'end': 1752.0},
+                                                                            {'from': 'J19', 'label': 'Roof', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.3297203124800012},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.1648601562400006},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4121503906000015}],
+                                                                             'start': 1423.0, 'end': 1752.0},
+                                                                            {'from': 'J20', 'label': 'solar', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.03427968751999878},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.01713984375999939},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.04284960939999849}],
+                                                                             'start': 1752.0, 'end': 1832.0},
+                                                                            {'from': 'J20', 'label': 'Roof', 'load': [
+                                                                                {'type': 'Dead',
+                                                                                 'magnitude': 0.3297203124800012},
+                                                                                {'type': 'Live Roof',
+                                                                                 'magnitude': 0.1648601562400006},
+                                                                                {'type': 'Dead Super',
+                                                                                 'magnitude': 0.4121503906000015}],
+                                                                             'start': 1752.0, 'end': 1832.0}]}},
+         'line': {'properties': {'slope': True, 'c': 0.0, 'range': (1423.0, 2593.6509454272286)}},
+         'joist': [
+             {'label': 'J14', 'intersection_range': (2264.0, 2593.6509454272286), 'tributary_depth': (0.0, 303.0)},
+             {'label': 'J18', 'intersection_range': (1832.0, 2264.0), 'tributary_depth': (0.0, 369.39583753639926)},
+             {'label': 'J19', 'intersection_range': (1423.0, 1752.0), 'tributary_depth': (0.0, 364.0)},
+             {'label': 'J20', 'intersection_range': (1752.0, 1832.0), 'tributary_depth': (0.0, 364.0)}]}]}
+# a = SameWidthStudWall(studs)
+# print(a)
