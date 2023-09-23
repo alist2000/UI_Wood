@@ -89,7 +89,7 @@ class beamAnalysisSync:
                     beam_analysis = MainBeam(beam_)
 
                     beamDesigned.append(label)
-                    if beam_analysis.query[0] != "No Section Was Adequate":
+                    if beam_analysis.query[0] != "No Section Was Adequate" and beam_analysis.query[0] != 'NOT FOUND':
                         figs = beam_analysis.plots
                         figs[0].write_image(
                             f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
