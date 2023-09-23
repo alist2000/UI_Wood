@@ -13,5 +13,5 @@ class StudWallSync:
         self.studWallOutPut = StudWall_output(studWallEdited, height)
         print("*** STUD PROP IS HERE", self.studWallOutPut.studWallProperties)
         studInstance = MainStud()
-        print(studInstance.query)
+        # print(studInstance.query)
         studWallId = 1
