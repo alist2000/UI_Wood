@@ -18,6 +18,7 @@ from UI_Wood.stableVersion2.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion2.post_new import magnification_factor
 from UI_Wood.stableVersion2.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion2.layout.tab_widget2 import secondTabWidgetLayout
+import time
 
 
 class mainSync(Data):
@@ -72,7 +73,10 @@ class mainSync(Data):
 
         print(seismicInstance.seismicPara)
         print(midLineDictEdited)
-        # MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+        a = time.time()
+        MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+        b = time.time()
+        print("Shear wall run takes ", (b - a) / 60, " Minutes")
 
         print("FINAL")
 
@@ -127,13 +131,23 @@ class ControlTab:
         db.post_table()
 
         # BEAM
+        a = time.time()
         beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, generalInfo, db)
+        b = time.time()
+        print("Beam analysis takes ", (b - a) / 60, "Minutes")
 
         # POST
+        a = time.time()
         PostSync(self.posts, generalProp.height, generalInfo, db)
+        b = time.time()
+        print("Post analysis takes ", (b - a) / 60, "Minutes")
 
         # JOIST
+
+        a = time.time()
         joistAnalysisInstance = joistAnalysisSync(self.joists, db)
+        b = time.time()
+        print("Joist analysis takes ", (b - a) / 60, "Minutes")
 
         # SHEAR WALL
         # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
