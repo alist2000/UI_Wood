@@ -21,7 +21,7 @@ class ReportGeneratorTab(QWidget):
         v_layout = QVBoxLayout()
 
         # Create checkboxes
-        self.option1 = QCheckBox("Impact Summary")
+        self.option1 = QCheckBox("Compact Summary")
         self.option2 = QCheckBox("Summary")
         self.option3 = QCheckBox("Detail")
         self.generate = QPushButton("Generate")
