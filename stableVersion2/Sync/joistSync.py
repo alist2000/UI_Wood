@@ -1,8 +1,5 @@
-import sys
-
-from Report_Lab.version1.main import Main
 from UI_Wood.stableVersion2.output.joist_output import Joist_output
-from WOOD_DESIGN.mainbeamnewupdated import MainBeam
+from WOOD_DESIGN.mainjoistnewupdated import MainJoist
 from UI_Wood.stableVersion2.Sync.beamSync import roundAll
 
 
@@ -24,7 +21,7 @@ class joistAnalysisSync:
                     joistBendDCR = []
                     joistShearDCR = []
                     for joistItem in joistItems:
-                        joist_analysis = MainBeam(joistItem, "joist")
+                        joist_analysis = MainJoist(joistItem)
                         if joist_analysis.query[0] != "No Section Was Adequate":
                             joist_analysis.query.insert(0, str(joistId))
                             joist_analysis.query.insert(1, str(tabNumber + 1))
