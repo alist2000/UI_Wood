@@ -5,8 +5,9 @@ from UI_Wood.stableVersion2.output.shearWallSql import shearWallSQL
 
 
 class EditLabel:
-    def __init__(self, shearWalls):
+    def __init__(self, shearWalls, itemName="shearWall"):
         self.shearWalls = shearWalls
+        self.itemName = itemName
         shearWalls_rev = list(reversed(shearWalls))
         self.shearWalls_rev = shearWalls_rev
         full_label, full_label_repeat_index = self.edit_label()
@@ -54,13 +55,16 @@ class EditLabel:
                 controlLabel[str(tab)].append(labels[str(tab)][number])
 
         exist_repeated_tab = list(repeated_labels_dict.keys())
-
+        if self.itemName == "shearWall":
+            labelTitle = "SW"
+        else:
+            labelTitle = "ST"
         for i, shearWallTab in enumerate(self.shearWalls_rev):
             if str(i) in exist_repeated_tab and shearWallTab:
                 labelNumber = maxLabelNumberDict[str(i)]
                 for num, shearWall in enumerate(shearWallTab):
                     if num not in repeated_labels_dict[str(i)] and shearWall["label"] in controlLabel[str(i)]:
-                        shearWall["label"] = f"SW{str(labelNumber + 1)}"
+                        shearWall["label"] = f"{labelTitle}{str(labelNumber + 1)}"
                         labelNumber += 1
 
 
