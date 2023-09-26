@@ -112,15 +112,24 @@ class InstableBeamJoist(instableWaning):
     def controlSupport(self):
         if "J" in self.item["label"]:
             Type = "Joist"
+            if not self.support or len(self.support) == 1:
+                self.warning = {
+                    "label": self.item["label"],
+                    ""
+                    "story": self.story,
+                    "warning": Type + " " + self.item["label"] + " is unstable"
+                    # "warning": Type + " " + self.item["label"] + " is " + self.warningMessage
+
+                }
         else:
             Type = "Beam"
-        if not self.support:
-            self.warning = {
-                "label": self.item["label"],
-                ""
-                "story": self.story,
-                "warning": Type + " " + self.item["label"] + " has " + self.warningMessage
-            }
+            if not self.support:
+                self.warning = {
+                    "label": self.item["label"],
+                    ""
+                    "story": self.story,
+                    "warning": Type + " " + self.item["label"] + " has " + self.warningMessage
+                }
 
 
 # END OF INSTABILITY CHECK
