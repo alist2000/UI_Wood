@@ -1,7 +1,7 @@
-from UI_Wood.stableVersion2.post_new import magnification_factor
-from UI_Wood.stableVersion2.back.load_control import range_intersection
-from UI_Wood.stableVersion2.output.beam_output import ControlDistributetLoad, ControlLineLoad, CombineDistributes
-from UI_Wood.stableVersion2.output.shearWallSql import shearWallSQL
+from UI_Wood.stableVersion3.post_new import magnification_factor
+from UI_Wood.stableVersion3.back.load_control import range_intersection
+from UI_Wood.stableVersion3.output.beam_output import ControlDistributetLoad, ControlLineLoad, CombineDistributes
+from UI_Wood.stableVersion3.output.shearWallSql import shearWallSQL
 
 
 class EditLabel:

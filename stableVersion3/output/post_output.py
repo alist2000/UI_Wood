@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import sys
 
-from UI_Wood.stableVersion2.post_new import magnification_factor
-from UI_Wood.stableVersion2.output.postSql import PostSQL, WritePostInputSQL
+from UI_Wood.stableVersion3.post_new import magnification_factor
+from UI_Wood.stableVersion3.output.postSql import PostSQL, WritePostInputSQL
 
 
 class post_output:

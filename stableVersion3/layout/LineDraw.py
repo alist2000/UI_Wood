@@ -1,6 +1,6 @@
-from UI_Wood.stableVersion2.post_new import magnification_factor, CustomRectItem
-from UI_Wood.stableVersion2.Beam import Rectangle
-from UI_Wood.stableVersion2.mouse import SelectableLineItem
+from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
+from UI_Wood.stableVersion3.Beam import Rectangle
+from UI_Wood.stableVersion3.mouse import SelectableLineItem
 
 from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect

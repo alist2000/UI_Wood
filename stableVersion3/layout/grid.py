@@ -2,9 +2,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPen, QPainter, QBrush
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem
 
-from UI_Wood.stableVersion2.mouse import SelectableLineItem
+from UI_Wood.stableVersion3.mouse import SelectableLineItem
 
-from UI_Wood.stableVersion2.post_new import magnification_factor
+from UI_Wood.stableVersion3.post_new import magnification_factor
 
 
 class GridWidget(QGraphicsView):

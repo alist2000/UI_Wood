@@ -1,8 +1,8 @@
-from UI_Wood.stableVersion2.Beam import Rectangle
-from UI_Wood.stableVersion2.mouse import SelectableLineItem
-from UI_Wood.stableVersion2.joist_new import joistRectangle
-from UI_Wood.stableVersion2.layout.LineDraw import BeamLabel
-from UI_Wood.stableVersion2.image import image_control
+from UI_Wood.stableVersion3.Beam import Rectangle
+from UI_Wood.stableVersion3.mouse import SelectableLineItem
+from UI_Wood.stableVersion3.joist_new import joistRectangle
+from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion3.image import image_control
 
 from PySide6.QtGui import QPainter, QPixmap, QBrush, QPen, QColor
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
