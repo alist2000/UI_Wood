@@ -79,7 +79,8 @@ class beam_output_handler:
                 },
                 "start": constantCoordinate,
                 "direction": self.direction,
-                "floor": beamProp["floor"]
+                "floor": beamProp["floor"],
+                "coordinate_main": beamProp["coordinate"]
             }
         else:
             self.beamProp_dict = {}
