@@ -2,7 +2,7 @@ from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
 from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
 from UI_Wood.stableVersion3.mouse import SelectableLineItem
 
-from PySide6.QtGui import QPainter, QPixmap
+from PySide6.QtGui import QPainter, QPixmap, QFont
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel
 
@@ -66,10 +66,22 @@ class PointDraw:
 class PostLabel:
     def __init__(self, x, y, scene, label):
         # Create a line shape
-        line = QGraphicsLineItem()
-        line1 = QGraphicsLineItem()
-        line.setLine(QLineF(QPointF(x, y), QPointF(x + 10, y - 50)))
-        line1.setLine(QLineF(QPointF(x + 10, y - 50), QPointF(x + 30, y - 50)))
-        scene.addItem(line)
-        scene.addItem(line1)
-        BeamLabel(x + 30, y - 50, scene, label, "E-W", 12, 6, 30)
+        # line = QGraphicsLineItem()
+        # line1 = QGraphicsLineItem()
+        # line.setLine(QLineF(QPointF(x, y), QPointF(x + 10, y - 50)))
+        # line1.setLine(QLineF(QPointF(x + 10, y - 50), QPointF(x + 30, y - 50)))
+        # scene.addItem(line)
+        # scene.addItem(line1)
+        Label = QGraphicsProxyWidget()
+        LabelText = QLabel(label)
+        font = QFont()
+        font.setPointSize(16)
+        LabelText.setFont(font)
+        LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+        Label.setWidget(LabelText)
+
+        # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
+        Label.setPos(x - 1.1 * magnification_factor, y - 1.1 * magnification_factor)
+
+        scene.addItem(Label)
+        # BeamLabel(x + 30, y - 50, scene, label, "E-W", 12, 6, 30)
