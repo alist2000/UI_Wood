@@ -2,7 +2,7 @@ from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
 from UI_Wood.stableVersion3.Beam import Rectangle
 from UI_Wood.stableVersion3.mouse import SelectableLineItem
 
-from PySide6.QtGui import QPainter, QPixmap
+from PySide6.QtGui import QPainter, QPixmap, QFont
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, \
     QGraphicsRectItem
@@ -185,7 +185,7 @@ class LineDraw:
 
 
 class BeamLabel:
-    def __init__(self, x, y, scene, label, direction, halfLength=30, startDist1=7, startDist2=30):
+    def __init__(self, x, y, scene, label, direction, halfLength=40, startDist1=11, startDist2=40):
         # Create a QPainterPath object
         path = QPainterPath()
         path.moveTo(x, y)
@@ -205,6 +205,9 @@ class BeamLabel:
         scene.addItem(path_item)
         Label = QGraphicsProxyWidget()
         LabelText = QLabel(label)
+        font = QFont()
+        font.setPointSize(15)
+        LabelText.setFont(font)
         LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
         Label.setWidget(LabelText)
         if direction == "N-S":
