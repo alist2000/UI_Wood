@@ -107,6 +107,7 @@ class DrawBeam(QDialog):
         else:
             self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
+            # self.CheckValuesNew(bending_dcr, shear_dcr, deflection_dcr, x_dcr1, y_dcr1, direction)
 
         self.current_rect = None
         self.start_pos = None
@@ -141,8 +142,8 @@ class DrawBeam(QDialog):
 
     def CheckValuesNew(self, bending_dcr, shear_dcr, deflection_dcr, x, y, direction):
         mainText1 = QGraphicsProxyWidget()
-        dcr1 = QLabel(f"DCR <sub>m</sub>: {bending_dcr}")
-        dcr2 = QLabel(f"DCR <sub>v</sub>: {shear_dcr}")
+        dcr1 = QLabel(f"DCR <sub>m</sub>: {bending_dcr}, ")
+        dcr2 = QLabel(f"DCR <sub>v</sub>: {shear_dcr}, ")
         dcr3 = QLabel(f"DCR <sub>def</sub>: {deflection_dcr}")
         font = QFont()
         font.setPointSize(7)
@@ -150,6 +151,7 @@ class DrawBeam(QDialog):
         dcr2.setFont(font)
         dcr3.setFont(font)
         layout = QHBoxLayout()
+        layout.setSpacing(7)  # Set the space between widgets to 20 pixels
         layout.addWidget(dcr1)
         layout.addWidget(dcr2)
         layout.addWidget(dcr3)
@@ -164,9 +166,9 @@ class DrawBeam(QDialog):
         self.setColor(deflection_dcr, dcr3)
         if direction == "N-S":
             mainText1.setRotation(90)
-            mainText1.setPos(x - 1.1 * self.beam_width, y)
+            mainText1.setPos(x - 0.4 * self.beam_width, y)
         else:
-            mainText1.setPos(x, y + 0.8 * self.beam_width)
+            mainText1.setPos(x, y + 0.4 * self.beam_width)
 
         # LabelText = QLabel(label)
         self.scene.addItem(mainText1)
