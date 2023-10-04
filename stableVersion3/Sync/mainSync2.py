@@ -172,7 +172,21 @@ class mainSync2(Data):
         a = time.time()
         joistAnalysisInstance = joistAnalysisSync(self.joists, self.db, self.GridDrawClass, True, self.joistRun)
         b = time.time()
+        self.joistRun = joistAnalysisInstance.report
+
         print("Joist analysis takes ", (b - a) / 60, "Minutes")
+        if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
+            self.reportGenerator.setEnabled(True)
+
+    def Run_and_Analysis_ShearWall(self):
+        self.shearWallRun = True
+        print(
+            f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
+        if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
+            self.reportGenerator.setEnabled(True)
+
+    def Run_and_Analysis_StudWall(self):
+        self.studWallRun = True
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
 
