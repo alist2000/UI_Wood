@@ -56,7 +56,7 @@ class joistAnalysisSync:
                         joistId += 1
             if storyBy:
                 storyByStoryInstance = JoistStoryBy(JoistStory, GridClass)
-                if i == len(joist) - 1:
+                if i == len(joistOutput.Joists) - 1:
                     self.report = True
                 if storyByStoryInstance.result == QDialog.Accepted:
                     continue
