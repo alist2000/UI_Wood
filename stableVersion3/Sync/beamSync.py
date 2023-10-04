@@ -7,18 +7,23 @@ from UI_Wood.stableVersion3.output.beam_output import beam_output
 from WOOD_DESIGN.mainbeamnewupdated import MainBeam
 from UI_Wood.stableVersion3.Sync.reaction import Control_reaction, Reaction_On
 from UI_Wood.stableVersion3.output.beamSql import beamSQL, WriteBeamInputSQL
+from UI_Wood.stableVersion3.run.beam import BeamStoryBy
 from Report_Lab.version1.beam.input import BeamInput
+from time import sleep
+from PySide6.QtWidgets import QDialog
 
 
 class beamAnalysisSync:
-    def __init__(self, beam, Posts, ShearWalls, generalInfo, db):
+    def __init__(self, beam, Posts, ShearWalls, generalInfo, db, GridClass=None, storyBy=False, report=False):
         self.beam = beam
         self.reactionTab = []
         self.reaction_list = []
         beamId = 1
         beamIdInput = 1
+        self.report = report
         inputDB = beamSQL()
         for i, beamTab in enumerate(beam):
+            BeamStory = []
             self.reaction_list.clear()
             tabNumber = i
             beam_support = []
@@ -43,7 +48,7 @@ class beamAnalysisSync:
                     self.reaction_list,
                     tabNumber, db, beamTab,
                     Posts, ShearWalls,
-                    beamDesignedList)
+                    beamDesignedList, BeamStory)
 
             beamOutput = beam_output(beamTab)
             for beamNum, beam_ in enumerate(beamOutput.beamProperties):
@@ -70,14 +75,28 @@ class beamAnalysisSync:
                                 'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                                 newQuery)
                             db.conn1.commit()
+                            beam_["bending_dcr"] = newQuery[16]
+                            beam_["shear_dcr"] = newQuery[17]
+                            beam_["deflection_dcr"] = newQuery[18]
+                            beam_["size"] = newQuery[7]
+                            BeamStory.append(beam_)
                         Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], self.reaction_list)
                         beamId += 1
 
             reactionInstance.do_post()
             self.reactionTab.append(self.reaction_list)
+            if storyBy:
+                storyByStoryInstance = BeamStoryBy(BeamStory, GridClass)
+                if i == len(beam) - 1:
+                    self.report = True
+                if storyByStoryInstance.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
 
     @staticmethod
-    def DesignPrimaryBeam(beam_support, beamId, reaction_list, tabNumber, db, beamTab, Posts, ShearWalls, beamDesigned):
+    def DesignPrimaryBeam(beam_support, beamId, reaction_list, tabNumber, db, beamTab, Posts, ShearWalls, beamDesigned,
+                          BeamStory):
         beamOutput = beam_output(beamTab)
         for beamNum, beam_ in enumerate(beamOutput.beamProperties):
             # beam with no support are empty(False)
@@ -105,6 +124,11 @@ class beamAnalysisSync:
                             'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                             newQuery)
                         db.conn1.commit()
+                        beam_["bending_dcr"] = newQuery[16]
+                        beam_["shear_dcr"] = newQuery[17]
+                        beam_["deflection_dcr"] = newQuery[18]
+                        beam_["size"] = newQuery[7]
+                        BeamStory.append(beam_)
 
                     Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], reaction_list)
                     beamId += 1
@@ -138,3 +162,10 @@ def roundAll(myList):
         except:
             newList.append(i)
     return newList
+
+
+def handle_finished(result):
+    if result == QDialog.Accepted:
+        print("User clicked Yes")
+    else:
+        print("User clicked No or closed the dialog")
