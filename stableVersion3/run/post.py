@@ -21,13 +21,14 @@ from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
 
 
 class DrawPost(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, GridClass, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()
         self.view = QGraphicsView()
         self.scene = QGraphicsScene()
+        GridClass.Draw(self.scene)
         self.current_rect = None
         self.start_pos = None
         self.beam_select_status = 0  # 0: neutral, 1: select Post, 2: delete Post
@@ -152,7 +153,7 @@ class CustomRectItem(QGraphicsRectItem):
 
 
 class PostStoryBy:
-    def __init__(self, posts):
+    def __init__(self, posts, GridClass):
         print(posts)
         # coordinate = [i["coordinate_main"] for i in beams]
         # label = [i["label"] for i in beams]
@@ -161,7 +162,7 @@ class PostStoryBy:
         # deflection_dcr = [i["deflection_dcr"] for i in beams]
         self.view = None
         # instance = DrawBeam()
-        self.dialog = DrawPost()
+        self.dialog = DrawPost(GridClass)
 
         self.view = self.dialog.view
         for Post in posts:

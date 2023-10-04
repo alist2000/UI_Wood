@@ -10,8 +10,10 @@ from PySide6.QtWidgets import QDialog
 
 
 class PostSync2:
-    def __init__(self, beam, Posts, ShearWalls, height, general_information, db, reportPost=False,
+    def __init__(self, GridClass, beam, Posts, ShearWalls, height, general_information, db,
+                 reportPost=False,
                  reportBeam=False):
+        self.GridClass = GridClass
         postId = 1
         for story, post in enumerate(Posts):
             postItem = post[story]
@@ -42,7 +44,7 @@ class PostSync2:
                     postEdited["axial_dcr"] = newQuery[12]
                     postStory.append(postEdited)
 
-            postStoryDesigned = PostStoryBy(postStory)
+            postStoryDesigned = PostStoryBy(postStory, GridClass)
             if story == len(beam) - 1:
                 self.reportPost = True
                 self.reportBeam = True
