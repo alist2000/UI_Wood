@@ -21,13 +21,14 @@ from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
 
 
 class DrawBeam(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, GridClass, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()
         self.view = QGraphicsView()
         self.scene = QGraphicsScene()
+        GridClass.Draw(self.scene)
         self.current_rect = None
         self.start_pos = None
         self.beam_select_status = 0  # 0: neutral, 1: select beam, 2: delete beam
@@ -60,17 +61,27 @@ class DrawBeam(QDialog):
         width = abs(x2 - x1)
         height = abs(y2 - y1)
         # x, y = (x1 + x2) / 2, (y1 + y2) / 2
+        y1_main = min(y1, y2)
+        x1_main = min(x1, x2)
+        y2_main = max(y1, y2)
+        x2_main = max(x1, x2)
 
         if abs(width) > abs(height):
             self.current_rect.setRect(min(x1, x2),
                                       y1 - self.beam_width / 2, abs(width), self.beam_width)
             # Label.setPos(x - 7, y - 30)
             direction = "E-W"
+            x_dcr1, y_dcr1 = x1_main, y1_main
+            x_dcr2, y_dcr2 = 9 * (x1_main + x2_main) / 20, y1_main
+            x_dcr3, y_dcr3 = 8 * x2_main / 9, y1_main
 
         else:
             self.current_rect.setRect(x1 - self.beam_width / 2,
                                       min(y1, y2), self.beam_width,
                                       abs(height))
+            x_dcr1, y_dcr1 = x1_main, y1_main
+            x_dcr2, y_dcr2 = x1_main, 9 * (y1_main + y2_main) / 20
+            x_dcr3, y_dcr3 = x1_main, 8 * y2_main / 9
             # Label.setPos(x + 30, y - 7)
             # Label.setRotation(90)
             direction = "N-S"
@@ -91,12 +102,101 @@ class DrawBeam(QDialog):
         if color == "red":
             self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
+            self.CheckValuesNew(bending_dcr, shear_dcr, deflection_dcr, x_dcr1, y_dcr1, direction)
+
         else:
             self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
 
         self.current_rect = None
         self.start_pos = None
+        # self.CheckValues("DCR<sub>m</sub>", bending_dcr, x_dcr1, y_dcr1, direction)
+        # self.CheckValues("DCR<sub>v</sub>", shear_dcr, x_dcr2, y_dcr2, direction)
+        # self.CheckValues("DCR<sub>def</sub>", deflection_dcr, x_dcr3, y_dcr3, direction)
+        self.TextValue(f"{properties['size']}", x1_main, y1_main, direction)
+
+    def CheckValues(self, text, item, x, y, direction):
+        mainText1 = QGraphicsProxyWidget()
+        dcr1 = QLabel(f"{text}: {item}")
+        font = QFont()
+        font.setPointSize(7)
+        dcr1.setFont(font)
+        mainText1.setWidget(dcr1)
+        # text = QGraphicsTextItem("Hello, PySide6!")
+
+        # Set the color of the text to red
+        if item > 1:
+            dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
+
+        else:
+            dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
+        if direction == "N-S":
+            mainText1.setRotation(90)
+            mainText1.setPos(x - 1.1 * self.beam_width, y)
+        else:
+            mainText1.setPos(x, y + 0.8 * self.beam_width)
+
+        # LabelText = QLabel(label)
+        self.scene.addItem(mainText1)
+
+    def CheckValuesNew(self, bending_dcr, shear_dcr, deflection_dcr, x, y, direction):
+        mainText1 = QGraphicsProxyWidget()
+        dcr1 = QLabel(f"DCR <sub>m</sub>: {bending_dcr}")
+        dcr2 = QLabel(f"DCR <sub>v</sub>: {shear_dcr}")
+        dcr3 = QLabel(f"DCR <sub>def</sub>: {deflection_dcr}")
+        font = QFont()
+        font.setPointSize(7)
+        dcr1.setFont(font)
+        dcr2.setFont(font)
+        dcr3.setFont(font)
+        layout = QHBoxLayout()
+        layout.addWidget(dcr1)
+        layout.addWidget(dcr2)
+        layout.addWidget(dcr3)
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setStyleSheet("background-color: transparent;")
+        mainText1.setWidget(widget)
+        # text = QGraphicsTextItem("Hello, PySide6!")
+
+        self.setColor(bending_dcr, dcr1)
+        self.setColor(shear_dcr, dcr2)
+        self.setColor(deflection_dcr, dcr3)
+        if direction == "N-S":
+            mainText1.setRotation(90)
+            mainText1.setPos(x - 1.1 * self.beam_width, y)
+        else:
+            mainText1.setPos(x, y + 0.8 * self.beam_width)
+
+        # LabelText = QLabel(label)
+        self.scene.addItem(mainText1)
+
+    @staticmethod
+    def setColor(item, label):
+        if item > 1:
+            label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
+
+        else:
+            label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
+
+    def TextValue(self, text, x, y, direction, color="black", size=10):
+        mainText1 = QGraphicsProxyWidget()
+        dcr1 = QLabel(text)
+        font = QFont()
+        font.setPointSize(size)
+        dcr1.setFont(font)
+        mainText1.setWidget(dcr1)
+        # text = QGraphicsTextItem("Hello, PySide6!")
+
+        dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
+        if direction == "N-S":
+            mainText1.setRotation(90)
+            mainText1.setPos(x + 1.5 * self.beam_width, y)
+        else:
+            mainText1.setPos(x, y - 1.5 * self.beam_width)
+
+        # LabelText = QLabel(label)
+        self.scene.addItem(mainText1)
 
     def Show(self):
         # Add the view to the layout
@@ -163,7 +263,7 @@ class Rectangle(QGraphicsRectItem):
 
 
 class BeamStoryBy:
-    def __init__(self, beams):
+    def __init__(self, beams, GridClass):
         print(beams)
         # coordinate = [i["coordinate_main"] for i in beams]
         # label = [i["label"] for i in beams]
@@ -172,7 +272,7 @@ class BeamStoryBy:
         # deflection_dcr = [i["deflection_dcr"] for i in beams]
         self.view = None
         # instance = DrawBeam()
-        self.dialog = DrawBeam()
+        self.dialog = DrawBeam(GridClass)
 
         self.view = self.dialog.view
         for beam in beams:
