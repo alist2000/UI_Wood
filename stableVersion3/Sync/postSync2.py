@@ -16,9 +16,9 @@ class PostSync2:
         self.GridClass = GridClass
         postId = 1
         for story, post in enumerate(Posts):
-            postItem = post[story]
+            postItem = list(post.values())[0]
             # for story, postItem in post.items():
-            post_forBeamDesign = [{story: post[story]}]
+            post_forBeamDesign = [{story: postItem}]
             beam_forBeamDesign = [beam[story]]
             shearWall_forBeamDesign = [ShearWalls[story]]
             beamAnalysisInstance = beamAnalysisSync(beam_forBeamDesign, post_forBeamDesign, shearWall_forBeamDesign,
