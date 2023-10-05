@@ -15,7 +15,9 @@ from action import save_tabs, load_tabs
 from tool_bar import ToolBar
 from back.check_model import checkModel
 from Sync.mainSync import mainSync
+from Sync.mainSync2 import mainSync2
 from InformationSaver import InformationSaver
+from UI_Wood.stableVersion3.run.grid import GridDraw
 
 
 class secondTabWidget(QMainWindow):
@@ -33,8 +35,10 @@ class secondTabWidget(QMainWindow):
         self.h_spacing = inputs.get("h_spacing")
         self.v_spacing = inputs.get("v_spacing")
         self.setWindowTitle("Grid")
-        self.tabWidget.setMinimumSize(600, 500)
 
+        self.tabWidget.setMinimumSize(600, 500)
+        GridDrawClass = GridDraw(self.h_grid_number, self.v_grid_number, self.h_spacing,
+                                 self.v_spacing)
         # INFORMATION PROPERTIES
         self.information_properties = information_properties()
 
@@ -42,8 +46,11 @@ class secondTabWidget(QMainWindow):
         self.toolBar = ToolBar(self)
         self.checkModel = checkModel(self.toolBar.savePage.save_data, self.grid, self.level_number)
         self.mainSync = mainSync(self.toolBar.savePage.save_data, self.grid, self.level_number)
+        self.mainSync2 = mainSync2(self.toolBar.savePage.save_data, self.grid, self.level_number,
+                                   GridDrawClass)
 
         self.toolBar.savePage.add_subscriber(self.mainSync)
+        self.toolBar.savePage.add_subscriber(self.mainSync2)
         self.toolBar.savePage.add_subscriber(self.checkModel)
         self.show()
 
@@ -140,6 +147,8 @@ class secondTabWidget(QMainWindow):
         report_generator = QAction('Report Generator', self)
         report_generator.setEnabled(False)
         self.mainSync.send_report_generator(report_generator)
+        self.mainSync2.send_report_generator(report_generator)
+
 
         run = QAction('RUN', self)
         check_model = QAction('Check Model', self)
@@ -149,6 +158,27 @@ class secondTabWidget(QMainWindow):
         tool_bar.addAction(check_model)
         tool_bar.addAction(run)
         tool_bar.addAction(report_generator)
+
+        # Run element by element.
+        self.addToolBarBreak(Qt.TopToolBarArea)  # or self.addToolBarBreak()
+        JoistRun = QAction('JOIST RUN', self)
+        BeamRun = QAction('BEAM RUN', self)
+        PostRun = QAction('POST RUN', self)
+        ShearWallRun = QAction('SHEAR WALL RUN', self)
+        StudWallRun = QAction('STUD WALL RUN', self)
+        PostRun.triggered.connect(self.mainSync2.Run_and_Analysis_Post)
+        BeamRun.triggered.connect(self.mainSync2.Run_and_Analysis_Beam)
+        JoistRun.triggered.connect(self.mainSync2.Run_and_Analysis_Joist)
+        ShearWallRun.triggered.connect(self.mainSync2.Run_and_Analysis_ShearWall)
+        StudWallRun.triggered.connect(self.mainSync2.Run_and_Analysis_StudWall)
+        tool_bar2 = QToolBar("RunToolBar2")
+        self.addToolBar(tool_bar2)
+
+        tool_bar2.addAction(JoistRun)
+        tool_bar2.addAction(BeamRun)
+        tool_bar2.addAction(PostRun)
+        tool_bar2.addAction(ShearWallRun)
+        tool_bar2.addAction(StudWallRun)
 
         # Show the QTabWidget
         self.tabWidget.show()
