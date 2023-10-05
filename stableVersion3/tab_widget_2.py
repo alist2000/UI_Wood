@@ -44,10 +44,16 @@ class secondTabWidget(QMainWindow):
 
         self.setCentralWidget(self.tabWidget)
         self.toolBar = ToolBar(self)
+        self.toolBar3 = QToolBar(self)
+        Unlock = QAction('Unlock', self)
+        Unlock.setEnabled(False)
+        self.toolBar3.addAction(Unlock)
+
         self.checkModel = checkModel(self.toolBar.savePage.save_data, self.grid, self.level_number)
         self.mainSync = mainSync(self.toolBar.savePage.save_data, self.grid, self.level_number)
         self.mainSync2 = mainSync2(self.toolBar.savePage.save_data, self.grid, self.level_number,
-                                   GridDrawClass)
+                                   GridDrawClass, Unlock)
+        Unlock.triggered.connect(self.mainSync2.Unlock)
 
         self.toolBar.savePage.add_subscriber(self.mainSync)
         self.toolBar.savePage.add_subscriber(self.mainSync2)
@@ -149,7 +155,6 @@ class secondTabWidget(QMainWindow):
         self.mainSync.send_report_generator(report_generator)
         self.mainSync2.send_report_generator(report_generator)
 
-
         run = QAction('RUN', self)
         check_model = QAction('Check Model', self)
         run.triggered.connect(self.mainSync.Run_and_Analysis)
@@ -173,6 +178,7 @@ class secondTabWidget(QMainWindow):
         StudWallRun.triggered.connect(self.mainSync2.Run_and_Analysis_StudWall)
         tool_bar2 = QToolBar("RunToolBar2")
         self.addToolBar(tool_bar2)
+        self.addToolBar(self.toolBar3)
 
         tool_bar2.addAction(JoistRun)
         tool_bar2.addAction(BeamRun)
