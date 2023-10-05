@@ -21,6 +21,16 @@ class PointDraw:
             PostLabel(x, y, scene, labels[i])
             # return rect_item
         self.saveImage()
+
+        for i, coordinate in enumerate(coordinates):
+            x, y = coordinate
+            rect_width = rect_height = self.post_dimension
+            rect_item = CustomRectItem(None, "not normal")
+            rect_item.setRect(x - rect_width / 2, y - rect_height / 2, rect_width, rect_height)
+            scene.addItem(rect_item)
+            self.saveImageElement(labels[i])
+            self.scene.removeItem(rect_item)
+
         for item in scene.items():
             if item and (
                     isinstance(item, CustomRectItem) or isinstance(item, QGraphicsProxyWidget) or not isinstance(item,
@@ -61,6 +71,42 @@ class PointDraw:
 
         # Save the QPixmap as an image file
         pixmap.save(f"images/output/Posts_story{self.story + 1}.png")
+
+    def saveImageElement(self, label):
+        # Create a QPixmap to hold the image of the scene
+        border_size = 10  # Border size in pixels
+        # border_color = QColor(Qt.black)  # Set border as black color
+        margin_size = 20  # Margin size in pixels
+
+        # Get the rectangle that contains all items
+        rect = self.scene.itemsBoundingRect()
+
+        # Create QPixmap to hold the image of the scene with additional space for the border and margin
+        pixmap = QPixmap(rect.width() + 2 * (border_size + margin_size),
+                         rect.height() + 2 * (border_size + margin_size))
+        # pixmap = QPixmap(rect.size().toSize())
+        pixmap.fill(Qt.white)
+
+        # Create a QPainter instance for the QPixmap
+        painter = QPainter(pixmap)
+        # Define a rectangle for the margin inside the border, and fill it with white color
+        margin_rect = QRectF(border_size, border_size, rect.width() + 2 * margin_size,
+                             rect.height() + 2 * margin_size)
+        painter.fillRect(margin_rect, Qt.white)
+
+        # Define rectangle for the scene inside the margin, and render the scene into this rectangle
+        scene_rect = QRectF(border_size + margin_size, border_size + margin_size, rect.width(), rect.height())
+        # self.render(painter, scene_rect, rect)
+
+        # Render the scene onto the QPainter
+        self.scene.render(painter, scene_rect, rect)
+
+        # End the QPainter to apply the drawing to the QPixmap
+        painter.end()
+
+        # Save the QPixmap as an image file
+        pixmap.save(f"images/output/Posts_label_{label}_story{self.story + 1}.png")
+
 
 
 class PostLabel:

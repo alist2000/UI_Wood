@@ -30,6 +30,14 @@ class LineDraw:
 
         self.saveImage()
 
+        for i, coordinate in enumerate(coordinates):
+            if lineType == "beam":
+                self.beamDraw(coordinate, i, "not normal")
+            elif lineType == "shearWall":
+                self.shearWallDraw(coordinate, i, "not normal")
+            else:  # studWall
+                self.studWallDraw(coordinate, i, "not normal")
+
         for item in scene.items():
             if item and (
                     isinstance(item, Rectangle) or isinstance(item, QGraphicsProxyWidget) or not isinstance(item,
@@ -71,7 +79,42 @@ class LineDraw:
         # Save the QPixmap as an image file
         pixmap.save(f"images/output/{self.lineType}s_story{self.story + 1}.png")
 
-    def beamDraw(self, coordinate, i):
+    def saveImageElement(self, label):
+        # Create a QPixmap to hold the image of the scene
+        border_size = 10  # Border size in pixels
+        # border_color = QColor(Qt.black)  # Set border as black color
+        margin_size = 20  # Margin size in pixels
+
+        # Get the rectangle that contains all items
+        rect = self.scene.itemsBoundingRect()
+
+        # Create QPixmap to hold the image of the scene with additional space for the border and margin
+        pixmap = QPixmap(rect.width() + 2 * (border_size + margin_size),
+                         rect.height() + 2 * (border_size + margin_size))
+        # pixmap = QPixmap(rect.size().toSize())
+        pixmap.fill(Qt.white)
+
+        # Create a QPainter instance for the QPixmap
+        painter = QPainter(pixmap)
+        # Define a rectangle for the margin inside the border, and fill it with white color
+        margin_rect = QRectF(border_size, border_size, rect.width() + 2 * margin_size,
+                             rect.height() + 2 * margin_size)
+        painter.fillRect(margin_rect, Qt.white)
+
+        # Define rectangle for the scene inside the margin, and render the scene into this rectangle
+        scene_rect = QRectF(border_size + margin_size, border_size + margin_size, rect.width(), rect.height())
+        # self.render(painter, scene_rect, rect)
+
+        # Render the scene onto the QPainter
+        self.scene.render(painter, scene_rect, rect)
+
+        # End the QPainter to apply the drawing to the QPixmap
+        painter.end()
+
+        # Save the QPixmap as an image file
+        pixmap.save(f"images/output/{self.lineType}s_label_{label}_story{self.story + 1}.png")
+
+    def beamDraw(self, coordinate, i, color="normal"):
         point1, point2 = coordinate
         x1, y1 = point1
         x2, y2 = point2
@@ -93,11 +136,17 @@ class LineDraw:
                                       abs(height))
             direction = "N-S"
 
-        self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
-        self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-        BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, self.labels[i], direction)
+        if color == "normal":
+            self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
+            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, self.labels[i], direction)
+        else:
+            self.current_rect.setPen(QPen(QColor.fromRgb(254, 0, 0, 100), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 100), Qt.SolidPattern))
+            self.saveImageElement(self.labels[i])
+            self.scene.removeItem(self.current_rect)
 
-    def shearWallDraw(self, coordinate, i):
+    def shearWallDraw(self, coordinate, i, color="normal"):
         start, end = coordinate
         x1, y1 = start
         x2, y2 = end
@@ -152,12 +201,17 @@ class LineDraw:
         end_rect_item = QGraphicsRectItem(end_rect)
         self.scene.addItem(start_rect_item)
         self.scene.addItem(end_rect_item)
+        if color == "normal":
+            self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+            ShearWallLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, self.labels[i], direction)
+        else:
+            self.current_rect.setPen(QPen(QColor.fromRgb(254, 0, 0, 100), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 100), Qt.SolidPattern))
+            self.saveImageElement(self.labels[i])
+            self.scene.removeItem(self.current_rect)
 
-        self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
-        self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
-        ShearWallLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, self.labels[i], direction)
-
-    def studWallDraw(self, coordinate, i):
+    def studWallDraw(self, coordinate, i, color="normal"):
         start, end = coordinate
         x1, y1 = start
         x2, y2 = end
@@ -179,9 +233,15 @@ class LineDraw:
                                       abs(height))
             direction = "N-S"
 
-        self.current_rect.setPen(QPen(QColor.fromRgb(152, 238, 204, 160), 2))
-        self.current_rect.setBrush(QBrush(QColor.fromRgb(152, 238, 204, 150), Qt.SolidPattern))
-        BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, self.labels[i], direction)
+        if color == "normal":
+            self.current_rect.setPen(QPen(QColor.fromRgb(152, 238, 204, 160), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(152, 238, 204, 150), Qt.SolidPattern))
+            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, self.labels[i], direction)
+        else:
+            self.current_rect.setPen(QPen(QColor.fromRgb(254, 0, 0, 160), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 150), Qt.SolidPattern))
+            self.saveImageElement(self.labels[i])
+            self.scene.removeItem(self.current_rect)
 
 
 class BeamLabel:
