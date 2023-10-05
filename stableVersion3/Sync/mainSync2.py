@@ -76,6 +76,11 @@ class mainSync2(Data):
             self.beams.append(beam)
             self.shearWalls.append(shearWall)
 
+            # Design should be started from Roof.
+            self.posts.reverse()
+            self.beams.reverse()
+            self.shearWalls.reverse()
+
         # CREATE DB FOR OUTPUT.
         self.db.post_table()
         self.db.beam_table()
@@ -126,6 +131,11 @@ class mainSync2(Data):
             self.posts.append(post)
             self.shearWalls.append(shearWall)
 
+        # Design should be started from Roof.
+        self.posts.reverse()
+        self.beams.reverse()
+        self.shearWalls.reverse()
+
         # CREATE DB FOR OUTPUT.
         self.db.post_table()
         self.db.beam_table()
@@ -164,6 +174,9 @@ class mainSync2(Data):
             joist = Tab["joist"]
 
             self.joists.append(joist)
+
+        # Design should be started from Roof.
+        self.joists.reverse()
 
         # CREATE DB FOR OUTPUT.
         self.db.joist_table()
