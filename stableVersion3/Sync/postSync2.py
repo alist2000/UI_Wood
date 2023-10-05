@@ -21,9 +21,10 @@ class PostSync2:
             post_forBeamDesign = [{story: postItem}]
             beam_forBeamDesign = [beam[story]]
             shearWall_forBeamDesign = [ShearWalls[story]]
-            beamAnalysisInstance = beamAnalysisSync(beam_forBeamDesign, post_forBeamDesign, shearWall_forBeamDesign,
-                                                    general_information,
-                                                    db)
+            if not reportBeam:
+                beamAnalysisInstance = beamAnalysisSync(beam_forBeamDesign, post_forBeamDesign, shearWall_forBeamDesign,
+                                                        general_information,
+                                                        db)
             self.postOutPut = post_output(post_forBeamDesign, height)
             self.reportPost = reportPost
             self.reportBeam = reportBeam

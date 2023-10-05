@@ -16,11 +16,12 @@ import time
 
 
 class mainSync2(Data):
-    def __init__(self, saveFunc, grid, tabWidgetCount, GridDrawClass):
+    def __init__(self, saveFunc, grid, tabWidgetCount, GridDrawClass, unlockButton):
         super().__init__()
         self.saveFunc = saveFunc
         self.grid = grid
         self.tabWidgetCount = tabWidgetCount
+        self.unlockButton = unlockButton
         self.reportGenerator = None
         self.ReportTab = None
         self.postRun = False
@@ -33,6 +34,7 @@ class mainSync2(Data):
         self.beams = []
         self.joists = []
         self.shearWalls = []
+        self.studWalls = []
         self.db = Sqlreports()
 
     def send_report_generator(self, reportGenerator):
@@ -64,17 +66,18 @@ class mainSync2(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         # TabData = ControlTab(self.tab, generalProp, self.general_information)
-        self.posts = []
-        self.beams = []
-        self.shearWalls = []
-        for i, Tab in self.tab.items():
-            post = {i: Tab["post"]}
-            beam = Tab["beam"]
-            shearWall = Tab["shearWall"]
+        if not self.beamRun:
+            self.posts = []
+            self.beams = []
+            self.shearWalls = []
+            for i, Tab in self.tab.items():
+                post = {i: Tab["post"]}
+                beam = Tab["beam"]
+                shearWall = Tab["shearWall"]
 
-            self.posts.append(post)
-            self.beams.append(beam)
-            self.shearWalls.append(shearWall)
+                self.posts.append(post)
+                self.beams.append(beam)
+                self.shearWalls.append(shearWall)
 
             # Design should be started from Roof.
             self.posts.reverse()
@@ -98,6 +101,11 @@ class mainSync2(Data):
 
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
+
+        for grid in self.grid:
+            grid.setEnabled(False)
+
+        self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_Beam(self):
         self.db = Sqlreports()
@@ -149,6 +157,10 @@ class mainSync2(Data):
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
 
+        for grid in self.grid:
+            grid.setEnabled(False)
+        self.unlockButton.setEnabled(True)
+
     def Run_and_Analysis_Joist(self):
         self.db = Sqlreports()
 
@@ -190,6 +202,9 @@ class mainSync2(Data):
         print("Joist analysis takes ", (b - a) / 60, "Minutes")
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
+        for grid in self.grid:
+            grid.setEnabled(False)
+        self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_ShearWall(self):
         self.shearWallRun = True
@@ -197,11 +212,27 @@ class mainSync2(Data):
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
+        for grid in self.grid:
+            grid.setEnabled(False)
+        self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_StudWall(self):
         self.studWallRun = True
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
+        for grid in self.grid:
+            grid.setEnabled(False)
+        self.unlockButton.setEnabled(True)
+
+    def Unlock(self):
+        self.unlockButton.setEnabled(False)
+        for grid in self.grid:
+            grid.setEnabled(True)
+        self.postRun = False
+        self.beamRun = False
+        self.joistRun = False
+        self.shearWallRun = False
+        self.studWallRun = False
 
 
 class ControlGeneralProp:
