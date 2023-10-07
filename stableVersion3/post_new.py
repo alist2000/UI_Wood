@@ -190,7 +190,7 @@ class PostDrawing(QGraphicsRectItem):
 class CustomRectItem(QGraphicsRectItem):
     def __init__(self, post_prop, color="normal", *args, **kwargs):
         super(CustomRectItem, self).__init__(*args, **kwargs)
-        # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsMovable, False)
         if color == "normal":
             self.setBrush(QBrush(QColor("#E76161")))

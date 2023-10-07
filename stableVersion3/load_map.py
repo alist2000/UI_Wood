@@ -208,6 +208,7 @@ class loadDrawing(QGraphicsRectItem):
 class loadRectangle(QGraphicsRectItem):
     def __init__(self, rect_x, rect_y, rect_w, rect_h, rect_prop, all_load):
         super().__init__(rect_x, rect_y, rect_w, rect_h)
+        self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.image = None
         self.load_properties_page = None
         self.rect_prop = rect_prop

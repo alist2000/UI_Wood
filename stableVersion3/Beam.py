@@ -313,6 +313,7 @@ class beamDrawing(QGraphicsRectItem):
 class Rectangle(QGraphicsRectItem):
     def __init__(self, x, y, rect_prop):
         super().__init__(x, y, 0, 0)
+        self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.setPen(QPen(Qt.blue, 2))  # Set the border color to blue
         self.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))  # Set the fill color to transparent
 

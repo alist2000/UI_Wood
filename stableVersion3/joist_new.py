@@ -195,6 +195,8 @@ class joistDrawing(QGraphicsRectItem):
 class joistRectangle(QGraphicsRectItem):
     def __init__(self, rect_x, rect_y, rect_w, rect_h, rect_prop):
         super().__init__(rect_x, rect_y, rect_w, rect_h)
+        self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
+
         self.image = None
         self.joist_properties_page = None
         self.rect_prop = rect_prop
