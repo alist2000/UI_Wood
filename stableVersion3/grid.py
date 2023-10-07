@@ -52,9 +52,9 @@ class GridWidget(QGraphicsView):
         self.snap_distance = min(min(self.x), min(self.y)) / 25  # Set the grid size
 
         # CREATE INSTANCE FOR SNAP
-        snapPoint = SnapPoint()
+        self.snapPoint = snapPoint = SnapPoint()
         snapPoint.set_snap_distance(self.snap_distance)
-        snapLine = SnapLine()
+        self.snapLine = snapLine = SnapLine()
         snapLine.set_snap_distance(self.snap_distance)
 
         width_manual = sum(self.x)
