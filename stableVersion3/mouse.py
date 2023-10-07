@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QGraphicsLineItem, QGraphicsItem
 class SelectableLineItem(QGraphicsLineItem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
 
     def mousePressEvent(self, event):
