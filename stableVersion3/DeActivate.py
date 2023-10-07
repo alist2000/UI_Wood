@@ -36,12 +36,19 @@ def deActive(selected, post, beam, joist, shearWall, studWall, loadMap=None):
         deActive_shearWall(shearWall)
         deActive_loadMap(loadMap)
 
-    if selected == loadMap:
+    elif selected == loadMap:
         deActive_post(post)
         deActive_joist(joist)
         deActive_beam(beam)
         deActive_shearWall(shearWall)
         deActive_studWall(studWall)
+    else:
+        deActive_post(post)
+        deActive_joist(joist)
+        deActive_beam(beam)
+        deActive_shearWall(shearWall)
+        deActive_studWall(studWall)
+        deActive_loadMap(loadMap)
 
 
 def deActive_post(post):
