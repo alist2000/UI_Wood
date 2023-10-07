@@ -496,6 +496,7 @@ class Rectangle(QGraphicsRectItem):
 
         self.rect_prop = rect_prop
         self.shearWall_properties_page = None
+        self.elementName = "shearWall"
 
     # CONTROL ON shearWall
     def mousePressEvent(self, event):
@@ -554,8 +555,10 @@ class ShearWallProperties(QDialog):
     def create_geometry_tab(self):
         start = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["coordinate"][0]])
         end = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["coordinate"][1]])
-        Post_start = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["post"]["start_center"]])
-        Post_end = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["post"]["end_center"]])
+        Post_start = tuple(
+            [round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["post"]["start_center"]])
+        Post_end = tuple(
+            [round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["post"]["end_center"]])
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Geometry")
         label0 = QLabel("Label")

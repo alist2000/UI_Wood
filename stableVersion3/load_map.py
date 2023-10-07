@@ -213,6 +213,7 @@ class loadRectangle(QGraphicsRectItem):
         self.load_properties_page = None
         self.rect_prop = rect_prop
         self.all_load = all_load
+        self.elementName = "loadMap"
 
     # CONTROL ON LOAD MAP
     def mousePressEvent(self, event):

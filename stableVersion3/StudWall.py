@@ -305,6 +305,7 @@ class Rectangle(QGraphicsRectItem):
 
         self.rect_prop = rect_prop
         self.studWall_properties_page = None
+        self.elementName = "studWall"
 
     # CONTROL ON STUD WALL
     def mousePressEvent(self, event):

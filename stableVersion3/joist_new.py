@@ -200,6 +200,7 @@ class joistRectangle(QGraphicsRectItem):
         self.image = None
         self.joist_properties_page = None
         self.rect_prop = rect_prop
+        self.elementName = "joist"
 
     # CONTROL ON JOIST
     def mousePressEvent(self, event):

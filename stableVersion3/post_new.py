@@ -200,6 +200,7 @@ class CustomRectItem(QGraphicsRectItem):
         # Properties
         self.post_properties_page = None
         self.post_prop = post_prop
+        self.elementName = "post"
 
     def mousePressEvent(self, event):
         pos = self.boundingRect().center().toTuple()

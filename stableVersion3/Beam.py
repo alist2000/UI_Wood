@@ -319,6 +319,7 @@ class Rectangle(QGraphicsRectItem):
 
         self.rect_prop = rect_prop
         self.beam_properties_page = None
+        self.elementName = "beam"
 
     # CONTROL ON BEAM
     def mousePressEvent(self, event):
