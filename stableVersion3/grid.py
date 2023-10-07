@@ -1,6 +1,6 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPen, QPainter, QBrush
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem
+from PySide6.QtCore import Qt, QEvent
+from PySide6.QtGui import QPen, QPainter, QBrush, QUndoCommand, QUndoStack
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem, QGraphicsSceneMouseEvent
 
 from Beam import beamDrawing
 from ShearWall import shearWallDrawing
@@ -15,6 +15,7 @@ from post_new import PostDrawing
 from post_new import magnification_factor
 from snap import SnapLine, SnapPoint
 from menuBar import Image, visual
+from DeActivate import deActive
 
 
 class GridWidget(QGraphicsView):
@@ -23,8 +24,11 @@ class GridWidget(QGraphicsView):
                  parent=None):
         super().__init__(parent)
         self.scene = QGraphicsScene()
+        self.undoStack = QUndoStack()
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)  # Corrected attribute
+        self.setInteractive(True)
+        self.setDragMode(QGraphicsView.RubberBandDrag)
         self.clickable_area_enabled = True
         # self.lastPanPoint = QPoint()
         self.menu = Image(self, slider)
@@ -231,6 +235,30 @@ class GridWidget(QGraphicsView):
                 self.scene.clearSelection()
             #     # Call base function if pixmap is not intended to be moved
             #     super().mousePressEvent(event)
+
+        item = self.itemAt(event.pos())
+        if item:
+            isSelected = item.isSelected()
+            command = DeselectCommand(item) if isSelected else SelectCommand(item)
+            self.undoStack.push(command)
+
+            # Create a QGraphicsSceneMouseEvent and set its properties
+            sceneEvent = QGraphicsSceneMouseEvent(QEvent.GraphicsSceneMousePress)
+            sceneEvent.setScenePos(self.mapToScene(event.position().toPoint()))
+            sceneEvent.setLastScenePos(self.mapToScene(event.position().toPoint()))
+            sceneEvent.setScreenPos(event.globalPosition().toPoint())
+            sceneEvent.setLastScreenPos(event.globalPosition().toPoint())
+
+            sceneEvent.setButtons(event.buttons())
+            sceneEvent.setButton(event.button())
+            sceneEvent.setModifiers(event.modifiers())
+
+            item.mousePressEvent(sceneEvent)
+
+            if sceneEvent.isAccepted():
+                event.accept()
+                return
+
         super().mousePressEvent(event)
         #   self.scene.clearSelection()
 
@@ -318,6 +346,21 @@ class GridWidget(QGraphicsView):
 
         return self.x, self.y
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.scene.clearSelection()
+            deActive(None, self.post_instance, self.beam_instance, self.joist_instance, self.shearWall_instance,
+                     self.studWall_instance, self.load_instance)
+        # elif event.key() == Qt.Key_A:
+        #     for item in self.scene.selectedItems():
+        #         print(item)
+        #         self.scene.removeItem(item)
+        # elif event.key() == Qt.Key_Delete:
+        #     for item in self.scene.selectedItems():
+        #         print(item)
+        #         self.scene.removeItem(item)
+        super().keyPressEvent(event)
+
 
 class Rectangle(QGraphicsRectItem):
     def __init__(self, x, y):
@@ -333,3 +376,27 @@ def get_string_value(num):
         num, remainder = divmod(num - 1, 26)
         result = alphabet[remainder] + result
     return result
+
+
+class SelectCommand(QUndoCommand):
+    def __init__(self, item):
+        super().__init__()
+        self.item = item
+
+    def undo(self):
+        self.item.setSelected(False)
+
+    def redo(self):
+        self.item.setSelected(True)
+
+
+class DeselectCommand(QUndoCommand):
+    def __init__(self, item):
+        super().__init__()
+        self.item = item
+
+    def undo(self):
+        self.item.setSelected(True)
+
+    def redo(self):
+        self.item.setSelected(False)
