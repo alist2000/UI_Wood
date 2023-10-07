@@ -7,14 +7,14 @@ class SelectableLineItem(QGraphicsLineItem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        # self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
 
-    def mousePressEvent(self, event):
-        if event.buttons() == Qt.LeftButton:
-            self.setSelected(True)
-            self.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # Set pen on the SelectableLineItem object
-            self.update()
-        super().mousePressEvent(event)
+    # def mousePressEvent(self, event):
+    #     if event.buttons() == Qt.LeftButton:
+    #         self.setSelected(True)
+    #         self.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # Set pen on the SelectableLineItem object
+    #         self.update()
+    #     super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self.isSelected():
