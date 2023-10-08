@@ -1,9 +1,6 @@
-from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QHBoxLayout, QVBoxLayout, QLabel, QCheckBox, \
-    QComboBox, QStyledItemDelegate, QFrame, QDialogButtonBox
-from PySide6.QtGui import QStandardItem, QFontMetrics, QPalette
-from PySide6.QtCore import Qt, QEvent
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QCheckBox, QDialogButtonBox
 
-from PySide6.QtGui import QStandardItem, QPalette, QFontMetrics, QStandardItemModel, QBrush, QColor
+from PySide6.QtGui import QStandardItem, QPalette, QFontMetrics
 from PySide6.QtWidgets import QComboBox, QStyledItemDelegate, QApplication
 from PySide6.QtCore import Qt, QEvent
 
@@ -156,6 +153,7 @@ class Replicate:
         self.checkbox_shearWall = QCheckBox("Shear Wall")
         self.checkbox_studWall = QCheckBox("Stud Wall")
         self.checkbox_loadMap = QCheckBox("Load Map")
+        self.checkbox_selectedObject = QCheckBox("Selected Objects")
 
         # Add labels, combo boxes and check boxes to layout
         self.layout.addWidget(self.label1)
@@ -169,6 +167,7 @@ class Replicate:
         self.layout.addWidget(self.checkbox_shearWall)
         self.layout.addWidget(self.checkbox_studWall)
         self.layout.addWidget(self.checkbox_loadMap)
+        self.layout.addWidget(self.checkbox_selectedObject)
 
         # Create a buttonbox for ok and cancel
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -188,10 +187,10 @@ class Replicate:
     def accept_control(self):
         sourceTabIndex = int(self.source_story.currentText()[-1]) - 1
         targetTabIndexes = [int(i[-1]) - 1 for i in self.target_story.currentData()]
-        copy_list_item = ["post", "beam", "joist", "shearWall", "studWall", "loadMap"]
+        copy_list_item = ["post", "beam", "joist", "shearWall", "studWall", "loadMap", "Selected Objects"]
         item_selected = []
         for i, item in enumerate([self.checkbox_post, self.checkbox_beam, self.checkbox_joist, self.checkbox_shearWall,
-                                  self.checkbox_studWall, self.checkbox_loadMap]):
+                                  self.checkbox_studWall, self.checkbox_loadMap, self.checkbox_selectedObject]):
             if item.isChecked():
                 item_selected.append(copy_list_item[i])
         copyObject(sourceTabIndex, targetTabIndexes, self.mainPage.mainPage.grid, item_selected)
@@ -202,6 +201,8 @@ class Replicate:
 class copyObject:
     def __init__(self, sourceTabIndex, targetTabIndexes, grid, items):
         sourceTab = grid[sourceTabIndex]
+        selectedItems = sourceTab.scene.selectedItems()
+
         postObjects = list(sourceTab.post_instance.post_prop.values())
         beamObjects = list(sourceTab.beam_instance.beam_rect_prop.values())
         joistObjects = list(sourceTab.joist_instance.rect_prop.values())
@@ -210,6 +211,7 @@ class copyObject:
         loadMapObjects = list(sourceTab.load_instance.rect_prop.values())
         for i in targetTabIndexes:
             targetTab = grid[i]
+
             for item in items:
                 if item == "post":
                     for postProp in postObjects:
@@ -229,23 +231,24 @@ class copyObject:
                 elif item == "loadMap":
                     for loadProp in loadMapObjects:
                         targetTab.load_instance.draw_load_mousePress(None, None, loadProp)
-        # joistProp = list(self.mainPage.mainPage.grid[0].joist_instance.rect_prop.values())
-        # self.mainPage.mainPage.grid[1].joist_instance.draw_joist_mousePress(None, None, joistProp[0]["coordinate"])
-# class MainWindow(QMainWindow):
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.setWindowTitle("Main Window")
-#         self.button = QPushButton("Open Dialog")
-#         self.button.clicked.connect(self.button_clicked)
-#         self.setCentralWidget(self.button)
-#
-#     def button_clicked(self):
-#         dlg = CustomDialog(self)
-#         if dlg.exec():
-#             print(f"Combo box 1 selection: {dlg.combo_box1.currentText()}")
-#             print(f"Multiple combinations: {dlg.combo_box2.currentData()}")
-#             print(f"Check box 1 is {'checked' if dlg.checkbox1.isChecked() else 'unchecked'}")
-#             print(f"Check box 2 is {'checked' if dlg.checkbox2.isChecked() else 'unchecked'}")
-#             print(f"Check box 3 is {'checked' if dlg.checkbox3.isChecked() else 'unchecked'}")
-#             print(f"Check box 4 is {'checked' if dlg.checkbox4.isChecked() else 'unchecked'}")
+                elif item == "Selected Objects":
+                    for selectedItem in selectedItems:
+                        elementName = selectedItem.elementName
+                        if elementName == "post":
+                            targetTab.post_instance.draw_post_mousePress(None, None,
+                                                                         selectedItem.post_prop[selectedItem])
+                        elif elementName == "beam":
+                            targetTab.beam_instance.draw_beam_mousePress(None, None,
+                                                                         selectedItem.rect_prop[selectedItem])
+                        elif elementName == "joist":
+                            targetTab.joist_instance.draw_joist_mousePress(None, None,
+                                                                           selectedItem.rect_prop[selectedItem])
+                        elif elementName == "shearWall":
+                            targetTab.shearWall_instance.draw_shearWall_mousePress(None, None,
+                                                                                   selectedItem.rect_prop[selectedItem])
+                        elif elementName == "studWall":
+                            targetTab.studWall_instance.draw_studWall_mousePress(None, None,
+                                                                                 selectedItem.rect_prop[selectedItem])
+                        elif elementName == "loadMap":
+                            targetTab.load_instance.draw_load_mousePress(None, None,
+                                                                         selectedItem.rect_prop[selectedItem])
