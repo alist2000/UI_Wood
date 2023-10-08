@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt, QPoint
 
 from set_uniform_load import set_uniform_load
 from replicate import Replicate
+from delete import Delete
 from save import Save
 
 
@@ -18,6 +19,7 @@ class ToolBar:
         self.dialogPage = load_seismic_dialog(self)
         self.dialogPage2 = set_uniform_load(self)
         self.dialogPage3 = Replicate(self)
+        self.dialogPage4 = Delete(self)
         self.savePage = Save(self)
 
         self.spin_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
@@ -43,6 +45,11 @@ class ToolBar:
         replicate.triggered.connect(self.dialogPage3.rep_exec)
         # replicate.triggered.connect(self.dialogPage3.rep_exec)
         tool_bar.addAction(replicate)
+
+        # Create Define Set Uniform Load Cases
+        delete = QAction('Delete', self.mainPage)
+        delete.triggered.connect(self.dialogPage4.rep_exec)
+        tool_bar.addAction(delete)
 
         # Create Save option
         save_action = QAction('Save', self.mainPage)
