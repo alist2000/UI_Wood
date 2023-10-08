@@ -29,6 +29,9 @@ class mainSync2(Data):
         self.joistRun = False
         self.shearWallRun = False
         self.studWallRun = False
+        self.BeamDesigned = []
+        self.PostDesigned = []
+        self.JoistDesigned = []
         self.GridDrawClass = GridDrawClass
         self.posts = []
         self.beams = []
@@ -48,8 +51,6 @@ class mainSync2(Data):
 
     def Run_and_Analysis_Post(self):
         # self.reportGenerator.setEnabled(True)
-        self.db = Sqlreports()
-
         midLineDict = {}
         lineLabels = None
         boundaryLineLabels = None
@@ -66,7 +67,7 @@ class mainSync2(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         # TabData = ControlTab(self.tab, generalProp, self.general_information)
-        if not self.beamRun:
+        if not self.beamRun and not self.postRun:
             self.posts = []
             self.beams = []
             self.shearWalls = []
@@ -83,18 +84,19 @@ class mainSync2(Data):
             self.posts.reverse()
             self.beams.reverse()
             self.shearWalls.reverse()
-
-        # CREATE DB FOR OUTPUT.
-        self.db.post_table()
-        self.db.beam_table()
+            # CREATE DB FOR OUTPUT.
+            self.db.beam_table()
+            self.db.post_table()
 
         # POST
         a = time.time()
         PostDesigned = PostSync2(self.GridDrawClass, self.beams, self.posts, self.shearWalls, generalProp.height,
                                  self.general_information,
                                  self.db,
-                                 self.postRun, self.beamRun
+                                 self.postRun, self.beamRun, self.PostDesigned
                                  )
+        self.PostDesigned = PostDesigned.PostStories
+        self.BeamDesigned = PostDesigned.BeamStories
         b = time.time()
         self.beamRun = PostDesigned.reportBeam
         self.postRun = PostDesigned.reportPost
@@ -108,7 +110,6 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_Beam(self):
-        self.db = Sqlreports()
 
         # self.reportGenerator.setEnabled(True)
         midLineDict = {}
@@ -127,31 +128,32 @@ class mainSync2(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         # TabData = ControlTab(self.tab, generalProp, self.general_information)
-        self.beams = []
-        self.posts = []
-        self.shearWalls = []
-        for i, Tab in self.tab.items():
-            beam = Tab["beam"]
-            post = {i: Tab["post"]}
-            shearWall = Tab["shearWall"]
+        if not self.beamRun and not self.postRun:
+            self.posts = []
+            self.beams = []
+            self.shearWalls = []
+            for i, Tab in self.tab.items():
+                post = {i: Tab["post"]}
+                beam = Tab["beam"]
+                shearWall = Tab["shearWall"]
 
-            self.beams.append(beam)
-            self.posts.append(post)
-            self.shearWalls.append(shearWall)
+                self.posts.append(post)
+                self.beams.append(beam)
+                self.shearWalls.append(shearWall)
 
-        # Design should be started from Roof.
-        self.posts.reverse()
-        self.beams.reverse()
-        self.shearWalls.reverse()
-
-        # CREATE DB FOR OUTPUT.
-        self.db.post_table()
-        self.db.beam_table()
+            # Design should be started from Roof.
+            self.posts.reverse()
+            self.beams.reverse()
+            self.shearWalls.reverse()
+            # CREATE DB FOR OUTPUT.
+            self.db.beam_table()
+            self.db.post_table()
 
         # BEAM
         a = time.time()
         beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, self.general_information,
-                                                self.db, self.GridDrawClass, True, self.beamRun)
+                                                self.db, self.GridDrawClass, True, self.beamRun, self.BeamDesigned)
+        self.BeamDesigned = beamAnalysisInstance.BeamStories
         b = time.time()
         self.beamRun = beamAnalysisInstance.report
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
@@ -162,8 +164,6 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_Joist(self):
-        self.db = Sqlreports()
-
         # self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
@@ -196,6 +196,7 @@ class mainSync2(Data):
         # JOIST
         a = time.time()
         joistAnalysisInstance = joistAnalysisSync(self.joists, self.db, self.GridDrawClass, True, self.joistRun)
+        self.JoistDesigned = joistAnalysisInstance.JoistStories
         b = time.time()
         self.joistRun = joistAnalysisInstance.report
 
@@ -233,6 +234,9 @@ class mainSync2(Data):
         self.joistRun = False
         self.shearWallRun = False
         self.studWallRun = False
+        self.BeamDesigned.clear()
+        self.PostDesigned.clear()
+        self.JoistDesigned.clear()
 
 
 class ControlGeneralProp:
@@ -252,68 +256,6 @@ class ControlGeneralProp:
             item = [10 * magnification_factor]  # 10 ft or 10 m
 
         return item
-
-
-class ControlTab:
-    def __init__(self, tab, generalProp, generalInfo):
-        self.tab = tab
-        self.posts = []
-        self.beams = []
-        self.joists = []
-        self.shearWalls = []
-        self.studWalls = []
-        self.loadMaps = []
-
-        for i, Tab in self.tab.items():
-            post = {i: Tab["post"]}
-            beam = Tab["beam"]
-            joist = Tab["joist"]
-            shearWall = Tab["shearWall"]
-            studWall = Tab["studWall"]
-            loadMap = Tab["loadMap"]
-            self.posts.append(post)
-            self.beams.append(beam)
-            self.joists.append(joist)
-            self.shearWalls.append(shearWall)
-            self.studWalls.append(studWall)
-            self.loadMaps.append(loadMap)
-
-        # CREATE DB FOR OUTPUT.
-        db = Sqlreports()
-        db.beam_table()
-        db.joist_table()
-        db.post_table()
-
-        # BEAM
-        a = time.time()
-        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, generalInfo, db)
-        b = time.time()
-        print("Beam analysis takes ", (b - a) / 60, "Minutes")
-
-        # POST
-        a = time.time()
-        PostSync(self.posts, generalProp.height, generalInfo, db)
-        b = time.time()
-        print("Post analysis takes ", (b - a) / 60, "Minutes")
-
-        # JOIST
-
-        a = time.time()
-        joistAnalysisInstance = joistAnalysisSync(self.joists, db)
-        b = time.time()
-        print("Joist analysis takes ", (b - a) / 60, "Minutes")
-
-        # SHEAR WALL
-        # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
-        self.joistArea = JoistSumArea(self.joists)
-        self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
-        self.shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, db)
-        self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
-
-        # print(beamAnalysisInstance.reactionTab)
-        # print("ALL POSTS : ", self.posts)
-        # print("ALL BEAMS : ", self.beams)
-        print("ALL SHEAR WALLS : ", self.shearWalls)
 
 
 def LoadMapArea(loadMaps):
