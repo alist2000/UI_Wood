@@ -15,7 +15,7 @@ from PySide6.QtWidgets import QDialog
 
 class beamAnalysisSync:
     def __init__(self, beam, Posts, ShearWalls, generalInfo, db, GridClass=None, storyBy=False, report=False,
-                 BeamStories=[]):
+                 BeamStories=[], InputDB=None, Story=0):
         self.beam = beam
         self.reactionTab = []
         self.reaction_list = []
@@ -23,6 +23,8 @@ class beamAnalysisSync:
         beamIdInput = 1
         self.BeamStories = BeamStories
         self.report = report
+        self.InputDB = InputDB
+        self.Story = Story
         if report:
             for i, beamTab in enumerate(beam):
                 if storyBy:
@@ -34,11 +36,17 @@ class beamAnalysisSync:
                     else:
                         break
         else:
-            inputDB = beamSQL()
+            if InputDB:
+                inputDB = self.InputDB
+            else:
+                inputDB = beamSQL()
             for i, beamTab in enumerate(beam):
                 BeamStory = []
                 self.reaction_list.clear()
-                tabNumber = i
+                if InputDB:
+                    tabNumber = Story
+                else:
+                    tabNumber = i
                 beam_support = []
 
                 for Beam in beamTab:
@@ -110,6 +118,13 @@ class beamAnalysisSync:
     @staticmethod
     def DesignPrimaryBeam(beam_support, beamId, reaction_list, tabNumber, db, beamTab, Posts, ShearWalls, beamDesigned,
                           BeamStory):
+        if len(Posts) == 1 and len(ShearWalls) == 1:
+            # we will be here in two situation:
+            # 1) if we are use beamSync class in designing posts, story by story.
+            # 2) if we have just one story.
+            i = 0
+        else:
+            i = tabNumber
         beamOutput = beam_output(beamTab)
         for beamNum, beam_ in enumerate(beamOutput.beamProperties):
             # beam with no support are empty(False)
@@ -150,7 +165,7 @@ class beamAnalysisSync:
         # for reaction in self.reaction_list:
         #     assign_beam_reaction(reaction, self.beam)
 
-        reactionInstance = Reaction_On(beamTab, Posts[tabNumber], ShearWalls[tabNumber], reaction_list)
+        reactionInstance = Reaction_On(beamTab, Posts[i], ShearWalls[i], reaction_list)
         reactionInstance.do_beam()
 
         reactionPass = []
