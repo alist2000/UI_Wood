@@ -7,6 +7,8 @@ from WOOD_DESIGN.mainpost import MainPost
 from UI_Wood.stableVersion3.Sync.beamSync import beamAnalysisSync
 from UI_Wood.stableVersion3.run.post import PostStoryBy
 from PySide6.QtWidgets import QDialog
+from UI_Wood.stableVersion3.output.postSql import PostSQL
+from UI_Wood.stableVersion3.output.beamSql import beamSQL
 
 
 class PostSync2:
@@ -16,6 +18,7 @@ class PostSync2:
         self.GridClass = GridClass
         self.PostStories = PostStories
         self.BeamStories = BeamStories
+        self.inputDB = None
         if reportPost:
             for story, post in enumerate(Posts):
                 postStoryDesigned = PostStoryBy(self.PostStories[story], GridClass)
@@ -28,6 +31,10 @@ class PostSync2:
                     break
         else:
             postId = 1
+            self.inputDB = PostSQL()
+            if not reportBeam:
+                BeamInputDB = beamSQL()
+
             for story, post in enumerate(Posts):
                 postItem = list(post.values())[0]
                 # for story, postItem in post.items():
@@ -35,11 +42,13 @@ class PostSync2:
                 beam_forBeamDesign = [beam[story]]
                 shearWall_forBeamDesign = [ShearWalls[story]]
                 if not reportBeam:
-                    beamAnalysisInstance = beamAnalysisSync(beam_forBeamDesign, post_forBeamDesign, shearWall_forBeamDesign,
+                    beamAnalysisInstance = beamAnalysisSync(beam_forBeamDesign, post_forBeamDesign,
+                                                            shearWall_forBeamDesign,
                                                             general_information,
-                                                            db)
+                                                            db, InputDB=BeamInputDB, Story=story)
                     self.BeamStories.append(beamAnalysisInstance.BeamStories[0])
-                self.postOutPut = post_output(post_forBeamDesign, height)
+                self.postOutPut = post_output(post_forBeamDesign, height, True, self.inputDB)
+                self.inputDB = self.postOutPut.inputDB
                 self.reportPost = reportPost
                 self.reportBeam = reportBeam
                 postStory = []

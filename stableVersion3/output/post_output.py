@@ -6,7 +6,7 @@ from UI_Wood.stableVersion3.output.postSql import PostSQL, WritePostInputSQL
 
 
 class post_output:
-    def __init__(self, posts, height):
+    def __init__(self, posts, height, storyBy=False, inputDB=None):
         self.posts = posts
         # self.height = [10, 10, 10, 10]
         self.height = height  # should be checked.
@@ -14,11 +14,33 @@ class post_output:
         pointLoadCalculator = PointLoadCalculator()
         reactionLoadCalculator = ReactionLoadCalculator()
         LoadRoot(posts, pointLoadCalculator, reactionLoadCalculator)
-        self.inputDB = PostSQL()
-
-        self.create_dict()
+        if storyBy:
+            self.inputDB = inputDB
+            self.create_dict()
+        else:
+            self.inputDB = PostSQL()
+            self.create_dict2()
 
     def create_dict(self):
+        postId = 1
+        for i, postTab in self.posts[0].items():
+            for Post in postTab:
+                loadSet = Post["load"]["point"] + Post["load"]["reaction"]
+                loadControl = ControlLoadType(loadSet)
+                properties = {
+                    "label": Post["label"],
+                    "coordinate": (
+                        Post["coordinate"][0] / magnification_factor, Post["coordinate"][1] / magnification_factor),
+                    "story": i + 1,
+                    "width": float(Post["wall_width"][0]),
+                    "height": self.height[i],
+                    "load": loadControl.load_list
+                }
+                self.postProperties.append(properties)
+                WritePostInputSQL(properties, postId, self.inputDB)
+                postId += 1
+
+    def create_dict2(self):
         postId = 1
         for i, postTab in enumerate(self.posts):
             for Post in list(postTab.values())[0]:
