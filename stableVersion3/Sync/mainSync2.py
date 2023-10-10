@@ -237,6 +237,7 @@ class mainSync2(Data):
         self.BeamDesigned.clear()
         self.PostDesigned.clear()
         self.JoistDesigned.clear()
+        self.reportGenerator.setEnabled(False)
 
 
 class ControlGeneralProp:
