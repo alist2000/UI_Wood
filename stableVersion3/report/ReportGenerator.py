@@ -7,7 +7,7 @@ import sqlite3
 from UI_Wood.stableVersion3.replicate import CheckableComboBox
 from UI_Wood.stableVersion3.post_new import magnification_factor
 
-from Report_Lab.version2.main import Main
+from Report_Lab.version3.main import Main
 
 
 class ReportGeneratorTab(QWidget):
