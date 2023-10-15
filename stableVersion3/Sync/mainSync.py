@@ -18,6 +18,7 @@ from UI_Wood.stableVersion3.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion3.post_new import magnification_factor
 from UI_Wood.stableVersion3.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion3.layout.tab_widget2 import secondTabWidgetLayout
+from UI_Wood.stableVersion3.Sync.shearWallSync import ShearWallStoryCount
 import time
 
 
@@ -48,6 +49,8 @@ class mainSync(Data):
             midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
             if currentTab == self.tabWidgetCount - 1:
                 storyName = "Roof"
+                ShearWallStoryCount.storyFinal = str(currentTab + 1)
+
             else:
                 storyName = str(currentTab + 1)
             midLineDict[storyName] = midLineData
@@ -151,7 +154,6 @@ class ControlTab:
         print("Post analysis takes ", (b - a) / 60, "Minutes")
 
         # JOIST
-
         a = time.time()
         joistAnalysisInstance = joistAnalysisSync(self.joists, db)
         b = time.time()
