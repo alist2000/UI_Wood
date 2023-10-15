@@ -178,6 +178,10 @@ def NoShearWallLines(shearWallLines, names_set):
         noShearWalls[story].sort()
     return noShearWalls
 
+
+class ShearWallStoryCount:
+    storyFinal = 1
+
 # def NoShearWallLines(names_set):
 #     # Connect to the SQLite database
 #     conn = sqlite3.connect('../../Output/ShearWall_Input.db')
