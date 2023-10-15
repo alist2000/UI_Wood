@@ -12,6 +12,8 @@ from UI_Wood.stableVersion3.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion3.post_new import magnification_factor
 from UI_Wood.stableVersion3.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion3.layout.tab_widget2 import secondTabWidgetLayout
+from UI_Wood.stableVersion3.output.joist_output import Joist_output
+from UI_Wood.stableVersion3.Sync.shearWallSync import ShearWallStoryCount
 import time
 
 
@@ -60,6 +62,7 @@ class mainSync2(Data):
                 storyName = "Roof"
             else:
                 storyName = str(currentTab + 1)
+
             midLineDict[storyName] = midLineData
             saveImage(self.grid, currentTab)
 
@@ -174,6 +177,7 @@ class mainSync2(Data):
                 storyName = "Roof"
             else:
                 storyName = str(currentTab + 1)
+
             midLineDict[storyName] = midLineData
             saveImage(self.grid, currentTab)
 
@@ -208,7 +212,68 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_ShearWall(self):
+
+        # self.reportGenerator.setEnabled(True)
+        midLineDict = {}
+        lineLabels = None
+        boundaryLineLabels = None
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
+            if currentTab == self.tabWidgetCount - 1:
+                storyName = "Roof"
+                ShearWallStoryCount.storyFinal = str(currentTab + 1)
+
+            else:
+                storyName = str(currentTab + 1)
+
+            midLineDict[storyName] = midLineData
+            saveImage(self.grid, currentTab)
+
+        self.saveFunc()
+
+        if not self.beamRun and not self.postRun:
+            self.shearWalls = []
+            self.joists = []
+
+            for i, Tab in self.tab.items():
+                shearWall = Tab["shearWall"]
+                joist = Tab["joist"]
+
+                self.joists.append(joist)
+
+                self.shearWalls.append(shearWall)
+
+            # Design should be started from Roof.
+            self.shearWalls.reverse()
+
+        generalProp = ControlGeneralProp(self.general_properties)
+        joistOutput = Joist_output(self.joists)
+
+        # SHEAR WALL
+        # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
+        JoistArea = JoistSumArea(self.joists)
+        storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
+        shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
+        # self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
+
+        shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
+        noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
+        midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
+        midLineDictEdited = midLineInstance.newMidline
+        # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
+        LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
+        seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
+                                                  JoistArea)
+        ControlMidLine(midLineDictEdited)
+
+        print(seismicInstance.seismicPara)
+        print(midLineDictEdited)
+        a = time.time()
+        MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+        b = time.time()
+        print("Shear wall run takes ", (b - a) / 60, " Minutes")
         self.shearWallRun = True
+
         print(
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
@@ -218,6 +283,32 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_StudWall(self):
+        self.reportGenerator.setEnabled(True)
+        midLineDict = {}
+        lineLabels = None
+        boundaryLineLabels = None
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
+            if currentTab == self.tabWidgetCount - 1:
+                storyName = "Roof"
+                ShearWallStoryCount.storyFinal = str(currentTab + 1)
+
+            else:
+                storyName = str(currentTab + 1)
+            midLineDict[storyName] = midLineData
+            saveImage(self.grid, currentTab)
+
+        self.saveFunc()
+
+        self.studWalls = []
+
+        for i, Tab in self.tab.items():
+            studWall = Tab["studWall"]
+
+            self.studWalls.append(studWall)
+        generalProp = ControlGeneralProp(self.general_properties)
+        studWallSync = StudWallSync(self.studWalls, generalProp.height)
+
         self.studWallRun = True
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
