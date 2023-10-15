@@ -7,13 +7,13 @@ from UI_Wood.stableVersion3.Sync.postSync2 import PostSync2
 from UI_Wood.stableVersion3.Sync.joistSync import joistAnalysisSync
 from UI_Wood.stableVersion3.Sync.beamSync import beamAnalysisSync
 from UI_Wood.stableVersion3.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
-    NoShearWallLines, MidlineEdit
+    NoShearWallLines, MidlineEdit, ShearWallStoryCount
 from UI_Wood.stableVersion3.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion3.post_new import magnification_factor
 from UI_Wood.stableVersion3.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion3.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion3.output.joist_output import Joist_output
-from UI_Wood.stableVersion3.Sync.shearWallSync import ShearWallStoryCount
+from UI_Wood.stableVersion3.Sync.shearWallSync2 import ShearWallSync2
 import time
 
 
@@ -273,6 +273,8 @@ class mainSync2(Data):
         b = time.time()
         print("Shear wall run takes ", (b - a) / 60, " Minutes")
         self.shearWallRun = True
+        dataInstance = ShearWallSync2(self.GridDrawClass)
+
 
         print(
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
