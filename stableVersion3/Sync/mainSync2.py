@@ -84,9 +84,9 @@ class mainSync2(Data):
                 self.shearWalls.append(shearWall)
 
             # Design should be started from Roof.
-            self.posts.reverse()
-            self.beams.reverse()
-            self.shearWalls.reverse()
+            # self.posts.reverse()
+            # self.beams.reverse()
+            # self.shearWalls.reverse()
             # CREATE DB FOR OUTPUT.
             self.db.beam_table()
             self.db.post_table()
@@ -99,7 +99,8 @@ class mainSync2(Data):
                                  self.postRun, self.beamRun, self.PostDesigned
                                  )
         self.PostDesigned = PostDesigned.PostStories
-        self.BeamDesigned = PostDesigned.BeamStories
+        if PostDesigned.BeamStories:
+            self.BeamDesigned = PostDesigned.BeamStories
         b = time.time()
         self.beamRun = PostDesigned.reportBeam
         self.postRun = PostDesigned.reportPost
@@ -145,9 +146,9 @@ class mainSync2(Data):
                 self.shearWalls.append(shearWall)
 
             # Design should be started from Roof.
-            self.posts.reverse()
-            self.beams.reverse()
-            self.shearWalls.reverse()
+            # self.posts.reverse()
+            # self.beams.reverse()
+            # self.shearWalls.reverse()
             # CREATE DB FOR OUTPUT.
             self.db.beam_table()
             self.db.post_table()
@@ -192,7 +193,7 @@ class mainSync2(Data):
             self.joists.append(joist)
 
         # Design should be started from Roof.
-        self.joists.reverse()
+        # self.joists.reverse()
 
         # CREATE DB FOR OUTPUT.
         self.db.joist_table()
@@ -231,7 +232,7 @@ class mainSync2(Data):
 
         self.saveFunc()
 
-        if not self.beamRun and not self.postRun:
+        if not self.shearWallRun:
             self.shearWalls = []
             self.joists = []
 
@@ -244,7 +245,7 @@ class mainSync2(Data):
                 self.shearWalls.append(shearWall)
 
             # Design should be started from Roof.
-            self.shearWalls.reverse()
+            # self.shearWalls.reverse()
 
         generalProp = ControlGeneralProp(self.general_properties)
         joistOutput = Joist_output(self.joists)
@@ -274,7 +275,6 @@ class mainSync2(Data):
         print("Shear wall run takes ", (b - a) / 60, " Minutes")
         self.shearWallRun = True
         dataInstance = ShearWallSync2(self.GridDrawClass)
-
 
         print(
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
