@@ -15,7 +15,7 @@ class joistAnalysisSync:
         if report:
             for i, joistTab in enumerate(joistOutput.Joists):
                 if storyBy:
-                    storyByStoryInstance = JoistStoryBy(self.JoistStories[i], GridClass)
+                    storyByStoryInstance = JoistStoryBy(self.JoistStories[i], GridClass, i + 1)
                     if i == len(joistOutput.Joists) - 1:
                         self.report = True
                     if storyByStoryInstance.result == QDialog.Accepted:
@@ -67,7 +67,7 @@ class joistAnalysisSync:
                             joistId += 1
                 self.JoistStories.append(JoistStory)
                 if storyBy:
-                    storyByStoryInstance = JoistStoryBy(JoistStory, GridClass)
+                    storyByStoryInstance = JoistStoryBy(JoistStory, GridClass, i + 1)
                     if i == len(joistOutput.Joists) - 1:
                         self.report = True
                     if storyByStoryInstance.result == QDialog.Accepted:

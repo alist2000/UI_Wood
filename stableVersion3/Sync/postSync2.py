@@ -21,7 +21,7 @@ class PostSync2:
         self.inputDB = None
         if reportPost:
             for story, post in enumerate(Posts):
-                postStoryDesigned = PostStoryBy(self.PostStories[story], GridClass)
+                postStoryDesigned = PostStoryBy(self.PostStories[story], GridClass, story + 1)
                 if story == len(beam) - 1:
                     self.reportPost = True
                     self.reportBeam = True
@@ -68,7 +68,7 @@ class PostSync2:
                         postEdited["axial_dcr"] = newQuery[12]
                         postStory.append(postEdited)
                 self.PostStories.append(postStory)
-                postStoryDesigned = PostStoryBy(postStory, GridClass)
+                postStoryDesigned = PostStoryBy(postStory, GridClass, story + 1)
                 if story == len(beam) - 1:
                     self.reportPost = True
                     self.reportBeam = True

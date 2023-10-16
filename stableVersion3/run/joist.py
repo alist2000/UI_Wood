@@ -22,6 +22,17 @@ class DrawJoist(QDialog):
         self.joist_width = magnification_factor / 2  # Set joist width
         self.dimension = None
 
+    def story(self, story):
+        mainText = QGraphicsProxyWidget()
+        dcr = QLabel(f"Story {story}")
+        font = QFont()
+        font.setPointSize(30)
+        dcr.setFont(font)
+        dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+        mainText.setWidget(dcr)
+        mainText.setPos(-150, -150)
+        self.scene.addItem(mainText)
+
     def draw(self, properties):
         coordinate = properties["coordinate"]
         x1, y1 = coordinate[0]
@@ -184,10 +195,11 @@ class joistRectangle(QGraphicsRectItem):
 
 
 class JoistStoryBy:
-    def __init__(self, joists, GridClass):
+    def __init__(self, joists, GridClass, story):
         print(joists)
         self.view = None
         self.dialog = DrawJoist(GridClass)
+        self.dialog.story(story)
 
         self.view = self.dialog.view
         for joist in joists:

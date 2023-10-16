@@ -44,6 +44,17 @@ class DrawBeam(QDialog):
         # x2, y2 = coordinate[1]
         # self.finalize_rectangle_copy((x1, y1), (x2, y2), properties)
 
+    def story(self, story):
+        mainText = QGraphicsProxyWidget()
+        dcr = QLabel(f"Story {story}")
+        font = QFont()
+        font.setPointSize(30)
+        dcr.setFont(font)
+        dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+        mainText.setWidget(dcr)
+        mainText.setPos(-150, -150)
+        self.scene.addItem(mainText)
+
     def finalize_rectangle_copy(self, start, end, properties):
 
         x1, y1 = start
@@ -265,7 +276,7 @@ class Rectangle(QGraphicsRectItem):
 
 
 class BeamStoryBy:
-    def __init__(self, beams, GridClass):
+    def __init__(self, beams, GridClass, story):
         print(beams)
         # coordinate = [i["coordinate_main"] for i in beams]
         # label = [i["label"] for i in beams]
@@ -275,6 +286,7 @@ class BeamStoryBy:
         self.view = None
         # instance = DrawBeam()
         self.dialog = DrawBeam(GridClass)
+        self.dialog.story(story)
 
         self.view = self.dialog.view
         for beam in beams:

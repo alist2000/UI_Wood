@@ -44,6 +44,17 @@ class DrawPost(QDialog):
         # x2, y2 = coordinate[1]
         # self.finalize_rectangle_copy((x1, y1), (x2, y2), properties)
 
+    def story(self, story):
+        mainText = QGraphicsProxyWidget()
+        dcr = QLabel(f"Story {story}")
+        font = QFont()
+        font.setPointSize(30)
+        dcr.setFont(font)
+        dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+        mainText.setWidget(dcr)
+        mainText.setPos(-150, -150)
+        self.scene.addItem(mainText)
+
     def drawPost(self, x, y, properties):
         rect_width = rect_height = magnification_factor
         self.current_rect = CustomRectItem(properties)
@@ -153,7 +164,7 @@ class CustomRectItem(QGraphicsRectItem):
 
 
 class PostStoryBy:
-    def __init__(self, posts, GridClass):
+    def __init__(self, posts, GridClass, story):
         print(posts)
         # coordinate = [i["coordinate_main"] for i in beams]
         # label = [i["label"] for i in beams]
@@ -163,6 +174,7 @@ class PostStoryBy:
         self.view = None
         # instance = DrawBeam()
         self.dialog = DrawPost(GridClass)
+        self.dialog.story(story)
 
         self.view = self.dialog.view
         for Post in posts:

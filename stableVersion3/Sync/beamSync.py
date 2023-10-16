@@ -28,7 +28,7 @@ class beamAnalysisSync:
         if report:
             for i, beamTab in enumerate(beam):
                 if storyBy:
-                    storyByStoryInstance = BeamStoryBy(self.BeamStories[i], GridClass)
+                    storyByStoryInstance = BeamStoryBy(self.BeamStories[i], GridClass, i + 1)
                     if i == len(beam) - 1:
                         self.report = True
                     if storyByStoryInstance.result == QDialog.Accepted:
@@ -107,7 +107,7 @@ class beamAnalysisSync:
                 reactionInstance.do_post()
                 self.reactionTab.append(self.reaction_list)
                 if storyBy:
-                    storyByStoryInstance = BeamStoryBy(BeamStory, GridClass)
+                    storyByStoryInstance = BeamStoryBy(BeamStory, GridClass, i + 1)
                     if i == len(beam) - 1:
                         self.report = True
                     if storyByStoryInstance.result == QDialog.Accepted:
