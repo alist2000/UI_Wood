@@ -5,16 +5,13 @@ from PySide6.QtWidgets import QDialog
 
 class ShearWallSync2:
     def __init__(self, GridClass):
-        ShearWallInput = "D://git/Wood/Output/ShearWall_Input.db"
         ShearWallOutput = "D://git/Wood/Output/ShearWall_output.db"
-        shearWallTable2 = "shearwalldesign"
-        inputDB = sqlite3.connect(ShearWallInput)
         outputDB = sqlite3.connect(ShearWallOutput)
-        self.cursorInput = inputDB.cursor()
         self.cursorOutput = outputDB.cursor()
         data = self.exportWalls()
         for story, shearWalls in enumerate(list(data.values())):
-            shearWallStoryDesigned = ShearWallStoryBy(shearWalls, GridClass)
+            storyName = list(data.keys())[story]
+            shearWallStoryDesigned = ShearWallStoryBy(shearWalls, GridClass, storyName)
             if story == len(shearWalls) - 1:
                 self.report = True
             if shearWallStoryDesigned.result == QDialog.Accepted:
@@ -23,11 +20,12 @@ class ShearWallSync2:
                 break
 
     def exportWalls(self):
-        shearWallTable1 = "WallTable"
-
-        row = self.cursorInput.execute(
-            f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end FROM {shearWallTable1}")
+        shearWallTable2 = "shearwalldesign"
+        row = self.cursorOutput.execute(
+            f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end,Shearwall_Type, Shear_DCR, tension_dcr_left,"
+            f" comp_dcr_left, tension_dcr_right, comp_dcr_right, deflection_dcr_ FROM {shearWallTable2}")
         data = row.fetchall()
+
         stories = set()
         if data:
             for i in data:
@@ -46,16 +44,33 @@ class ShearWallSync2:
             MainDict[i] = []
 
         for i in data:
+            try:
+                maxComp = max(round(float(i[7]), 2), round(float(i[9]), 2))
+            except:
+                maxComp = "-"
+            try:
+                maxTension = max(round(float(i[6]), 2), round(float(i[8]), 2))
+            except:
+                maxTension = "-"
             if i[0] == "Roof":
+
                 MainDict["999999"].append({
                     "story": i[0],
                     "label": i[1],
-                    "coordinate": (i[2], i[3])
+                    "coordinate": (i[2], i[3]),
+                    "type": i[4],
+                    "dcr_shear": i[5],
+                    "dcr_tension": maxTension,
+                    "dcr_compression": maxComp
                 })
             else:
                 MainDict[i[0]].append({
                     "story": i[0],
                     "label": i[1],
-                    "coordinate": (i[2], i[3])
+                    "coordinate": (i[2], i[3]),
+                    "type": i[4],
+                    "dcr_shear": i[5],
+                    "dcr_tension": maxTension,
+                    "dcr_compression": maxComp
                 })
         return MainDict
