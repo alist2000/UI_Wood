@@ -46,7 +46,7 @@ class PostSync2:
                                                             shearWall_forBeamDesign,
                                                             general_information,
                                                             db, InputDB=BeamInputDB, Story=story)
-                    self.BeamStories.append(beamAnalysisInstance.BeamStories[0])
+                    self.BeamStories.append(beamAnalysisInstance.BeamStories[story])
                 self.postOutPut = post_output(post_forBeamDesign, height, True, self.inputDB)
                 self.inputDB = self.postOutPut.inputDB
                 self.reportPost = reportPost
