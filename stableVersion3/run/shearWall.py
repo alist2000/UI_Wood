@@ -34,17 +34,30 @@ class DrawShearWall(QDialog):
         self.post_dimension = magnification_factor / 4  # Set post dimension
         self.dimension = None
 
-        # coordinate = properties["coordinate"]
-        # x1, y1 = coordinate[0]
-        # x2, y2 = coordinate[1]
-        # self.finalize_rectangle_copy((x1, y1), (x2, y2), properties)
+    def story(self, story):
+        mainText = QGraphicsProxyWidget()
+        if story == "999999":
+            story = "Roof"
+
+        dcr = QLabel(f"Story {story}")
+        font = QFont()
+        font.setPointSize(30)
+        dcr.setFont(font)
+        dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+        mainText.setWidget(dcr)
+        mainText.setPos(-150, -150)
+        self.scene.addItem(mainText)
+
+    # coordinate = properties["coordinate"]
+    # x1, y1 = coordinate[0]
+    # x2, y2 = coordinate[1]
+    # self.finalize_rectangle_copy((x1, y1), (x2, y2), properties)
 
     def finalize_rectangle_copy(self, start, end, prop):
         x1, y1 = start
         x2, y2 = end
-        # status, self.direction, self.interior_exterior, self.line = pointer_control_shearWall(x1, y1,
-        #                                                                                       self.grid)
-        # if snap to some point we don't need to check with snap line
+        y1_main = min(y1, y2)
+        x1_main = min(x1, x2)
         self.current_rect = Rectangle(x1,
                                       y1, prop)
         self.scene.addItem(self.current_rect)
@@ -93,41 +106,35 @@ class DrawShearWall(QDialog):
         end_rect_item = QGraphicsRectItem(end_rect)
         self.scene.addItem(start_rect_item)
         self.scene.addItem(end_rect_item)
-
-        self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
-        self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
-
-        BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, prop["label"], direction)
-
-    def CheckValues(self, text, item, x, y, direction):
-        mainText1 = QGraphicsProxyWidget()
-        dcr1 = QLabel(f"{text}: {item}")
-        font = QFont()
-        font.setPointSize(7)
-        dcr1.setFont(font)
-        mainText1.setWidget(dcr1)
-        # text = QGraphicsTextItem("Hello, PySide6!")
-
-        # Set the color of the text to red
-        if item > 1:
-            dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
+        dcr_shear = prop["dcr_shear"]
+        dcr_tension = prop["dcr_tension"]
+        dcr_compression = prop["dcr_compression"]
+        dcr = [dcr_shear, dcr_tension, dcr_compression]
+        color = "green"
+        for i in dcr:
+            if i > 1:
+                color = "red"
+                break
+        if color == "red":
+            self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
+            self.CheckValuesNew(dcr_shear, dcr_tension, dcr_compression, x1_main, y1_main, direction)
 
         else:
-            dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
-        if direction == "N-S":
-            mainText1.setRotation(90)
-            mainText1.setPos(x - 1.1 * self.shearWall_width, y)
-        else:
-            mainText1.setPos(x, y + 0.8 * self.shearWall_width)
+            self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
+            self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
+        self.TextValue(f"{prop['type']}", x1_main, y1_main, direction)
 
-        # LabelText = QLabel(label)
-        self.scene.addItem(mainText1)
+        # self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        # self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
 
-    def CheckValuesNew(self, bending_dcr, shear_dcr, deflection_dcr, x, y, direction):
+        BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, "SW" + prop["label"], direction)
+
+    def CheckValuesNew(self, dcr_shear, dcr_tension, dcr_compression, x, y, direction):
         mainText1 = QGraphicsProxyWidget()
-        dcr1 = QLabel(f"DCR <sub>m</sub>: {bending_dcr}, ")
-        dcr2 = QLabel(f"DCR <sub>v</sub>: {shear_dcr}, ")
-        dcr3 = QLabel(f"DCR <sub>def</sub>: {deflection_dcr}")
+        dcr1 = QLabel(f"DCR <sub>shear</sub>: {dcr_shear}, ")
+        dcr2 = QLabel(f"DCR <sub>tension</sub>: {dcr_tension}, ")
+        dcr3 = QLabel(f"DCR <sub>comp</sub>: {dcr_compression}")
         font = QFont()
         font.setPointSize(7)
         dcr1.setFont(font)
@@ -144,9 +151,9 @@ class DrawShearWall(QDialog):
         mainText1.setWidget(widget)
         # text = QGraphicsTextItem("Hello, PySide6!")
 
-        self.setColor(bending_dcr, dcr1)
-        self.setColor(shear_dcr, dcr2)
-        self.setColor(deflection_dcr, dcr3)
+        self.setColor(dcr_shear, dcr1)
+        self.setColor(dcr_tension, dcr2)
+        self.setColor(dcr_compression, dcr3)
         if direction == "N-S":
             mainText1.setRotation(90)
             mainText1.setPos(x - 0.4 * self.shearWall_width, y)
@@ -176,9 +183,9 @@ class DrawShearWall(QDialog):
         dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
         if direction == "N-S":
             mainText1.setRotation(90)
-            mainText1.setPos(x + 1.5 * self.shearWall_width, y)
+            mainText1.setPos(x + 1.1 * self.shearWall_width, y)
         else:
-            mainText1.setPos(x, y - 1.5 * self.shearWall_width)
+            mainText1.setPos(x, y - 1.1 * self.shearWall_width)
 
         # LabelText = QLabel(label)
         self.scene.addItem(mainText1)
@@ -244,7 +251,7 @@ class Rectangle(QGraphicsRectItem):
 
 
 class ShearWallStoryBy:
-    def __init__(self, shearWalls, GridClass):
+    def __init__(self, shearWalls, GridClass, story):
         print(shearWalls)
         # coordinate = [i["coordinate_main"] for i in shearWalls]
         # label = [i["label"] for i in shearWalls]
@@ -254,6 +261,7 @@ class ShearWallStoryBy:
         self.view = None
         # instance = DrawShearWall()
         self.dialog = DrawShearWall(GridClass)
+        self.dialog.story(story)
 
         self.view = self.dialog.view
         for shearWall in shearWalls:
