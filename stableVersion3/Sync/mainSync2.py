@@ -14,6 +14,7 @@ from UI_Wood.stableVersion3.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion3.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion3.output.joist_output import Joist_output
 from UI_Wood.stableVersion3.Sync.shearWallSync2 import ShearWallSync2
+from UI_Wood.stableVersion3.Sync.studWallSync2 import StudWallSync2
 import time
 
 
@@ -310,6 +311,7 @@ class mainSync2(Data):
             self.studWalls.append(studWall)
         generalProp = ControlGeneralProp(self.general_properties)
         studWallSync = StudWallSync(self.studWalls, generalProp.height)
+        dataInstance = StudWallSync2(self.GridDrawClass)
 
         self.studWallRun = True
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
