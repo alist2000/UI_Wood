@@ -127,13 +127,13 @@ class ControlTab:
             self.studWalls.append(studWall)
             self.loadMaps.append(loadMap)
 
-        # Design should be started from Roof.
-        self.posts.reverse()
-        self.beams.reverse()
-        self.joists.reverse()
-        self.shearWalls.reverse()
-        self.studWalls.reverse()
-        self.loadMaps.reverse()
+        # # Design should be started from Roof.
+        # self.posts.reverse()
+        # self.beams.reverse()
+        # self.joists.reverse()
+        # self.shearWalls.reverse()
+        # self.studWalls.reverse()
+        # self.loadMaps.reverse()
 
         # CREATE DB FOR OUTPUT.
         db = Sqlreports()
