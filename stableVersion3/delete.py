@@ -93,34 +93,34 @@ class DeleteObject:
             loadMapObjects = sourceTab.load_instance.rect_prop
             for item in items:
                 if item == "post":
-                    for postObject, postProp in postObjects.items():
+                    for postObject, postProp in list(postObjects.items()):
                         try:
                             sourceTab.snapPoint.remove_point(postProp["coordinate"])
                         except:
                             pass
-                        del postProp
+                        del postObject.post_prop[postObject]
                         sourceTab.scene.removeItem(postObject)
                 elif item == "beam":
-                    for beamObject, beamProp in beamObjects.items():
+                    for beamObject, beamProp in list(beamObjects.items()):
                         try:
                             sourceTab.snapPoint.remove_point(beamProp["coordinate"][0])
                             sourceTab.snapPoint.remove_point(beamProp["coordinate"][1])
                             sourceTab.snapLine.remove_line(tuple(beamProp["coordinate"]))
                         except:
                             pass
-                        del beamProp
+                        del beamObject.rect_prop[beamObject]
                         sourceTab.scene.removeItem(beamObject)
                 elif item == "joist":
-                    for joistObject, joistProp in joistObjects.items():
+                    for joistObject, joistProp in list(joistObjects.items()):
                         for point in joistProp["coordinate"]:
                             try:
                                 sourceTab.snapPoint.remove_point(point)
                             except:
                                 pass
-                        del joistProp
+                        del joistObject.rect_prop[joistObject]
                         sourceTab.scene.removeItem(joistObject)
                 elif item == "shearWall":
-                    for shearWallObject, shearWallProp in shearWallObjects.items():
+                    for shearWallObject, shearWallProp in list(shearWallObjects.items()):
                         # delete snap points (start & end)
                         try:
                             sourceTab.snapPoint.remove_point(shearWallProp["post"]["start_center"])
@@ -132,29 +132,29 @@ class DeleteObject:
                         if type(shearWallProp["post"]["start_rect_item"]) is not str:
                             sourceTab.scene.removeItem(shearWallProp["post"]["start_rect_item"])
                             sourceTab.scene.removeItem(shearWallProp["post"]["end_rect_item"])
-                        # delete item
-                        del shearWallProp
+                            # delete item
+                        del shearWallObject.rect_prop[shearWallObject]
                         sourceTab.scene.removeItem(shearWallObject)
 
                 elif item == "studWall":
-                    for studWallObject, studWallProp in studWallObjects.items():
+                    for studWallObject, studWallProp in list(studWallObjects.items()):
                         try:
                             sourceTab.snapPoint.remove_point(studWallProp["coordinate"][0])
                             sourceTab.snapPoint.remove_point(studWallProp["coordinate"][1])
                             sourceTab.snapLine.remove_line(tuple(studWallProp["coordinate"]))
                         except:
                             pass
-                        del studWallProp
+                        del studWallObject.rect_prop[studWallObject]
                         sourceTab.scene.removeItem(studWallObject)
 
                 elif item == "loadMap":
-                    for loadMapObject, loadProp in loadMapObjects.items():
+                    for loadMapObject, loadProp in list(loadMapObjects.items()):
                         for point in loadProp["coordinate"]:
                             try:
                                 sourceTab.snapPoint.remove_point(point)
                             except:
                                 pass
-                        del loadProp
+                        del loadMapObject.rect_prop[loadMapObject]
                         sourceTab.scene.removeItem(loadMapObject)
 
                 elif item == "Selected Objects":
@@ -173,7 +173,8 @@ class DeleteObject:
                             try:
                                 sourceTab.snapPoint.remove_point(selectedItem.rect_prop[selectedItem]["coordinate"][0])
                                 sourceTab.snapPoint.remove_point(selectedItem.rect_prop[selectedItem]["coordinate"][1])
-                                sourceTab.snapLine.remove_line(tuple(selectedItem.rect_prop[selectedItem]["coordinate"]))
+                                sourceTab.snapLine.remove_line(
+                                    tuple(selectedItem.rect_prop[selectedItem]["coordinate"]))
                             except:
                                 pass
                             del selectedItem.rect_prop[selectedItem]
@@ -193,7 +194,8 @@ class DeleteObject:
                             try:
                                 sourceTab.snapPoint.remove_point(
                                     selectedItem.rect_prop[selectedItem]["post"]["start_center"])
-                                sourceTab.snapPoint.remove_point(selectedItem.rect_prop[selectedItem]["post"]["end_center"])
+                                sourceTab.snapPoint.remove_point(
+                                    selectedItem.rect_prop[selectedItem]["post"]["end_center"])
                             except:
                                 pass
 
@@ -211,7 +213,8 @@ class DeleteObject:
                             try:
                                 sourceTab.snapPoint.remove_point(selectedItem.rect_prop[selectedItem]["coordinate"][0])
                                 sourceTab.snapPoint.remove_point(selectedItem.rect_prop[selectedItem]["coordinate"][1])
-                                sourceTab.snapLine.remove_line(tuple(selectedItem.rect_prop[selectedItem]["coordinate"]))
+                                sourceTab.snapLine.remove_line(
+                                    tuple(selectedItem.rect_prop[selectedItem]["coordinate"]))
                             except:
                                 pass
                             del selectedItem.rect_prop[selectedItem]
