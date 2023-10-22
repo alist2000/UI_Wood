@@ -55,18 +55,19 @@ class beam_output_handler:
         self.support_list = list(set(self.support_list))
         if len(self.support_list) == 1:
             self.support_list[0] = [self.support_list[0][0], (1, 1, 1)]
+        n1 = len(str(self.start).split(".")[1])
+        n2 = len(str(self.end).split(".")[1])
+        length = round(self.end - self.start, max(n1, n2))
         # if beam have no support, we should ignore it.
         if self.support_list:
             self.pointLoad = ControlPointLoad(beamProp["load"]["point"], beamProp, self.direction_index)
             self.reactionLoad = ControlReactionLoad(beamProp["load"]["reaction"], beamProp, self.direction_index)
-            self.finalPointLoad = CombinePointLoads(self.pointLoad.loadSet, self.reactionLoad.loadSet)
+            self.finalPointLoad = CombinePointLoads(self.pointLoad.loadSet, self.reactionLoad.loadSet,length)
             self.distributedLoad = ControlDistributetLoad(beamProp["load"]["joist_load"]["load_map"], self.start)
             self.lineLoad = ControlLineLoad(beamProp["load"]["line"], beamProp, self.direction_index)
             print("loadset line load", self.lineLoad.loadSet)
             self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
                                                            decimal_number)
-            n1 = len(str(self.start).split(".")[1])
-            n2 = len(str(self.end).split(".")[1])
 
             self.beamProp_dict = {
                 "label": beamProp["label"],
@@ -375,7 +376,7 @@ class ControlReactionLoad:
 
 
 class CombinePointLoads:
-    def __init__(self, pointLoad, reactionLoad):
+    def __init__(self, pointLoad, reactionLoad, length):
         """
         The above function initializes a class instance with point loads and reaction loads, combines them based on their
         start coordinates, and adds them to a load set.
@@ -385,8 +386,8 @@ class CombinePointLoads:
         :param reactionLoad: The parameter "reactionLoad" is a list of dictionaries. Each dictionary represents a reaction
         load and has two key-value pairs: "start" and "load"
         """
-        start1 = [i["start"] for i in pointLoad]
-        start2 = [i["start"] for i in reactionLoad]
+        start1 = [i["start"] if i["start"] <= length else length for i in pointLoad ]
+        start2 = [i["start"] if i["start"] <= length else length for i in reactionLoad]
         start = list(set(start1 + start2))
         self.loadSet = []
         for coordinate in start:
