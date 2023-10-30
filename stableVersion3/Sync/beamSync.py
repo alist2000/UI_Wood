@@ -40,6 +40,14 @@ class beamAnalysisSync:
                 inputDB = self.InputDB
             else:
                 inputDB = beamSQL()
+            # for i, beamTab in enumerate(beam):
+            #     beamOutput = beam_output(beamTab)
+            #     for beamNum, beam_ in enumerate(beamOutput.beamProperties):
+            #         # beam with no support are empty(False)
+            #         if beam_:
+            #             WriteBeamInputSQL(beam_, str(i + 1), beamIdInput, inputDB)
+            #             beamIdInput += 1
+
             for i, beamTab in enumerate(beam):
                 BeamStory = []
                 self.reaction_list.clear()
@@ -75,8 +83,8 @@ class beamAnalysisSync:
                 for beamNum, beam_ in enumerate(beamOutput.beamProperties):
                     # beam with no support are empty(False)
                     if beam_:
-                        WriteBeamInputSQL(beam_, str(tabNumber + 1), beamIdInput, inputDB)
-                        beamIdInput += 1
+                        # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamIdInput, inputDB)
+                        # beamIdInput += 1
                         if beam_["label"] not in beamDesignedList:
                             beam_analysis = MainBeam(beam_)
                             if beam_analysis.query[0] != "No Section Was Adequate":
@@ -114,6 +122,13 @@ class beamAnalysisSync:
                         continue
                     else:
                         break
+            for i, beamTab in enumerate(beam):
+                beamOutput = beam_output(beamTab)
+                for beamNum, beam_ in enumerate(beamOutput.beamProperties):
+                    # beam with no support are empty(False)
+                    if beam_:
+                        WriteBeamInputSQL(beam_, str(i + 1), beamIdInput, inputDB)
+                        beamIdInput += 1
 
     @staticmethod
     def DesignPrimaryBeam(beam_support, beamId, reaction_list, tabNumber, db, beamTab, Posts, ShearWalls, beamDesigned,
@@ -129,6 +144,7 @@ class beamAnalysisSync:
         for beamNum, beam_ in enumerate(beamOutput.beamProperties):
             # beam with no support are empty(False)
             if beam_:
+                # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
                 label = beam_["label"]
 
                 if label not in beam_support and label not in beamDesigned:
@@ -142,7 +158,6 @@ class beamAnalysisSync:
                             f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
                         figs[1].write_image(
                             f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png")
-                        # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
                         beam_analysis.query.insert(0, str(beamId))
                         beam_analysis.query.insert(1, str(tabNumber + 1))
                         beam_analysis.query.insert(2, beam_["label"])
@@ -159,6 +174,7 @@ class beamAnalysisSync:
                         BeamStory.append(beam_)
 
                     Control_reaction(beam_analysis.output.post_output, beamTab[beamNum], reaction_list)
+                    # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
                     beamId += 1
 
         # # assign beam reactions
