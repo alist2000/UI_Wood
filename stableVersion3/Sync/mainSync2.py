@@ -256,7 +256,7 @@ class mainSync2(Data):
         JoistArea = JoistSumArea(self.joists)
         storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
         shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
-        # self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
+        self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
 
         shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
         noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
