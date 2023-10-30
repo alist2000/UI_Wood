@@ -123,8 +123,26 @@ class shearWallDrawing(QGraphicsRectItem):
                                 self.line = self.line[0]
 
                         # OFFSET CONTROL
-                        start_point, end_point = control_offset(self.direction, self.start_pos.toTuple(), end_point,
+                        # start_point, end_point = control_offset(self.direction, self.start_pos.toTuple(), end_point,
+                        #                                         self.offset)
+                        width = end_point[0] - start_point[0]
+                        height = end_point[1] - start_point[1]
+                        self.start_pos = QPointF(round(start_point[0]), round(start_point[1]))
+                        if self.direction == "E-W":
+                            width = round(width / (magnification_factor / 2)) * (magnification_factor / 2)
+                            pos = QPoint(width + self.start_pos.x(), self.start_pos.y())
+                        else:
+                            height = round(height / (magnification_factor / 2)) * (magnification_factor / 2)
+                            pos = QPoint(self.start_pos.x(), height + self.start_pos.y())
+                        start_point, end_point = control_offset(self.direction, self.start_pos.toTuple(), pos.toTuple(),
                                                                 self.offset)
+                        # if self.direction == "E-W":
+                        #     pos = QPoint(round(end_point[0] / (magnification_factor / 2)) * (magnification_factor / 2),
+                        #                  end_point[1])
+                        # else:
+                        #     pos = QPoint(end_point[0],
+                        #                  round(end_point[1] / (magnification_factor / 2)) * (magnification_factor / 2))
+
                         self.start_pos = QPointF(start_point[0], start_point[1])
                         pos = QPoint(end_point[0], end_point[1])
                         snapped_pos = QPoint(end_point[0], end_point[1])
@@ -191,14 +209,26 @@ class shearWallDrawing(QGraphicsRectItem):
                 else:
                     # self.direction = "N-S"
                     direction = "N-S"
-            # OFFSET CONTROL
+
+            # xSnap, ySnap = snapped_pos.toTuple()
+            # if direction == "E-W":
+            #     snapped_pos = QPoint(round(xSnap / (magnification_factor / 2)) * (magnification_factor / 2),
+            #                          ySnap)
+            # else:
+            #     snapped_pos = QPoint(xSnap,
+            #                          round(ySnap / (magnification_factor / 2)) * (magnification_factor / 2))
+            # # OFFSET CONTROL
             start_point, snapped_pos = control_offset(direction, self.start_pos.toTuple(), snapped_pos.toTuple(),
                                                       self.offset)
-            start_pos = QPointF(start_point[0], start_point[1])
-            pos = QPoint(snapped_pos[0], snapped_pos[1])
             snapped_pos = QPoint(snapped_pos[0], snapped_pos[1])
+            start_pos = QPointF(start_point[0], start_point[1])
+            width = abs(snapped_pos.x() - self.start_pos.x())
+            height = abs(snapped_pos.y() - self.start_pos.y())
+            # pos = QPoint(snapped_pos[0], snapped_pos[1])
+            # snapped_pos = QPoint(snapped_pos[0], snapped_pos[1])
 
             if direction == "E-W":
+                width = round(width / (magnification_factor / 2) * (magnification_factor / 2))
                 # Move horizontally, keep vertical dimension constant
                 self.current_rect.setRect(min(start_pos.x(), snapped_pos.x()),
                                           start_pos.y() - self.shearWall_width / 2, abs(width),
@@ -212,6 +242,8 @@ class shearWallDrawing(QGraphicsRectItem):
                 self.dimension.setRotation(0)
 
             else:
+                height = round(height / (magnification_factor / 2) * (magnification_factor / 2))
+
                 # Move vertically, keep horizontal dimension constant
                 self.current_rect.setRect(start_pos.x() - self.shearWall_width / 2,
                                           min(start_pos.y(), snapped_pos.y()), self.shearWall_width,
@@ -227,17 +259,25 @@ class shearWallDrawing(QGraphicsRectItem):
             self.scene.addItem(self.dimension)
 
     def finalize_rectangle(self, pos, direction):
-        snapped_pos = self.snapPoint.snap(pos)
-        # if snap to some point we don't need to check with snap line
-        if pos == snapped_pos:
-            snapped_pos = self.snapLine.snap(pos)
+        snapped_pos = pos
+        # snapped_pos = self.snapPoint.snap(pos)
+        # # if snap to some point we don't need to check with snap line
+        # if pos == snapped_pos:
+        #     snapped_pos = self.snapLine.snap(pos)
         width = snapped_pos.x() - self.start_pos.x()
         height = snapped_pos.y() - self.start_pos.y()
-
+        # if direction == "E-W":
+        #     width = round(width / (magnification_factor / 2) * (magnification_factor / 2))
+        #     snapped_pos = QPoint(width + self.start_pos.x(), snapped_pos.y())
+        # else:
+        #     height = round(height / (magnification_factor / 2) * (magnification_factor / 2))
+        #     snapped_pos = QPoint(snapped_pos.x(), height + self.start_pos.y())
         if direction == "E-W":
+            # width = round(width / (magnification_factor / 2) * (magnification_factor / 2))
             self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
                                       self.start_pos.y() - self.shearWall_width / 2, abs(width), self.shearWall_width)
         else:
+            # height = round(height / (magnification_factor / 2) * (magnification_factor / 2))
             self.current_rect.setRect(self.start_pos.x() - self.shearWall_width / 2,
                                       min(self.start_pos.y(), snapped_pos.y()), self.shearWall_width,
                                       abs(height))
@@ -451,7 +491,7 @@ class shearWallDrawing(QGraphicsRectItem):
         y1 = start[1]
         y2 = end[1]
         l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
-        return round(l, 2)
+        return round(l, 1)
 
     # SLOT
     def shearWall_selector(self):
@@ -581,7 +621,7 @@ class ShearWallProperties(QDialog):
         # calc length
         l = self.length(start, end)
         label3 = QLabel("Length")
-        length = QLabel(f"{l}")
+        length = QLabel(f'{round(self.rect_prop[self.rectItem]["length"] / magnification_factor, 2)}')
 
         direction_label = QLabel("Direction")
         direction = QLabel(self.rect_prop[self.rectItem]["direction"])
