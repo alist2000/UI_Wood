@@ -63,7 +63,7 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -110)
                 grid.scene.addItem(label)
                 # Post Image
-                PointDraw(postCoordinate, postLabels, grid.scene, i)
+                PointDraw(self.PostList[str(story)], grid.scene, i)
             except KeyError:
                 pass
             try:
@@ -71,7 +71,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid.scene.addItem(label)
-                LineDraw(beamCoordinate, beamLabels, grid.scene, i, "beam")
+                LineDraw(self.BeamList[str(story)], grid.scene, i, "beam")
             except KeyError:
                 pass
 
@@ -85,7 +85,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid.scene.addItem(label)
-                LineDraw(shearWallCoordinate, editedLabel, grid.scene, i, "shearWall")
+                LineDraw(self.ShearWallList[str(storyWall)], grid.scene, i, "shearWall")
             except KeyError:
                 pass
 
@@ -99,7 +99,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid.scene.addItem(label)
-                LineDraw(studWallCoordinate, editedLabel, grid.scene, i, "studWall")
+                LineDraw(self.StudWallList[str(storyWall)], grid.scene, i, "studWall")
             except KeyError:
                 pass
 
@@ -110,7 +110,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid.scene.addItem(label)
-                AreaDraw(joistCoordinate, joistLabels, grid.scene, i, joistOrientations)
+                AreaDraw(self.JoistList[str(story)], grid.scene, i)
             except KeyError:
                 pass
 
