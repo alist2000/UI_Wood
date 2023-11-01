@@ -2,31 +2,108 @@ from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
 from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
 from UI_Wood.stableVersion3.mouse import SelectableLineItem
 
-from PySide6.QtGui import QPainter, QPixmap, QFont
+from PySide6.QtGui import QPainter, QPixmap, QFont, QPen, QBrush, QColor
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel
 
 
 class PointDraw:
-    def __init__(self, coordinates, labels, scene, story):
+    def __init__(self, properties, scene, story):
         self.story = story
         self.scene = scene
+        coordinates = properties["coordinate"]
+        labels = properties["label"]
         self.post_dimension = magnification_factor  # Set post dimension
         for i, coordinate in enumerate(coordinates):
+            size = properties["size"][i]
+            axial_dcr = properties["axial_dcr"][i]
             x, y = coordinate
             rect_width = rect_height = self.post_dimension
             rect_item = CustomRectItem(None)
             rect_item.setRect(x - rect_width / 2, y - rect_height / 2, rect_width, rect_height)
             scene.addItem(rect_item)
+            mainText = QGraphicsProxyWidget()
+            sizeMain = QGraphicsProxyWidget()
+            dcr = QLabel(f"Axial DCR: {axial_dcr}")
+            sizeLabel = QLabel(f"{size}")
+            font = QFont()
+            font.setPointSize(10)
+            dcr.setFont(font)
+            font2 = QFont()
+            font2.setPointSize(15)
+            sizeLabel.setFont(font2)
+            mainText.setWidget(dcr)
+            sizeMain.setWidget(sizeLabel)
+            # text = QGraphicsTextItem("Hello, PySide6!")
+
+            # Set the color of the text to red
+            mainText.setPos(x - rect_width, y + 0.6 * rect_width)
+            sizeMain.setPos(x - 0.3 * magnification_factor, y - 0.5 * magnification_factor)
+            sizeLabel.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+
+            self.scene.addItem(sizeMain)
+
+            if axial_dcr > 1:
+                rect_item.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+                rect_item.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
+                dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
+                self.scene.addItem(mainText)
+            else:
+                rect_item.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
+                rect_item.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
+                dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
+
+            # LabelText = QLabel(label)
+            Label = QGraphicsProxyWidget()
+            LabelText = QLabel(labels[i])
+            font = QFont()
+            font.setPointSize(16)
+            LabelText.setFont(font)
+            # sizeMain.setFont(font)
+            LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+            Label.setWidget(LabelText)
             PostLabel(x, y, scene, labels[i])
             # return rect_item
         self.saveImage()
 
         for i, coordinate in enumerate(coordinates):
+            size = properties["size"][i]
+            axial_dcr = properties["axial_dcr"][i]
             x, y = coordinate
             rect_width = rect_height = self.post_dimension
             rect_item = CustomRectItem(None, "not normal")
             rect_item.setRect(x - rect_width / 2, y - rect_height / 2, rect_width, rect_height)
+            mainText = QGraphicsProxyWidget()
+            dcr = QLabel(f"Axial DCR: {axial_dcr}")
+            font = QFont()
+            font.setPointSize(10)
+            dcr.setFont(font)
+            mainText.setWidget(dcr)
+            # text = QGraphicsTextItem("Hello, PySide6!")
+
+            # Set the color of the text to red
+            mainText.setPos(x - rect_width, y + 0.6 * rect_width)
+            if axial_dcr > 1:
+                dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
+                self.scene.addItem(mainText)
+            else:
+                dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
+
+            # LabelText = QLabel(label)
+            self.scene.addItem(rect_item)
+
+            Label = QGraphicsProxyWidget()
+            LabelText = QLabel(labels[i])
+            font = QFont()
+            font.setPointSize(16)
+            LabelText.setFont(font)
+            LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+            Label.setWidget(LabelText)
+
+            # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
+            Label.setPos(x - 1.1 * rect_width, y - 1.1 * rect_width)
+
+            self.scene.addItem(Label)
             scene.addItem(rect_item)
             self.saveImageElement(labels[i])
             self.scene.removeItem(rect_item)
@@ -108,7 +185,6 @@ class PointDraw:
         pixmap.save(f"images/output/Posts_label_{label}_story{self.story + 1}.png")
 
 
-
 class PostLabel:
     def __init__(self, x, y, scene, label):
         # Create a line shape
@@ -131,3 +207,8 @@ class PostLabel:
 
         scene.addItem(Label)
         # BeamLabel(x + 30, y - 50, scene, label, "E-W", 12, 6, 30)
+
+
+class postDraw:
+    def __init__(self):
+        pass
