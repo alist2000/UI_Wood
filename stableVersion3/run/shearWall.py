@@ -109,7 +109,8 @@ class DrawShearWall(QDialog):
         dcr_shear = prop["dcr_shear"]
         dcr_tension = prop["dcr_tension"]
         dcr_compression = prop["dcr_compression"]
-        dcr = [dcr_shear, dcr_tension, dcr_compression]
+        dcr_deflection = prop["dcr_deflection"]
+        dcr = [dcr_shear, dcr_tension, dcr_compression, dcr_deflection]
         color = "green"
         for i in dcr:
             if i > 1:
@@ -118,7 +119,7 @@ class DrawShearWall(QDialog):
         if color == "red":
             self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-            self.CheckValuesNew(dcr_shear, dcr_tension, dcr_compression, x1_main, y1_main, direction)
+            self.CheckValuesNew(dcr_shear, dcr_tension, dcr_compression, dcr_deflection, x1_main, y1_main, direction)
 
         else:
             self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
@@ -130,16 +131,18 @@ class DrawShearWall(QDialog):
 
         BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, "SW" + prop["label"], direction)
 
-    def CheckValuesNew(self, dcr_shear, dcr_tension, dcr_compression, x, y, direction):
+    def CheckValuesNew(self, dcr_shear, dcr_tension, dcr_compression,dcr_deflection, x, y, direction):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(f"DCR <sub>shear</sub>: {dcr_shear}, ")
         dcr2 = QLabel(f"DCR <sub>tension</sub>: {dcr_tension}, ")
         dcr3 = QLabel(f"DCR <sub>comp</sub>: {dcr_compression}")
+        dcr4 = QLabel(f"DCR <sub>deflection</sub>: {dcr_deflection}")
         font = QFont()
         font.setPointSize(7)
         dcr1.setFont(font)
         dcr2.setFont(font)
         dcr3.setFont(font)
+        dcr4.setFont(font)
         layout = QHBoxLayout()
         layout.setSpacing(7)  # Set the space between widgets to 20 pixels
         layout.addWidget(dcr1)
@@ -154,6 +157,7 @@ class DrawShearWall(QDialog):
         self.setColor(dcr_shear, dcr1)
         self.setColor(dcr_tension, dcr2)
         self.setColor(dcr_compression, dcr3)
+        self.setColor(dcr_deflection, dcr4)
         if direction == "N-S":
             mainText1.setRotation(90)
             mainText1.setPos(x - 0.4 * self.shearWall_width, y)

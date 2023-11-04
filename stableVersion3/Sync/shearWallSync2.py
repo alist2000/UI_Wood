@@ -61,7 +61,8 @@ class ShearWallSync2:
                     "type": i[4],
                     "dcr_shear": i[5],
                     "dcr_tension": maxTension,
-                    "dcr_compression": maxComp
+                    "dcr_compression": maxComp,
+                    "dcr_deflection": i[10]
                 })
             else:
                 MainDict[i[0]].append({
@@ -71,6 +72,7 @@ class ShearWallSync2:
                     "type": i[4],
                     "dcr_shear": i[5],
                     "dcr_tension": maxTension,
-                    "dcr_compression": maxComp
+                    "dcr_compression": maxComp,
+                    "dcr_deflection": i[10]
                 })
         return MainDict
