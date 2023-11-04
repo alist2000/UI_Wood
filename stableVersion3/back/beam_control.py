@@ -66,10 +66,10 @@ class beam_control_support:
             beamProp["support"] = []
             # Control post support
             for postItem, postProp in self.post.items():
-                is_support, post_range = self.main_is_point_on_line(postProp["coordinate"], start, end)
+                is_support, post_range, coord = self.main_is_point_on_line(postProp["coordinate"], start, end)
                 if is_support:
                     beamProp["support"].append(
-                        {"label": postProp["label"], "type": "post", "coordinate": postProp["coordinate"],
+                        {"label": postProp["label"], "type": "post", "coordinate": coord,
                          "range": post_range})
 
     def add_shearWall_post_support(self):
@@ -80,35 +80,46 @@ class beam_control_support:
             # Control ShearWall post support
             for shearWallItem, shearWallProp in self.shearWall.items():
                 # note: start and end of shear wall also consider as post coordinate
-                is_support1, post_range1 = self.main_is_point_on_line(shearWallProp["post"]["start_center"], start, end)
-                is_support2, post_range2 = self.main_is_point_on_line(shearWallProp["coordinate"][0], start, end)
+                is_support1, post_range1, coord1 = self.main_is_point_on_line(shearWallProp["post"]["start_center"],
+                                                                              start, end)
+                is_support2, post_range2, coord2 = self.main_is_point_on_line(shearWallProp["coordinate"][0], start,
+                                                                              end)
                 if is_support1 or is_support2:
                     if is_support1:
                         post_range = post_range1
-                        coordinate = shearWallProp["post"]["start_center"]
+                        # coordinate = shearWallProp["post"]["start_center"]
+                        coordinate = coord1
                     else:
                         post_range = post_range2
-                        coordinate = shearWallProp["coordinate"][0]
-                    beamProp["support"].append(
-                        {"label": shearWallProp["post"]["label_start"], "type": "shearWall_post",
-                         "coordinate": coordinate,
-                         "range": post_range})
-                is_support1, post_range1 = self.main_is_point_on_line(shearWallProp["post"]["end_center"], start, end)
-                is_support2, post_range2 = self.main_is_point_on_line(shearWallProp["coordinate"][1], start, end)
+                        coordinate = coord2
+                        # coordinate = shearWallProp["coordinate"][0]
+                    coords = [i["coordinate"] for i in beamProp["support"]]
+                    if coordinate not in coords:
+                        beamProp["support"].append(
+                            {"label": shearWallProp["post"]["label_start"], "type": "shearWall_post",
+                             "coordinate": coordinate,
+                             "range": post_range})
+                is_support1, post_range1, coord1 = self.main_is_point_on_line(shearWallProp["post"]["end_center"],
+                                                                              start, end)
+                is_support2, post_range2, coord2 = self.main_is_point_on_line(shearWallProp["coordinate"][1], start,
+                                                                              end)
 
                 if is_support1 or is_support2:
                     if is_support1:
                         post_range = post_range1
-                        coordinate = shearWallProp["post"]["end_center"]
+                        # coordinate = shearWallProp["post"]["end_center"]
+                        coordinate = coord1
 
                     else:
                         post_range = post_range2
-                        coordinate = shearWallProp["coordinate"][1]
-
-                    beamProp["support"].append(
-                        {"label": shearWallProp["post"]["label_end"], "type": "shearWall_post",
-                         "coordinate": coordinate,
-                         "range": post_range})
+                        # coordinate = shearWallProp["coordinate"][1]
+                        coordinate = coord2
+                    coords = [i["coordinate"] for i in beamProp["support"]]
+                    if coordinate not in coords:
+                        beamProp["support"].append(
+                            {"label": shearWallProp["post"]["label_end"], "type": "shearWall_post",
+                             "coordinate": coordinate,
+                             "range": post_range})
 
     def add_beam_support(self):
         for beamItem, beamProp in self.beam.items():
@@ -122,7 +133,8 @@ class beam_control_support:
                     label_number2 = float(beamProp2["label"][1:])
 
                     # CONTROL START BEAM SUPPORT (BEAM TO BEAM)
-                    is_support, post_range = self.main_is_point_on_line(start, start2, end2)
+                    is_support, post_range, coord = self.main_is_point_on_line(start, start2, end2,
+                                                                               magnification_factor / 10)
                     if is_support:
                         if post_range == "mid":
                             Type = "beam_mid_support"
@@ -136,14 +148,29 @@ class beam_control_support:
                                 add = True
                             else:
                                 add = False
-                        if add:
-                            beamProp["support"].append(
-                                {"label": beamProp2["label"], "type": Type,
-                                 "coordinate": start,
-                                 "range": "start"})
+                        coords = [i["coordinate"] for i in beamProp["support"]]
+
+                        if add and coord not in coords:
+                            if post_range == "mid":
+                                if label_number > label_number2:
+                                    beamProp["support"].append(
+                                        {"label": beamProp2["label"], "type": Type,
+                                         "coordinate": coord,
+                                         "range": "start"})
+                                else:
+                                    beamProp2["support"].append(
+                                        {"label": beamProp["label"], "type": Type,
+                                         "coordinate": coord,
+                                         "range": "mid"})
+                            else:
+                                beamProp["support"].append(
+                                    {"label": beamProp2["label"], "type": Type,
+                                     "coordinate": coord,
+                                     "range": "start"})
 
                     # CONTROL END BEAM SUPPORT (BEAM TO BEAM)
-                    is_support, post_range = self.main_is_point_on_line(end, start2, end2)
+                    is_support, post_range, coord = self.main_is_point_on_line(end, start2, end2,
+                                                                               magnification_factor / 10)
                     if is_support:
                         if post_range == "mid":
                             Type = "beam_mid_support"
@@ -157,11 +184,24 @@ class beam_control_support:
                                 add = True
                             else:
                                 add = False
-                        if add:
-                            beamProp["support"].append(
-                                {"label": beamProp2["label"], "type": Type,
-                                 "coordinate": end,
-                                 "range": "end"})
+                        coords = [i["coordinate"] for i in beamProp["support"]]
+                        if add and coord not in coords:
+                            if post_range == "mid":
+                                if label_number > label_number2:
+                                    beamProp["support"].append(
+                                        {"label": beamProp2["label"], "type": Type,
+                                         "coordinate": coord,
+                                         "range": "end"})
+                                else:
+                                    beamProp2["support"].append(
+                                        {"label": beamProp["label"], "type": Type,
+                                         "coordinate": coord,
+                                         "range": "mid"})
+                            else:
+                                beamProp["support"].append(
+                                    {"label": beamProp2["label"], "type": Type,
+                                     "coordinate": coord,
+                                     "range": "end"})
 
     def edit_support(self):
         for beamProp in self.beam.values():
@@ -188,23 +228,26 @@ class beam_control_support:
             beamProp["support"] = final_support
 
     @staticmethod
-    def is_point_on_line(point, line_point1, line_point2):
+    def is_point_on_line(point, line_point1, line_point2, error=magnification_factor / 5):
         (x0, y0) = point
         (x1, y1) = line_point1
         (x2, y2) = line_point2
 
         # Calculate the slopes
         if x2 - x1 == 0:  # To avoid division by zero
-            return x0 == x1 and min(y1, y2) <= y0 <= max(y1, y2)
+            different = abs(x0 - x1)
+            return different < error and min(y1, y2) <= y0 <= max(y1, y2), (x1, y0)
         if x0 - x1 == 0:
-            return y0 == y1 and min(x1, x2) <= x0 <= max(x1, x2)
+            different = abs(y0 - y1)
+            return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
         slope1 = (y2 - y1) / (x2 - x1)
         slope2 = (y0 - y1) / (x0 - x1)
+        different = abs(y0 - y1)
 
-        return slope1 == slope2 and min(x1, x2) <= x0 <= max(x1, x2)
+        return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
 
-    def main_is_point_on_line(self, point, start, end):
-        is_support = self.is_point_on_line(point, start, end)
+    def main_is_point_on_line(self, point, start, end, error=magnification_factor / 5):
+        is_support, coord = self.is_point_on_line(point, start, end, error)
         post_range = None
         if is_support:
             if point == start:
@@ -213,7 +256,7 @@ class beam_control_support:
                 post_range = "end"
             else:
                 post_range = "mid"
-        return is_support, post_range
+        return is_support, post_range, coord
 
 
 class beam_line_creator:
@@ -278,7 +321,12 @@ class beam_control_joist:
                     slope_joist = lines[i]["slope"]
                     c_joist = lines[i]["c"]
                     range_joist_line = lines[i]["range"]
-                    if slope_joist == slope_beam and c_joist == c_beam:
+                    startPointTolerate = abs(c_joist - c_beam)
+                    if startPointTolerate < 15:
+                        startStatus = True
+                    else:
+                        startStatus = False
+                    if slope_joist == slope_beam and startStatus:
                         intersection_range = range_intersection(range_joist_line, range_beam)
                         if intersection_range:
                             # for tributary calculation
