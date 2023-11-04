@@ -127,23 +127,29 @@ def dataExtract(Dict):
 
 class ReportMainTable:
     def __init__(self, tab_widget, storyCount):
+        output1 = "D://git/Wood/Output/beam_report.db"
         postPath = "D://git/Wood/Output/post_Input.db"
         postTable = "postTable"
+        postTableOutput = "POST"
         beamPath = "D://git/Wood/Output/beam_Input.db"
         beamTable = "beamTable"
+        beamTableOutput = "BEAM"
         joistPath = "D://git/Wood/Output/joist_Input.db"
         joistTable = "joistTable"
-        ShearWallPath = "D://git/Wood/Output/ShearWall_Input.db"
-        shearWallTable = "WallTable"
-        StudWallPath = "D://git/Wood/Output/StudWall_Input.db"
-        studWallTable = "WallTable"
+        joistTableOutput = "JOIST"
+        ShearWallPath = "D://git/Wood/Output/ShearWall_output.db"
+        shearWallTable = "shearwalldesign"
+        StudWallPath = "D://git/Wood/Output/stud_report.db"
+        studWallTable = "STUD_REPORT_FILE"
         paths = [postPath, beamPath, joistPath, ShearWallPath, StudWallPath]
+        path2 = [output1, output1, output1, ShearWallPath, StudWallPath]
         tableNames = [postTable, beamTable, joistTable, shearWallTable, studWallTable]
+        tableNames2 = [postTableOutput, beamTableOutput, joistTableOutput, shearWallTable, studWallTable]
         itemNames = ["post", "beam", "joist", "shearWall", "studWall"]
         [self.Posts, self.Beams, self.Joists, self.ShearWalls, self.StudWalls] = list(
             map(self.itemList, paths, tableNames))
         [self.PostsLayout, self.BeamsLayout, self.JoistsLayout, self.ShearWallsLayout, self.StudWallsLayout] = list(
-            map(self.itemListLayout, paths, tableNames, itemNames))
+            map(self.itemListLayout, paths, path2, tableNames, tableNames2, itemNames))
 
         self.StudWalls = self.changeLabel(self.StudWalls, "ST")
         self.ShearWalls = self.changeLabel(self.ShearWalls, "SW")
@@ -307,26 +313,36 @@ class ReportMainTable:
         return newDict
 
     @staticmethod
-    def itemListLayout(path, tableName, itemName):
+    def itemListLayout(path, pathOutput, tableName, tableOutput, itemName):
         # Connect to the SQLite database
         conn = sqlite3.connect(path)
+        connOutput = sqlite3.connect(pathOutput)
 
         # Create a cursor object
         cursor = conn.cursor()
+        cursorOutput = connOutput.cursor()
         if itemName == "post":
             cursor.execute(f"SELECT Story, Label, Coordinate FROM {tableName}")
+            rows = cursor.fetchall()
         elif itemName == "joist":
             cursor.execute(f"SELECT Story, Label, Orientation, Coordinate_start, Coordinate_end FROM {tableName}")
+            rows = cursor.fetchall()
+        elif itemName == "beam":
+            cursor.execute(f"SELECT Story, Label, Coordinate_start, Coordinate_end FROM {tableName}")
+            rows = cursor.fetchall()
+        elif itemName == "shearWall":
+
+            # Fetch all the rows
+            cursorOutput.execute(f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end, Shearwall_Type, Shear_DCR, tension_dcr_left, comp_dcr_left, tension_dcr_right, comp_dcr_right, deflection_dcr_ FROM {tableOutput}")
+            rows = cursorOutput.fetchall()
 
         else:
-            # Execute the query
-            try:
-                cursor.execute(f"SELECT Story, Label, Coordinate_start, Coordinate_end FROM {tableName}")
-            except sqlite3.OperationalError:
-                cursor.execute(f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end FROM {tableName}")
 
-        # Fetch all the rows
-        rows = cursor.fetchall()
+            # Fetch all the rows
+            cursorOutput.execute(f"SELECT STORY, LABEL, Coordinate_start, Coordinate_end, SIZE, dc, dcr_b, d_comb FROM {tableOutput}")
+            rows = cursorOutput.fetchall()
+
+
 
         # Close the connection
         conn.close()
@@ -338,22 +354,119 @@ class ReportMainTable:
         items = {}
         for story in stories:
             if itemName == "joist":
-                items[story] = {"label": [], "coordinate": [], "direction": []}
+                items[story] = {"label": [], "coordinate": [], "direction": [], "bending_dcr": [], "shear_dcr": [],
+                                "deflection_dcr": [], "size": []}
+            elif itemName == "beam":
+                items[story] = {"label": [], "coordinate": [], "bending_dcr": [], "shear_dcr": [],
+                                "deflection_dcr": [], "size": []}
+            elif itemName == "post":
+                items[story] = {"label": [], "coordinate": [],
+                                "axial_dcr": [], "size": []}
+            elif itemName == "shearWall":
+                items[story] = {"label": [], "coordinate": [], "size": [], "dcr_shear": [],
+                                "dcr_tension": [], "dcr_compression": [], "deflection_dcr": []}
             else:
-                items[story] = {"label": [], "coordinate": []}
+                items[story] = {"label": [], "coordinate": [], "size": [], "dcr_comp": [],
+                                "dcr_bend": [], "dcr_comb": []}
 
             for row in rows:
                 if row[0] == story:
-                    items[story]["label"].append(row[1])
+                    try:
+                        items[story]["label"].append(row[1])
+                    except:
+                        print("fuck off")
                     if itemName == "post":
+                        cursorOutput.execute(
+                            f"SELECT SIZE, axial_dcr FROM {tableOutput} WHERE STORY = ? AND LABEL = ?",
+                            [float(story), row[1]])
+                        value = cursorOutput.fetchall()
+                        if value:
+                            [valueMain] = value
+                            size = valueMain[0]
+                            axial_dcr = valueMain[1]
+                        else:
+                            axial_dcr = 999
+                            size = "-"
+                        items[story]["axial_dcr"].append(axial_dcr)
+                        items[story]["size"].append(size)
                         items[story]["coordinate"].append(StrToTuple(row[2]))
                     elif itemName == "joist":
+                        cursorOutput.execute(
+                            f"SELECT SIZE, Bending_dcr, Shear_dcr, defl_dcr FROM {tableOutput} WHERE STORY = ? AND LABEL = ?",
+                            [float(story), row[1]])
+                        value = cursorOutput.fetchall()
+                        if value:
+                            [valueMain] = value
+                            size = valueMain[0]
+                            bending_dcr = valueMain[1]
+                            shear_dcr = valueMain[2]
+                            deflection_dcr = valueMain[3]
+                        else:
+                            bending_dcr = 999
+                            shear_dcr = 999
+                            deflection_dcr = 999
+                            size = "-"
                         items[story]["direction"].append(row[2])
                         items[story]["coordinate"].append([StrToTuple(row[3]),
                                                            StrToTuple(row[4])])
-                    else:
+                        items[story]["bending_dcr"].append(bending_dcr)
+                        items[story]["shear_dcr"].append(shear_dcr)
+                        items[story]["deflection_dcr"].append(deflection_dcr)
+                        items[story]["size"].append(size)
+                    elif itemName == "beam":
+                        cursorOutput.execute(
+                            f"SELECT SIZE, Bending_dcr, Shear_dcr, defl_dcr FROM {tableOutput} WHERE STORY = ? AND LABEL = ?",
+                            [float(story), row[1]])
+                        value = cursorOutput.fetchall()
+                        if value:
+                            [valueMain] = value
+                            size = valueMain[0]
+                            bending_dcr = valueMain[1]
+                            shear_dcr = valueMain[2]
+                            deflection_dcr = valueMain[3]
+                        else:
+                            bending_dcr = 999
+                            shear_dcr = 999
+                            deflection_dcr = 999
+                            size = "-"
                         items[story]["coordinate"].append([StrToTuple(row[2]),
                                                            StrToTuple(row[3])])
+                        items[story]["bending_dcr"].append(bending_dcr)
+                        items[story]["shear_dcr"].append(shear_dcr)
+                        items[story]["deflection_dcr"].append(deflection_dcr)
+                        items[story]["size"].append(size)
+                    elif itemName == "shearWall":
+                        size = row[4]
+                        try:
+                            maxComp = max(round(float(row[7]), 2), round(float(row[9]), 2))
+                        except:
+                            maxComp = "-"
+                        try:
+                            maxTension = max(round(float(row[6]), 2), round(float(row[8]), 2))
+                        except:
+                            maxTension = "-"
+                        shear_dcr = row[5]
+                        deflection_dcr = row[10]
+                        items[story]["coordinate"].append([StrToTuple(row[2]),
+                                                           StrToTuple(row[3])])
+                        items[story]["size"].append(size)
+                        items[story]["dcr_shear"].append(shear_dcr)
+                        items[story]["dcr_tension"].append(maxTension)
+                        items[story]["dcr_compression"].append(maxComp)
+                        items[story]["dcr_compression"].append(maxComp)
+                        items[story]["deflection_dcr"].append(deflection_dcr)
+                    else:
+                        size = row[4]
+                        dcr_comp = row[5]
+                        dcr_bend = row[6]
+                        dcr_comb = row[7]
+
+                        items[story]["coordinate"].append([StrToTuple(row[2]),
+                                                           StrToTuple(row[3])])
+                        items[story]["dcr_comp"].append(dcr_comp)
+                        items[story]["dcr_bend"].append(dcr_bend)
+                        items[story]["dcr_comb"].append(dcr_comb)
+                        items[story]["size"].append(size)
 
             # items[story] = list(items[story])
             # items[story].sort()
