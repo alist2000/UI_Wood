@@ -1,3 +1,5 @@
+import math
+
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
@@ -85,7 +87,8 @@ class beamDrawing(QGraphicsRectItem):
                         if self.beam_loc:  # Add this condition
                             end_point = snapped_pos.toTuple()
                             start_point = self.beam_loc[0]
-                            final_end_point = beam_end_point(start_point, end_point)
+                            # final_end_point = beam_end_point(start_point, end_point)
+                            final_end_point = end_point
                             self.beam_loc.append(final_end_point)
 
                             self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
@@ -160,33 +163,39 @@ class beamDrawing(QGraphicsRectItem):
             # if snap to some point we don't need to check with snap line
             if pos == snapped_pos:
                 snapped_pos = self.snapLine.snap(pos)
+
+            length = (((snapped_pos.x() - self.start_pos.x()) ** 2) + (
+                    (snapped_pos.y() - self.start_pos.y()) ** 2)) ** 0.5
             width = snapped_pos.x() - self.start_pos.x()
             height = snapped_pos.y() - self.start_pos.y()
-            if abs(width) > abs(height):
-                # Move horizontally, keep vertical dimension constant
-                self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
-                                          self.start_pos.y() - self.beam_width / 2, abs(width), self.beam_width)
-                dimension = DimensionLabel(width, magnification_factor)
-
-                self.dimension.setWidget(dimension)
-
-                self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
-                                      self.start_pos.y() - 2 * self.beam_width)
-                self.dimension.setRotation(0)
-
-
+            if width == 0:
+                if height >= 0:
+                    teta = 90
+                else:
+                    teta = -90
             else:
-                # Move vertically, keep horizontal dimension constant
-                self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2,
-                                          min(self.start_pos.y(), snapped_pos.y()), self.beam_width,
-                                          abs(height))
-                dimension = DimensionLabel(height, magnification_factor)
+                teta = math.atan((snapped_pos.y() - self.start_pos.y()) / (
+                        snapped_pos.x() - self.start_pos.x())) * 180 / math.pi  # degree\
+                if width < 0:
+                    teta = 180 + teta
 
-                self.dimension.setWidget(dimension)
+            self.current_rect.setRect(self.start_pos.x(),
+                                      self.start_pos.y() - self.beam_width / 2, length, self.beam_width)
+            dimension = DimensionLabel(length, magnification_factor)
 
-                self.dimension.setPos(self.start_pos.x() - 2 * self.beam_width,
-                                      (self.start_pos.y() + snapped_pos.y()) / 2)
-                self.dimension.setRotation(-90)
+            self.dimension.setWidget(dimension)
+
+            self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
+                                  self.start_pos.y() - 2 * self.beam_width)
+
+            # Set the transformation origin to the start point
+            self.current_rect.setTransformOriginPoint(self.start_pos)
+            # self.dimension.setTransformOriginPoint(snapped_pos)
+            self.dimension.setRotation(teta)
+            # Rotate the rectangle
+            self.current_rect.setRotation(teta)  # rotate by teta degrees
+            self.current_rect.setTransformOriginPoint(self.start_pos)
+            self.current_rect.setRotation(teta)  # rotate by teta degrees
 
             self.scene.addItem(self.dimension)
 
@@ -195,16 +204,23 @@ class beamDrawing(QGraphicsRectItem):
         # if snap to some point we don't need to check with snap line
         if pos == snapped_pos:
             snapped_pos = self.snapLine.snap(pos)
+        length = (((snapped_pos.x() - self.start_pos.x()) ** 2) + (
+                (snapped_pos.y() - self.start_pos.y()) ** 2)) ** 0.5
         width = snapped_pos.x() - self.start_pos.x()
         height = snapped_pos.y() - self.start_pos.y()
-
-        if abs(width) > abs(height):
-            self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
-                                      self.start_pos.y() - self.beam_width / 2, abs(width), self.beam_width)
+        if width == 0:
+            if height >= 0:
+                teta = 90
+            else:
+                teta = -90
         else:
-            self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2,
-                                      min(self.start_pos.y(), snapped_pos.y()), self.beam_width,
-                                      abs(height))
+            teta = math.atan((snapped_pos.y() - self.start_pos.y()) / (
+                    snapped_pos.x() - self.start_pos.x())) * 180 / math.pi  # degree\
+            if width < 0:
+                teta = 180 + teta
+
+        self.current_rect.setRect(self.start_pos.x(),
+                                  self.start_pos.y() - self.beam_width / 2, length, self.beam_width)
 
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
@@ -302,12 +318,6 @@ class beamDrawing(QGraphicsRectItem):
         y2 = end[1]
         l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
         return round(l, 2)
-
-    # @staticmethod
-    # def post_slot2():
-    #     print("self.a")
-    #     print(post_position)
-    #     # print(self.postObject.Post_Position)
 
 
 class Rectangle(QGraphicsRectItem):
