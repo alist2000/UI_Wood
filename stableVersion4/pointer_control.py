@@ -1,31 +1,63 @@
 import numpy as np
+from sympy import Point, Line
+from UI_Wood.stableVersion4.post_new import magnification_factor
 
 
-def pointer_control(range_x, range_y, x, y):
+def pointer_control(start, end, x, y):
+    range_x = (min(start[0], end[0]), max(start[0], end[0]))
+    range_y = (min(start[1], end[1]), max(start[1], end[1]))
+    point = (x, y)
+    # Define two points
+    p1, p2 = Point(start[0], start[1]), Point(end[0], end[1])
+
+    # Define a line through the two points
+    line = Line(p1, p2)
+    distance = float(line.distance(point))
+    # Define a tolerance value
+    tolerance = magnification_factor / 3
+    if distance <= tolerance and range_x[0] <= x <= range_x[1] and range_y[0] <= y <= range_y[1]:
+        projection = line.projection(point)
+        x_1, y_1 = float(projection.args[0]), float(projection.args[1])
+        return True, x_1, y_1
+    else:
+        return False, "", ""
+
+    # if (range_x[0] <= x <= range_x[1]) and (range_y[0] <= y <= range_y[1]):
+    #     return True
+    #
+    # else:
+    #     return False
+
+
+def pointer_control2(range_x, range_y, x, y):
     if (range_x[0] <= x <= range_x[1]) and (range_y[0] <= y <= range_y[1]):
         return True
 
+
+def set_point(start, end, x, y, support_type):
+    if support_type == "post":
+        point_range = pointer_control2(start, end, x, y)
     else:
-        return False
-
-
-def set_point(range_x, range_y, x, y, support_type):
-    point_range = pointer_control(range_x, range_y, x, y)
+        point_range, x_output, y_output = pointer_control(start, end, x, y)
     if point_range:
+        range_x = start
+        range_y = end
         center_x = ((range_x[1] - range_x[0]) / 2) + range_x[0]
         center_y = ((range_y[1] - range_y[0]) / 2) + range_y[0]
         if support_type == "post":
             return True, center_x, center_y
         else:
             # support type = beam
-            width = range_x[1] - range_x[0]
-            height = range_y[1] - range_y[0]
-            if abs(width) > abs(height):
-                # horizontal beam
-                return True, x, center_y
-            else:
-                # vertical beam
-                return True, center_x, y
+            return True, x_output, y_output
+
+            # width = range_x[1] - range_x[0]
+            # height = range_y[1] - range_y[0]
+            # if abs(width) > abs(height):
+            #     # horizontal beam
+            #     return True, x, center_y
+            # else:
+            #     # vertical beam
+            #     return True, center_x, y
 
     else:
         return False, "", ""
@@ -71,13 +103,18 @@ def selectable_beam_range(beam_position, beam_width):
         width = x2 - x1
         height = y2 - y1
         # horizontally beam
-        if abs(width) > abs(height):
-            range_x = (x1_main, x2_main)
-            range_y = (y1 - beam_width / 2, y1 + beam_width / 2)
-        else:
-            range_x = (x1 - beam_width / 2, x1 + beam_width / 2)
-            range_y = (y1_main, y2_main)
-        beam_selectable_range.append([range_x, range_y])
+        range_x = (x1_main, x2_main)
+
+        range_y = (y1_main, y2_main)
+
+        # if abs(width) > abs(height):
+        #     range_x = (x1_main, x2_main)
+        #     range_y = (y1 - beam_width / 2, y1 + beam_width / 2)
+        # else:
+        #     range_x = (x1 - beam_width / 2, x1 + beam_width / 2)
+        #     range_y = (y1_main, y2_main)
+        # beam_selectable_range.append([range_x, range_y])
+        beam_selectable_range.append([start, end])
     return beam_selectable_range
 
 
