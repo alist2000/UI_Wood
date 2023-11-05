@@ -13,8 +13,8 @@ from PySide6.QtWidgets import QGraphicsTextItem
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
     QTableWidget, QAbstractItemView
-from UI_Wood.stableVersion3.post_new import magnification_factor
-from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion4.post_new import magnification_factor
+from UI_Wood.stableVersion4.layout.LineDraw import BeamLabel
 
 
 class DrawShearWall(QDialog):

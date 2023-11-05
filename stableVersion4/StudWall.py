@@ -10,7 +10,7 @@ from beam_prop import lineLoad
 from dimension import DimensionLabel
 
 from back.beam_control import beam_line_creator
-from UI_Wood.stableVersion3.pointer_control import pointer_control_studWall
+from UI_Wood.stableVersion4.pointer_control import pointer_control_studWall
 
 
 class StudWallButton(QWidget):

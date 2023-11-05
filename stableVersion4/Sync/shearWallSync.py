@@ -1,8 +1,8 @@
 import sqlite3
 import string
 
-from UI_Wood.stableVersion3.output.shearWallSql import MidlineSQL, SeismicParamsSQL
-from UI_Wood.stableVersion3.output.shearWall_output import ShearWall_output, EditLabel
+from UI_Wood.stableVersion4.output.shearWallSql import MidlineSQL, SeismicParamsSQL
+from UI_Wood.stableVersion4.output.shearWall_output import ShearWall_output, EditLabel
 
 
 class ShearWallSync:

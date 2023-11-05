@@ -17,7 +17,7 @@ from back.check_model import checkModel
 from Sync.mainSync import mainSync
 from Sync.mainSync2 import mainSync2
 from InformationSaver import InformationSaver
-from UI_Wood.stableVersion3.run.grid import GridDraw
+from UI_Wood.stableVersion4.run.grid import GridDraw
 
 
 class secondTabWidget(QMainWindow):

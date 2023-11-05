@@ -1,5 +1,5 @@
-from UI_Wood.stableVersion3.post_new import magnification_factor
-from UI_Wood.stableVersion3.mouse import SelectableLineItem
+from UI_Wood.stableVersion4.post_new import magnification_factor
+from UI_Wood.stableVersion4.mouse import SelectableLineItem
 from PySide6.QtGui import QPen
 from PySide6.QtCore import Qt
 

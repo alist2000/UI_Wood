@@ -13,11 +13,11 @@ from PySide6.QtWidgets import QGraphicsTextItem
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
     QTableWidget, QAbstractItemView
-from UI_Wood.stableVersion3.post_new import magnification_factor
-from UI_Wood.stableVersion3.pointer_control import control_post_range, range_post, beam_end_point, \
+from UI_Wood.stableVersion4.post_new import magnification_factor
+from UI_Wood.stableVersion4.pointer_control import control_post_range, range_post, beam_end_point, \
     selectable_beam_range, \
     control_selectable_beam_range
-from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion4.layout.LineDraw import BeamLabel
 
 
 class DrawBeam(QDialog):

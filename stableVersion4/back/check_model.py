@@ -4,9 +4,9 @@ import itertools
 from PySide6 import QtWidgets
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
-from UI_Wood.stableVersion3.Sync.data import Update
-from UI_Wood.stableVersion3.post_new import magnification_factor
-from UI_Wood.stableVersion3.back.load_control import range_intersection
+from UI_Wood.stableVersion4.Sync.data import Update
+from UI_Wood.stableVersion4.post_new import magnification_factor
+from UI_Wood.stableVersion4.back.load_control import range_intersection
 
 
 class checkModel(Update):

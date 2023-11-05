@@ -1,5 +1,5 @@
 import sqlite3
-from UI_Wood.stableVersion3.post_new import magnification_factor
+from UI_Wood.stableVersion4.post_new import magnification_factor
 
 
 class joistSQL:

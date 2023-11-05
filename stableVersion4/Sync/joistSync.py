@@ -1,8 +1,8 @@
-from UI_Wood.stableVersion3.output.joist_output import Joist_output
+from UI_Wood.stableVersion4.output.joist_output import Joist_output
 from WOOD_DESIGN.mainjoistnewupdated import MainJoist
-from UI_Wood.stableVersion3.Sync.beamSync import roundAll
+from UI_Wood.stableVersion4.Sync.beamSync import roundAll
 from PySide6.QtWidgets import QDialog
-from UI_Wood.stableVersion3.run.joist import JoistStoryBy
+from UI_Wood.stableVersion4.run.joist import JoistStoryBy
 
 
 class joistAnalysisSync:

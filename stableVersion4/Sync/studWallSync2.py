@@ -1,5 +1,5 @@
 import sqlite3
-from UI_Wood.stableVersion3.run.studWall import StudWallStoryBy
+from UI_Wood.stableVersion4.run.studWall import StudWallStoryBy
 from PySide6.QtWidgets import QDialog
 
 

@@ -1,8 +1,8 @@
 import sqlite3
 import string
 
-from UI_Wood.stableVersion3.output.studWall_output import StudWall_output
-from UI_Wood.stableVersion3.output.shearWall_output import EditLabel
+from UI_Wood.stableVersion4.output.studWall_output import StudWall_output
+from UI_Wood.stableVersion4.output.shearWall_output import EditLabel
 from WOOD_DESIGN.mainstud import MainStud
 
 

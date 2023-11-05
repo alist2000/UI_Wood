@@ -4,8 +4,8 @@ from PySide6.QtCore import Qt
 from functools import partial
 
 import sqlite3
-from UI_Wood.stableVersion3.replicate import CheckableComboBox
-from UI_Wood.stableVersion3.post_new import magnification_factor
+from UI_Wood.stableVersion4.replicate import CheckableComboBox
+from UI_Wood.stableVersion4.post_new import magnification_factor
 
 from Report_Lab.version3.main import Main
 
@@ -37,7 +37,7 @@ class ReportGeneratorTab(QWidget):
            }
            QCheckBox::indicator:checked {
                background: #A8DF8E;
-               image: url(D://git/Wood/UI_Wood/stableVersion3/images/check.png);
+               image: url(D://git/Wood/UI_Wood/stableVersion4/images/check.png);
            }
            QCheckBox::indicator:unchecked:hover {
                border: 1px solid #11111;

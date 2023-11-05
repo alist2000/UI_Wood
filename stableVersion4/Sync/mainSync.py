@@ -1,24 +1,24 @@
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion3")
+sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion4")
 sys.path.append(r"D:\git\Wood")
-from UI_Wood.stableVersion3.output.joist_output import Joist_output
-from UI_Wood.stableVersion3.output.shearWallSql import MidlineSQL, SeismicParamsSQL
+from UI_Wood.stableVersion4.output.joist_output import Joist_output
+from UI_Wood.stableVersion4.output.shearWallSql import MidlineSQL, SeismicParamsSQL
 from WOOD_DESIGN.mainbeamnew import MainBeam
 from WOOD_DESIGN.mainshearwall import MainShearwall
 from WOOD_DESIGN.reports import Sqlreports
-from UI_Wood.stableVersion3.Sync.data import Data
-from UI_Wood.stableVersion3.Sync.Image import saveImage
-from UI_Wood.stableVersion3.Sync.postSync import PostSync
-from UI_Wood.stableVersion3.Sync.joistSync import joistAnalysisSync
-from UI_Wood.stableVersion3.Sync.beamSync import beamAnalysisSync
-from UI_Wood.stableVersion3.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
+from UI_Wood.stableVersion4.Sync.data import Data
+from UI_Wood.stableVersion4.Sync.Image import saveImage
+from UI_Wood.stableVersion4.Sync.postSync import PostSync
+from UI_Wood.stableVersion4.Sync.joistSync import joistAnalysisSync
+from UI_Wood.stableVersion4.Sync.beamSync import beamAnalysisSync
+from UI_Wood.stableVersion4.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
     NoShearWallLines, MidlineEdit
-from UI_Wood.stableVersion3.Sync.studWallSync import StudWallSync
-from UI_Wood.stableVersion3.post_new import magnification_factor
-from UI_Wood.stableVersion3.report.ReportGenerator import ReportGeneratorTab
-from UI_Wood.stableVersion3.layout.tab_widget2 import secondTabWidgetLayout
-from UI_Wood.stableVersion3.Sync.shearWallSync import ShearWallStoryCount
+from UI_Wood.stableVersion4.Sync.studWallSync import StudWallSync
+from UI_Wood.stableVersion4.post_new import magnification_factor
+from UI_Wood.stableVersion4.report.ReportGenerator import ReportGeneratorTab
+from UI_Wood.stableVersion4.layout.tab_widget2 import secondTabWidgetLayout
+from UI_Wood.stableVersion4.Sync.shearWallSync import ShearWallStoryCount
 import time
 
 

@@ -5,9 +5,9 @@ from PySide6.QtWidgets import QDialog, QLabel, QWidget, QVBoxLayout, QPushButton
 from PySide6.QtWidgets import QGraphicsProxyWidget, QGraphicsRectItem
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 
-from UI_Wood.stableVersion3.image import image_control
-from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
-from UI_Wood.stableVersion3.post_new import magnification_factor
+from UI_Wood.stableVersion4.image import image_control
+from UI_Wood.stableVersion4.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion4.post_new import magnification_factor
 
 
 class DrawJoist(QDialog):

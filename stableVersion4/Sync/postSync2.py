@@ -1,14 +1,14 @@
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion3")
-from UI_Wood.stableVersion3.output.post_output import post_output
-from UI_Wood.stableVersion3.Sync.beamSync import roundAll
+sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion4")
+from UI_Wood.stableVersion4.output.post_output import post_output
+from UI_Wood.stableVersion4.Sync.beamSync import roundAll
 from WOOD_DESIGN.mainpost import MainPost
-from UI_Wood.stableVersion3.Sync.beamSync import beamAnalysisSync
-from UI_Wood.stableVersion3.run.post import PostStoryBy
+from UI_Wood.stableVersion4.Sync.beamSync import beamAnalysisSync
+from UI_Wood.stableVersion4.run.post import PostStoryBy
 from PySide6.QtWidgets import QDialog
-from UI_Wood.stableVersion3.output.postSql import PostSQL
-from UI_Wood.stableVersion3.output.beamSql import beamSQL
+from UI_Wood.stableVersion4.output.postSql import PostSQL
+from UI_Wood.stableVersion4.output.beamSql import beamSQL
 
 
 class PostSync2:

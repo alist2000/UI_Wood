@@ -2,10 +2,10 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QMa
 from PySide6.QtGui import QImage, QPainter, QPixmap
 from PySide6.QtCore import QRectF, Qt
 
-from UI_Wood.stableVersion3.layout.grid import GridWidget
-from UI_Wood.stableVersion3.layout.PointDraw import PointDraw
-from UI_Wood.stableVersion3.layout.LineDraw import LineDraw
-from UI_Wood.stableVersion3.layout.AreaDraw import AreaDraw
+from UI_Wood.stableVersion4.layout.grid import GridWidget
+from UI_Wood.stableVersion4.layout.PointDraw import PointDraw
+from UI_Wood.stableVersion4.layout.LineDraw import LineDraw
+from UI_Wood.stableVersion4.layout.AreaDraw import AreaDraw
 
 
 class secondTabWidgetLayout(QMainWindow):

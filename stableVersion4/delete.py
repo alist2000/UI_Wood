@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QCheckBox, QDialogButtonBox
-from UI_Wood.stableVersion3.replicate import CheckableComboBox
+from UI_Wood.stableVersion4.replicate import CheckableComboBox
 
 
 class Delete:
