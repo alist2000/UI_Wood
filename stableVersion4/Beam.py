@@ -2,15 +2,14 @@ import math
 
 from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QPen, QBrush, QColor
-from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QGraphicsProxyWidget
+from PySide6.QtWidgets import QGraphicsRectItem, QWidget, QPushButton, QGraphicsProxyWidget
 
-from pointer_control import control_post_range, range_post, beam_end_point, selectable_beam_range, \
-    control_selectable_beam_range
-from post_new import magnification_factor
 from DeActivate import deActive
 from beam_prop import BeamProperties
 from dimension import DimensionLabel
+from pointer_control import control_post_range, range_post, selectable_beam_range, \
+    control_selectable_beam_range
+from post_new import magnification_factor
 
 
 class BeamButton(QWidget):
@@ -194,8 +193,6 @@ class beamDrawing(QGraphicsRectItem):
             self.dimension.setRotation(teta)
             # Rotate the rectangle
             self.current_rect.setRotation(teta)  # rotate by teta degrees
-            self.current_rect.setTransformOriginPoint(self.start_pos)
-            self.current_rect.setRotation(teta)  # rotate by teta degrees
 
             self.scene.addItem(self.dimension)
 
@@ -236,20 +233,33 @@ class beamDrawing(QGraphicsRectItem):
                                       y1 - self.beam_width / 2, self.beam_rect_prop)
         self.scene.addItem(self.current_rect)
 
-        width = abs(x2 - x1)
-        height = abs(y2 - y1)
-
-        if abs(width) > abs(height):
-            self.current_rect.setRect(min(x1, x2),
-                                      y1 - self.beam_width / 2, abs(width), self.beam_width)
+        width = x2 - x1
+        height = y2 - y1
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
+        if width == 0:
+            if height >= 0:
+                teta = 90
+            else:
+                teta = -90
         else:
-            self.current_rect.setRect(x1 - self.beam_width / 2,
-                                      min(y1, y2), self.beam_width,
-                                      abs(height))
+            teta = math.atan((y2 - y1) / (
+                    x2 - x1)) * 180 / math.pi  # degree\
+            if width < 0:
+                teta = 180 + teta
+
+        self.current_rect.setRect(x1,
+                                  y1 - self.beam_width / 2, length, self.beam_width)
+
+        startPoint = QPointF(x1, y1)
+        self.current_rect.setTransformOriginPoint(startPoint)
+
+        self.current_rect.setRotation(teta)  # rotate by teta degrees
 
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-        final_end_point = beam_end_point(start, end)
+        # final_end_point = beam_end_point(start, end)
+        final_end_point = end
         self.beam_loc.append(final_end_point)
         try:
             floor = properties["floor"]
