@@ -13,9 +13,18 @@ def pointer_control(start, end, x, y):
     # Define a line through the two points
     line = Line(p1, p2)
     distance = float(line.distance(point))
+
     # Define a tolerance value
     tolerance = magnification_factor / 3
-    if distance <= tolerance and range_x[0] <= x <= range_x[1] and range_y[0] <= y <= range_y[1]:
+    xRangeCondition = range_x[0] <= x <= range_x[1]
+    if range_x[1] - range_x[0] < tolerance:
+        xRangeCondition = True
+
+    yRangeCondition = range_y[0] <= y <= range_y[1]
+    if range_y[1] - range_y[0] < tolerance:
+        yRangeCondition = True
+
+    if distance <= tolerance and xRangeCondition and yRangeCondition:
         projection = line.projection(point)
         x_1, y_1 = float(projection.args[0]), float(projection.args[1])
         return True, x_1, y_1
