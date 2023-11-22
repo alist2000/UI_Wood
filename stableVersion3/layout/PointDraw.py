@@ -13,7 +13,7 @@ class PointDraw:
         self.scene = scene
         coordinates = properties["coordinate"]
         labels = properties["label"]
-        self.post_dimension = magnification_factor  # Set post dimension
+        self.post_dimension = 3 * magnification_factor  # Set post dimension
         for i, coordinate in enumerate(coordinates):
             size = properties["size"][i]
             axial_dcr = properties["axial_dcr"][i]
@@ -27,10 +27,10 @@ class PointDraw:
             dcr = QLabel(f"Axial DCR: {axial_dcr}")
             sizeLabel = QLabel(f"{size}")
             font = QFont()
-            font.setPointSize(10)
+            font.setPointSize(20)
             dcr.setFont(font)
             font2 = QFont()
-            font2.setPointSize(15)
+            font2.setPointSize(30)
             sizeLabel.setFont(font2)
             mainText.setWidget(dcr)
             sizeMain.setWidget(sizeLabel)
@@ -38,7 +38,7 @@ class PointDraw:
 
             # Set the color of the text to red
             mainText.setPos(x - rect_width, y + 0.6 * rect_width)
-            sizeMain.setPos(x - 0.3 * magnification_factor, y - 0.5 * magnification_factor)
+            sizeMain.setPos(x - 1 * magnification_factor, y - 0.5 * magnification_factor)
             sizeLabel.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
 
             self.scene.addItem(sizeMain)
@@ -54,14 +54,14 @@ class PointDraw:
                 dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
             # LabelText = QLabel(label)
-            Label = QGraphicsProxyWidget()
-            LabelText = QLabel(labels[i])
-            font = QFont()
-            font.setPointSize(16)
-            LabelText.setFont(font)
-            # sizeMain.setFont(font)
-            LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
-            Label.setWidget(LabelText)
+            # Label = QGraphicsProxyWidget()
+            # LabelText = QLabel(labels[i])
+            # font = QFont()
+            # font.setPointSize(30)
+            # LabelText.setFont(font)
+            # # sizeMain.setFont(font)
+            # LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+            # Label.setWidget(LabelText)
             PostLabel(x, y, scene, labels[i])
             # return rect_item
         self.saveImage()
@@ -76,7 +76,7 @@ class PointDraw:
             mainText = QGraphicsProxyWidget()
             dcr = QLabel(f"Axial DCR: {axial_dcr}")
             font = QFont()
-            font.setPointSize(10)
+            font.setPointSize(20)
             dcr.setFont(font)
             mainText.setWidget(dcr)
             # text = QGraphicsTextItem("Hello, PySide6!")
@@ -92,18 +92,18 @@ class PointDraw:
             # LabelText = QLabel(label)
             self.scene.addItem(rect_item)
 
-            Label = QGraphicsProxyWidget()
-            LabelText = QLabel(labels[i])
-            font = QFont()
-            font.setPointSize(16)
-            LabelText.setFont(font)
-            LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
-            Label.setWidget(LabelText)
-
-            # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
-            Label.setPos(x - 1.1 * rect_width, y - 1.1 * rect_width)
-
-            self.scene.addItem(Label)
+            # Label = QGraphicsProxyWidget()
+            # LabelText = QLabel(labels[i])
+            # font = QFont()
+            # font.setPointSize(25)
+            # LabelText.setFont(font)
+            # LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+            # Label.setWidget(LabelText)
+            #
+            # # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
+            # Label.setPos(x - 1.1 * rect_width, y - 1.1 * rect_width)
+            #
+            # self.scene.addItem(Label)
             scene.addItem(rect_item)
             self.saveImageElement(labels[i])
             self.scene.removeItem(rect_item)
@@ -197,13 +197,13 @@ class PostLabel:
         Label = QGraphicsProxyWidget()
         LabelText = QLabel(label)
         font = QFont()
-        font.setPointSize(16)
+        font.setPointSize(30)
         LabelText.setFont(font)
         LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
         Label.setWidget(LabelText)
 
         # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
-        Label.setPos(x - 1.1 * magnification_factor, y - 1.1 * magnification_factor)
+        Label.setPos(x - 2 * magnification_factor, y - 3.5 * magnification_factor)
 
         scene.addItem(Label)
         # BeamLabel(x + 30, y - 50, scene, label, "E-W", 12, 6, 30)
