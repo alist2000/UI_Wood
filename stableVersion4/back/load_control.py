@@ -2,7 +2,7 @@ import sys
 
 sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.1")
 from post_new import magnification_factor
-
+from sympy import Point, Polygon, Segment, Line
 
 class load_joist_on_beam:
     def __init__(self, joistLabel, joistLoad, intersection_range_joist_beam, tributary_depth_joist_beam, beamDirection,
@@ -16,6 +16,20 @@ class load_joist_on_beam:
         self.beamJoistLoad_load_map = beamJoistLoad["load_map"]
         # self.beamJoistLoad_assignment.clear()
         # self.beamJoistLoad_load_map.clear()
+        try:
+            if self.beamDirection == "N-S":
+                self.intersection_range_joist_beam = (
+                    min(self.intersection_range_joist_beam[0][1], self.intersection_range_joist_beam[1][1]),
+                    max(self.intersection_range_joist_beam[0][1], self.intersection_range_joist_beam[1][1]))
+        except:
+            pass
+        try:
+            if self.beamDirection == "E-W":
+                self.intersection_range_joist_beam = (
+                    min(self.intersection_range_joist_beam[0][0], self.intersection_range_joist_beam[1][0]),
+                    max(self.intersection_range_joist_beam[0][0], self.intersection_range_joist_beam[1][0]))
+        except:
+            pass
         total_area_load = self.joistLoad["total_area"]
         self.total_area_to_line(total_area_load)
         custom_area_load = self.joistLoad["custom_area"]
@@ -71,10 +85,57 @@ class load_joist_on_beam:
                 print(range_y_load, self.tributary_depth_joist_beam)
                 tributary_depth_range = range_intersection(range_x_load, self.tributary_depth_joist_beam)
                 intersection_range = range_intersection(range_y_load, self.intersection_range_joist_beam)
-            else:
+            elif self.beamDirection == "E-W":
                 print(range_x_load, self.tributary_depth_joist_beam)
                 tributary_depth_range = range_intersection(range_y_load, self.tributary_depth_joist_beam)
                 intersection_range = range_intersection(range_x_load, self.intersection_range_joist_beam)
+            else:  # Inclined
+                print(range_x_load, self.tributary_depth_joist_beam)
+                tributary_depth_range = range_intersection(range_y_load, self.tributary_depth_joist_beam)
+                # intersection_range = range_intersection(range_x_load, self.intersection_range_joist_beam)
+                beamPoint1 = Point(self.intersection_range_joist_beam[0][0], self.intersection_range_joist_beam[0][1])
+                beamPoint2 = Point(self.intersection_range_joist_beam[1][0], self.intersection_range_joist_beam[1][1])
+                beamSegment = Segment(beamPoint1, beamPoint2)
+                loadCoords = [(range_x_load[0], range_y_load[0]), (range_x_load[0], range_y_load[1]),
+                              (range_x_load[1], range_y_load[0]), (range_x_load[1], range_y_load[1])]
+
+                loadArea = Polygon(*loadCoords)
+
+                intersection = loadArea.intersection(beamSegment)
+
+                intersection_range = ()
+                if len(intersection) == 1 and intersection[0] == beamSegment:
+                    intersection_range = (
+                        [float(i) for i in intersection[0].args[0].args],
+                        [float(i) for i in intersection[0].args[1].args])
+                elif len(intersection) == 2:
+                    intersection_range = (
+                        [float(i) for i in intersection[0].args], [float(i) for i in intersection[1].args])
+                elif len(intersection) == 1:
+                    point1_in_joist = loadArea.encloses_point(beamPoint1)
+                    point2_in_joist = loadArea.encloses_point(beamPoint2)
+
+                    if point1_in_joist:
+                        l = length_point(intersection[0], beamPoint1)
+                        if l > 0:
+                            intersection_range = (
+                                [float(i) for i in intersection[0].args], [float(i) for i in beamPoint1.args])
+                    elif point2_in_joist:
+                        l = length_point(intersection[0], beamPoint2)
+                        if l > 0:
+                            intersection_range = (
+                                [float(i) for i in intersection[0].args], [float(i) for i in beamPoint2.args])
+
+                else:
+                    point1_in_joist = loadArea.encloses_point(beamPoint1)
+                    point2_in_joist = loadArea.encloses_point(beamPoint2)
+                    if point1_in_joist and point2_in_joist:
+                        intersection_range = ([float(i) for i in beamPoint1.args], [float(i) for i in beamPoint2.args])
+                if intersection_range:
+                    length = ((intersection_range[0][0] - intersection_range[1][0]) ** 2 + (
+                            intersection_range[0][1] - intersection_range[1][1]) ** 2) ** 0.5
+                    intersection_range = (intersection_range[0][0], intersection_range[0][0] + length)
+
             if intersection_range and tributary_depth_range:
                 tributary_depth = abs(tributary_depth_range[1] - tributary_depth_range[0])
                 start = min(intersection_range[0], intersection_range[1])
@@ -128,3 +189,12 @@ def range_intersection(range1, range2):
     else:
         intersection = ()
     return intersection
+
+
+def length_point(point1, point2):
+    x1 = point1.args[0]
+    y1 = point1.args[1]
+    x2 = point2.args[0]
+    y2 = point2.args[1]
+    length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+    return length

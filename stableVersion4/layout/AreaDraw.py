@@ -1,9 +1,9 @@
-from UI_Wood.stableVersion4.Beam import Rectangle
-from UI_Wood.stableVersion4.mouse import SelectableLineItem
-from UI_Wood.stableVersion4.joist_new import joistRectangle
-from UI_Wood.stableVersion4.layout.LineDraw import BeamLabel
-from UI_Wood.stableVersion4.image import image_control
-from UI_Wood.stableVersion4.post_new import magnification_factor
+from UI_Wood.stableVersion3.Beam import Rectangle
+from UI_Wood.stableVersion3.mouse import SelectableLineItem
+from UI_Wood.stableVersion3.joist_new import joistRectangle
+from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion3.image import image_control
+from UI_Wood.stableVersion3.post_new import magnification_factor
 from PySide6.QtGui import QPainter, QPixmap, QBrush, QPen, QColor, QFont
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, QHBoxLayout
@@ -153,7 +153,7 @@ class joistDraw:
                 self.rect_item.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
                 self.rect_item.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
 
-            # self.TextValue(f"{size}", x_size, y_size, superClass.orientations[i])
+            self.TextValue(f"{size}", x_size, y_size, superClass.orientations[i])
             BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, superClass.labels[i], superClass.orientations[i])
         else:
             self.rect_item.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 100)))
@@ -203,7 +203,7 @@ class joistDraw:
         else:
             label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-    def TextValue(self, text, x, y, direction, color="black", size=10):
+    def TextValue(self, text, x, y, direction, color="black", size=20):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(text)
         font = QFont()

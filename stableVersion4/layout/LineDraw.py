@@ -1,6 +1,6 @@
-from UI_Wood.stableVersion4.post_new import magnification_factor, CustomRectItem
-from UI_Wood.stableVersion4.Beam import Rectangle
-from UI_Wood.stableVersion4.mouse import SelectableLineItem
+from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
+from UI_Wood.stableVersion3.Beam import Rectangle
+from UI_Wood.stableVersion3.mouse import SelectableLineItem
 
 from PySide6.QtGui import QPainter, QPixmap, QFont
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
@@ -16,10 +16,11 @@ class LineDraw:
         self.labels = properties["label"]
         coordinates = properties["coordinate"]
         self.lineType = lineType.capitalize()
-        self.beam_width = magnification_factor / 2  # Set beam width
+        # self.beam_width = magnification_factor / 2  # Set beam width
+        self.beam_width = magnification_factor  # Set beam width
         self.shearWall_width = magnification_factor  # Set shearWall width, magnification = 1 ft or 1 m
         self.post_dimension = magnification_factor / 4  # Set post dimension
-        self.studWall_width = magnification_factor / 3  # Set studWall width, magnification = 1 ft or 1 m
+        self.studWall_width = 2 * magnification_factor / 3  # Set studWall width, magnification = 1 ft or 1 m
 
         for i, coordinate in enumerate(coordinates):
             if lineType == "beam":
@@ -155,7 +156,7 @@ class LineDraw:
 
 
 class BeamLabel:
-    def __init__(self, x, y, scene, label, direction, halfLength=40, startDist1=11, startDist2=40):
+    def __init__(self, x, y, scene, label, direction, halfLength=108, startDist1=27, startDist2=108):
         # Create a QPainterPath object
         path = QPainterPath()
         path.moveTo(x, y)
@@ -176,7 +177,7 @@ class BeamLabel:
         Label = QGraphicsProxyWidget()
         LabelText = QLabel(label)
         font = QFont()
-        font.setPointSize(15)
+        font.setPointSize(35)
         LabelText.setFont(font)
         LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
         Label.setWidget(LabelText)
@@ -301,7 +302,7 @@ class shearWallDraw:
                 self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
                 self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
             self.TextValue(f"{size}", x1_main, y1_main, direction)
-            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, "SW" + superClass.labels[i], direction)
+            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, "SW" + superClass.labels[i], direction, startDist1=45)
 
             # ShearWallLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, superClass.labels[i], direction)
         else:
@@ -354,21 +355,21 @@ class shearWallDraw:
         else:
             label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-    def TextValue(self, text, x, y, direction, color="black", size=10):
+    def TextValue(self, text, x, y, direction, color="black", size=30):
         mainText1 = QGraphicsProxyWidget()
-        dcr1 = QLabel(text)
+        label = QLabel(text)
         font = QFont()
         font.setPointSize(size)
-        dcr1.setFont(font)
-        mainText1.setWidget(dcr1)
+        label.setFont(font)
+        mainText1.setWidget(label)
         # text = QGraphicsTextItem("Hello, PySide6!")
 
-        dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
+        label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
         if direction == "N-S":
             mainText1.setRotation(90)
-            mainText1.setPos(x + 1.1 * self.superClass.shearWall_width, y)
+            mainText1.setPos(x + 2 * self.superClass.shearWall_width, y)
         else:
-            mainText1.setPos(x, y - 1.1 * self.superClass.shearWall_width)
+            mainText1.setPos(x, y - 2 * self.superClass.shearWall_width)
 
         # LabelText = QLabel(label)
         self.superClass.scene.addItem(mainText1)
@@ -480,7 +481,7 @@ class beamDraw:
         else:
             label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-    def TextValue(self, text, x, y, direction, color="black", size=10):
+    def TextValue(self, text, x, y, direction, color="black", size=30):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(text)
         font = QFont()
@@ -492,9 +493,9 @@ class beamDraw:
         dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
         if direction == "N-S":
             mainText1.setRotation(90)
-            mainText1.setPos(x + 1.5 * self.superClass.beam_width, y)
+            mainText1.setPos(x + 2 * self.superClass.beam_width, y)
         else:
-            mainText1.setPos(x, y - 1.5 * self.superClass.beam_width)
+            mainText1.setPos(x, y - 2 * self.superClass.beam_width)
 
         # LabelText = QLabel(label)
         self.superClass.scene.addItem(mainText1)
@@ -543,7 +544,7 @@ class studWallDraw:
                 self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
                 self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
             self.TextValue(f"{size}", x1_main, y1_main, direction)
-            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, "ST" + superClass.labels[i], direction)
+            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, "ST" + superClass.labels[i], direction, startDist1=50)
         else:
             self.current_rect.setPen(QPen(QColor.fromRgb(254, 0, 0, 160), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 150), Qt.SolidPattern))
@@ -591,7 +592,7 @@ class studWallDraw:
         else:
             label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-    def TextValue(self, text, x, y, direction, color="black", size=10):
+    def TextValue(self, text, x, y, direction, color="black", size=30):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(text)
         font = QFont()
@@ -603,9 +604,9 @@ class studWallDraw:
         dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
         if direction == "N-S":
             mainText1.setRotation(90)
-            mainText1.setPos(x + 1.1 * self.superClass.studWall_width, y)
+            mainText1.setPos(x + 2 * self.superClass.studWall_width, y)
         else:
-            mainText1.setPos(x, y - 1.1 * self.superClass.studWall_width)
+            mainText1.setPos(x, y - 2 * self.superClass.studWall_width)
 
         # LabelText = QLabel(label)
         self.superClass.scene.addItem(mainText1)
