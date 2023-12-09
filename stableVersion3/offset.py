@@ -9,7 +9,7 @@ class Offset(QDialog):
         self.setWindowTitle("Define Offset")
 
         self.spinbox = QDoubleSpinBox()
-        self.spinbox.setRange(-5, 5)
+        self.spinbox.setRange(-20, 20)
         unit = QLabel("ft/m")
         layout = QVBoxLayout()
         h_layout = QHBoxLayout()
