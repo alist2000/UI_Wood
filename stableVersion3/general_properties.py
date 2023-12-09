@@ -149,7 +149,9 @@ def v_layout_control(layout, total_number, col, item_name, label=None):
         h_label = QLabel(f"{item_name} {i + 1} :")
         h_label.setFixedWidth(75)
         h = QDoubleSpinBox()
+        h.setDecimals(3)
         h.setRange(0.1, 1000)
+        h.setValue(10)
         item_list.append(h_label)
         item_list.append(h)
         if ((i + 1) % col == 0) or (i == total_number - 1):
