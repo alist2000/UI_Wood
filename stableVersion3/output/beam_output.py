@@ -402,10 +402,11 @@ class CombinePointLoads:
 
     @staticmethod
     def add_load(load, start):
+        loads = []
         for loadItem in load:
             if loadItem["start"] == start:
-                return loadItem["load"]
-        return []
+                loads += loadItem["load"]
+        return loads
 
 
 class ControlLoadType:
