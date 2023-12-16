@@ -232,8 +232,9 @@ class mainSync2(Data):
             saveImage(self.grid, currentTab)
 
         self.saveFunc()
-
-        if not self.shearWallRun:
+        if self.shearWallRun:
+            dataInstance = ShearWallSync2(self.GridDrawClass)
+        else:
             self.shearWalls = []
             self.joists = []
 
@@ -248,34 +249,34 @@ class mainSync2(Data):
             # Design should be started from Roof.
             # self.shearWalls.reverse()
 
-        generalProp = ControlGeneralProp(self.general_properties)
-        joistOutput = Joist_output(self.joists)
+            generalProp = ControlGeneralProp(self.general_properties)
+            joistOutput = Joist_output(self.joists)
 
-        # SHEAR WALL
-        # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
-        JoistArea = JoistSumArea(self.joists)
-        storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
-        shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
-        self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
+            # SHEAR WALL
+            # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
+            JoistArea = JoistSumArea(self.joists)
+            storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
+            shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
+            self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
 
-        shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
-        noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
-        midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
-        midLineDictEdited = midLineInstance.newMidline
-        # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
-        LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
-        seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
-                                                  JoistArea)
-        ControlMidLine(midLineDictEdited)
+            shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
+            noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
+            midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
+            midLineDictEdited = midLineInstance.newMidline
+            # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
+            LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
+            seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
+                                                      JoistArea)
+            ControlMidLine(midLineDictEdited)
 
-        print(seismicInstance.seismicPara)
-        print(midLineDictEdited)
-        a = time.time()
-        MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
-        b = time.time()
-        print("Shear wall run takes ", (b - a) / 60, " Minutes")
-        self.shearWallRun = True
-        dataInstance = ShearWallSync2(self.GridDrawClass)
+            print(seismicInstance.seismicPara)
+            print(midLineDictEdited)
+            a = time.time()
+            MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+            b = time.time()
+            print("Shear wall run takes ", (b - a) / 60, " Minutes")
+            self.shearWallRun = True
+            dataInstance = ShearWallSync2(self.GridDrawClass)
 
         print(
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
