@@ -110,11 +110,16 @@ class set_toolBar:
 
     def set_seismic_parameters(self):
         self.toolBar.spin_values = []
-        for i, item in enumerate(self.seismic_parameters.values()):
+        seismicParams = list(self.seismic_parameters.values())
+        if len(seismicParams) == 8:
+            seismicParams.append("Y")
+        for i, item in enumerate(seismicParams):
             if i <= 6:
                 self.toolBar.spin_values.append(item)
-            else:
+            elif i == 7:
                 self.toolBar.combo_values = [item]
+            else:
+                self.toolBar.combo_values.append(item)
 
     def set_load_sets(self):
         for Id, properties in self.load_set.items():
