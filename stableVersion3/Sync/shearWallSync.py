@@ -35,7 +35,7 @@ class DataBaseSeismic:
         self.seismicParamsDB.seismicParams()
         self.seismicParamsDB.cursor.execute(
             'INSERT INTO seismicParams (S1, Ss, Fa, Fv,'
-            ' I, T_model, R_factor, risk_category) values(?, ?, ?, ?, ?, ?, ?, ?)',
+            ' I, T_model, R_factor, risk_category, Regular_Building) values(?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [seismicParams["S1"],
              seismicParams["Ss"],
              seismicParams["Fa"],
@@ -44,6 +44,7 @@ class DataBaseSeismic:
              seismicParams["T model"],
              seismicParams["R Factor"],
              seismicParams["Risk Category"],
+             seismicParams["Regular Building"],
              ])
         self.seismicParamsDB.conn.commit()
 
