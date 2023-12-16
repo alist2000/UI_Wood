@@ -22,8 +22,8 @@ class ToolBar:
         self.dialogPage4 = Delete(self)
         self.savePage = Save(self)
 
-        self.spin_values = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-        self.combo_values = ["I & II"]
+        self.spin_values = [0.75, 2.75, 0.1, 0.1, 0.1, 8, 6.5]
+        self.combo_values = ["I & II", "Y"]
         self.create_tool_bar()
 
     def create_tool_bar(self):
@@ -84,9 +84,12 @@ class load_seismic_dialog:
 
         # Create and add the labels and combo_boxes
         h_layout = QHBoxLayout()
+        h_layout2 = QHBoxLayout()
 
         label = QLabel("Risk Category")
+        label2 = QLabel("Regular Building")
         h_layout.addWidget(label)
+        h_layout2.addWidget(label2)
 
         combobox = QComboBox()
         combobox.addItems(["I & II", "III", "IV"])
@@ -94,6 +97,13 @@ class load_seismic_dialog:
         h_layout.addWidget(combobox)
         layout.addLayout(h_layout)
         combo_boxes.append(combobox)
+
+        combobox2 = QComboBox()
+        combobox2.addItems(["Y", "N"])
+        combobox2.setCurrentText(self.mainPage.combo_values[1])
+        h_layout2.addWidget(combobox2)
+        layout.addLayout(h_layout2)
+        combo_boxes.append(combobox2)
 
         # Create and add the OK and Cancel buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
