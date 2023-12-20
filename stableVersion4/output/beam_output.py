@@ -44,8 +44,9 @@ class beam_output_handler:
 
         self.start = min(beamProp["coordinate"][0][self.direction_index],
                          beamProp["coordinate"][1][self.direction_index]) / magnification_factor
-        self.end = max(beamProp["coordinate"][0][self.direction_index],
-                       beamProp["coordinate"][1][self.direction_index]) / magnification_factor
+        self.end = self.start + self.length
+        # self.end = max(beamProp["coordinate"][0][self.direction_index],
+        #                beamProp["coordinate"][1][self.direction_index]) / magnification_factor
         constantCoordinate = beamProp["coordinate"][0][constant_index] / magnification_factor
         n1 = len(str(self.start).split(".")[1])
         n2 = len(str(self.end).split(".")[1])
@@ -402,10 +403,12 @@ class CombinePointLoads:
 
     @staticmethod
     def add_load(load, start):
+        loads = []
         for loadItem in load:
             if loadItem["start"] == start:
-                return loadItem["load"]
-        return []
+                loads += loadItem["load"]
+        return loads
+
 
 
 class ControlLoadType:

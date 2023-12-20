@@ -1,8 +1,12 @@
 import sys
 
+import sympy
+
 sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.")
 from post_new import magnification_factor
 from back.load_control import load_joist_on_beam, range_intersection
+from sympy import Point, Polygon, Segment, Line
+from UI_Wood.stableVersion4.back.load_control import length_point
 
 
 class beam_control_length:
@@ -41,10 +45,14 @@ class beam_control_direction_and_line:
             x2, y2 = end[0], end[1]
             width = x2 - x1
             height = y2 - y1
-            if abs(width) > abs(height):
-                direction = "E-W"
+            if x1 == x2 or y1 == y2:
+                if abs(width) > abs(height):
+                    direction = "E-W"
+                else:
+                    direction = "N-S"
             else:
-                direction = "N-S"
+                direction = "Inclined"
+
             self.beam[beamItem]["direction"] = direction
 
 
@@ -232,19 +240,41 @@ class beam_control_support:
         (x0, y0) = point
         (x1, y1) = line_point1
         (x2, y2) = line_point2
+        range_x = (min(x1, x2), max(x1, x2))
+        range_y = (min(y1, y2), max(y1, y2))
+        p1, p2 = Point(x1, y1), Point(x2, y2)
 
-        # Calculate the slopes
-        if x2 - x1 == 0:  # To avoid division by zero
-            different = abs(x0 - x1)
-            return different < error and min(y1, y2) <= y0 <= max(y1, y2), (x1, y0)
-        if x0 - x1 == 0:
-            different = abs(y0 - y1)
-            return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
-        slope1 = (y2 - y1) / (x2 - x1)
-        slope2 = (y0 - y1) / (x0 - x1)
-        different = abs(y0 - y1)
+        # Define a line through the two points
+        line = Line(p1, p2)
+        distance = float(line.distance(point))
+        # Define a tolerance value
+        tolerance = error
+        xRangeCondition = range_x[0] <= x0 <= range_x[1]
+        if range_x[1] - range_x[0] < tolerance:
+            xRangeCondition = True
 
-        return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
+        yRangeCondition = range_y[0] <= y0 <= range_y[1]
+        if range_y[1] - range_y[0] < tolerance:
+            yRangeCondition = True
+
+        if distance <= tolerance and xRangeCondition and yRangeCondition:
+            projection = line.projection(point)
+            x_1, y_1 = float(projection.args[0]), float(projection.args[1])
+            return True, (x_1, y_1)
+        else:
+            return False, ("", "")
+        # # Calculate the slopes
+        # if x2 - x1 == 0:  # To avoid division by zero
+        #     different = abs(x0 - x1)
+        #     return different < error and min(y1, y2) <= y0 <= max(y1, y2), (x1, y0)
+        # if x0 - x1 == 0:
+        #     different = abs(y0 - y1)
+        #     return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
+        # slope1 = (y2 - y1) / (x2 - x1)
+        # slope2 = (y0 - y1) / (x0 - x1)
+        # different = abs(y0 - y1)
+        #
+        # return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
 
     def main_is_point_on_line(self, point, start, end, error=magnification_factor / 5):
         is_support, coord = self.is_point_on_line(point, start, end, error)
@@ -312,38 +342,142 @@ class beam_control_joist:
         for beamProp in self.beam.values():
             beamProp["joist"] = []
             beamProp["load"]["joist_load"] = {"assignment": [], "load_map": []}
+            beamPoint1 = Point(beamProp["coordinate"][0][0], (beamProp["coordinate"][0][1]))
+            beamPoint2 = Point(beamProp["coordinate"][1][0], beamProp["coordinate"][1][1])
+            beamSegment = Segment(beamPoint1, beamPoint2)
             slope_beam = beamProp["line"]["properties"]["slope"]
             c_beam = beamProp["line"]["properties"]["c"]
             range_beam = beamProp["line"]["properties"]["range"]
             for joistProp in self.joist.values():
-                lines = joistProp["line"]["properties"]
-                for i in range(len(lines)):
-                    slope_joist = lines[i]["slope"]
-                    c_joist = lines[i]["c"]
-                    range_joist_line = lines[i]["range"]
-                    startPointTolerate = abs(c_joist - c_beam)
-                    if startPointTolerate < 15:
-                        startStatus = True
+                joistCoords = joistProp["coordinate"]
+                joistArea = Polygon(*joistCoords)
+                intersection = joistArea.intersection(beamSegment)
+                # line_in_polygon = len(intersection) == 1 and intersection[0] == beamSegment
+                intersection_range = []
+                if len(intersection) == 1 and intersection[0] == beamSegment:
+                    intersection_range = [[float(i) for i in intersection[0].args[0].args],
+                                          [float(i) for i in intersection[0].args[1].args]]
+
+                elif len(intersection) == 2:
+                    intersection_range = [[float(i) for i in intersection[0].args],
+                                          [float(i) for i in intersection[1].args]]
+
+                elif len(intersection) == 1:
+                    point1_in_joist = joistArea.encloses_point(beamPoint1)
+                    point2_in_joist = joistArea.encloses_point(beamPoint2)
+
+                    if point1_in_joist:
+                        l = length_point(intersection[0], beamPoint1)
+                        if l > 0:
+                            intersection_range = [[float(i) for i in intersection[0].args],
+                                                  [float(i) for i in beamProp["coordinate"][0]]]
+                    elif point2_in_joist:
+                        l = length_point(intersection[0], beamPoint2)
+                        if l > 0:
+                            intersection_range = [[float(i) for i in intersection[0].args],
+                                                  [float(i) for i in beamProp["coordinate"][1]]]
+
+
+                else:
+                    point1_in_joist = joistArea.encloses_point(beamPoint1)
+                    point2_in_joist = joistArea.encloses_point(beamPoint2)
+                    print("jaflskdjfljsd")
+                    if point1_in_joist and point2_in_joist:
+                        print("what the fuck")
+                        intersection_range = (
+                            [float(i) for i in beamProp["coordinate"][0]],
+                            [float(i) for i in beamProp["coordinate"][1]])
+
+                if intersection_range:
+
+                    # if joistProp["direction"] == "N-S":
+                    #     tributary_index = 1
+                    # else:
+                    #     tributary_index = 0
+                    if beamProp["direction"] == "N-S":
+                        tributary_index = 0
+                    elif beamProp["direction"] == "E-W":
+                        tributary_index = 1
                     else:
-                        startStatus = False
-                    if slope_joist == slope_beam and startStatus:
-                        intersection_range = range_intersection(range_joist_line, range_beam)
-                        if intersection_range:
-                            # for tributary calculation
-                            try:
-                                range_other_direction = lines[i + 1]["range"]
-                            except:
-                                range_other_direction = lines[i - 1]["range"]
+                        tributary_index = tributary_index
 
-                            tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
-                                                        range_other_direction, beamProp["line"]["properties"]["c"])
+                    joistStart = joistProp["coordinate"][0][tributary_index]
+                    joistEnd = joistProp["coordinate"][2][tributary_index]
+                    midBeam = (beamProp["coordinate"][0][tributary_index] + beamProp["coordinate"][1][
+                        tributary_index]) / 2
+                    tributary1 = joistStart - midBeam
+                    tributary2 = joistEnd - midBeam
+                    if beamProp["direction"] == "Inclined":
+                        if abs(tributary2) > abs(tributary1):
 
+                            tributary_depth_number = tributary2
+                        else:
+                            tributary_depth_number = tributary1
+
+                        range_other_direction = (
+                            min(tributary_depth_number, midBeam), max(tributary_depth_number, midBeam))
+                        tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
+                                                    range_other_direction, midBeam)
+                        beamProp["joist"].append(
+                            {"label": joistProp["label"], "intersection_range": intersection_range,
+                             "tributary_depth": tributary_depth})
+                        load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
+                                           tributary_depth, beamProp["direction"],
+                                           beamProp["load"]["joist_load"])
+                    else:
+                        if tributary1:
+                            range_other_direction = (min(joistStart, midBeam), max(joistStart, midBeam))
+                            tributary1_depth = tributary(joistProp["direction"], beamProp["direction"],
+                                                         range_other_direction, midBeam)
                             beamProp["joist"].append(
                                 {"label": joistProp["label"], "intersection_range": intersection_range,
-                                 "tributary_depth": tributary_depth})
-
+                                 "tributary_depth": tributary1_depth})
                             load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
-                                               tributary_depth, beamProp["direction"], beamProp["load"]["joist_load"])
+                                               tributary1_depth, beamProp["direction"],
+                                               beamProp["load"]["joist_load"])
+
+                        if tributary2:
+                            range_other_direction = (min(joistEnd, midBeam), max(joistEnd, midBeam))
+
+                            tributary2_depth = tributary(joistProp["direction"], beamProp["direction"],
+                                                         range_other_direction, midBeam)
+                            # tributary2_depth = (min(joistEnd, midBeam), (joistEnd + midBeam) / 2)
+                            beamProp["joist"].append(
+                                {"label": joistProp["label"], "intersection_range": intersection_range,
+                                 "tributary_depth": tributary2_depth})
+                            load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
+                                               tributary2_depth, beamProp["direction"],
+                                               beamProp["load"]["joist_load"])
+                else:
+                    lines = joistProp["line"]["properties"]
+                    for i in range(len(lines)):
+                        slope_joist = lines[i]["slope"]
+                        c_joist = lines[i]["c"]
+                        range_joist_line = lines[i]["range"]
+                        startPointTolerate = abs(c_joist - c_beam)
+                        if startPointTolerate < 15:
+                            startStatus = True
+                        else:
+                            startStatus = False
+                        if slope_joist == slope_beam and startStatus:
+                            intersection_range = range_intersection(range_joist_line, range_beam)
+                            if intersection_range:
+                                # for tributary calculation
+                                try:
+                                    range_other_direction = lines[i + 1]["range"]
+                                except:
+                                    range_other_direction = lines[i - 1]["range"]
+
+                                tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
+                                                            range_other_direction, beamProp["line"]["properties"]["c"])
+
+                                beamProp["joist"].append(
+                                    {"label": joistProp["label"], "intersection_range": intersection_range,
+                                     "tributary_depth": tributary_depth})
+
+                                load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
+                                                   tributary_depth, beamProp["direction"],
+                                                   beamProp["load"]["joist_load"])
 
 
 def tributary(direction_joist, direction_beam, main_range, c):
@@ -370,125 +504,7 @@ class beam_control:
         self.shearWall = shearWall
         self.joist = joist
 
-        # beam_control_length(self.beam)
+        beam_control_length(self.beam)
         beam_control_direction_and_line(self.beam)
         beam_control_support(self.beam, self.post, self.shearWall)
         beam_control_joist(self.beam, self.joist)
-
-
-# Beam = {"beamItem1": {"label": "B1", "coordinate": [(0, 0), (4, 3)]},
-#         "beamItem2": {"label": "B2", "coordinate": [(0, 0), (10.4, 20)]}}
-# Post = {"postItem1": {"label": "P1", "coordinate": (10.4, 20)},
-#         "postItem2": {"label": "P2", "coordinate": (5, 10.4)}}
-# ShearWall = {"<ShearWall.Rectangle(0x1e25840c970, pos=0,0) at 0x000001E2592E4140>": {'label': 'SW1',
-#                                                                                      'coordinate': [(400.0, 59.0),
-#                                                                                                     (400.0, 330.0)],
-#                                                                                      'post': {'label_start': 'SWP1',
-#                                                                                               'label_end': 'SWP2',
-#                                                                                               'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1e25840ca70, pos=0,0) at 0x000001E2592E46C0>",
-#                                                                                               'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1e25840c2b0, pos=0,0) at 0x000001E2592E4700>",
-#                                                                                               'start_center': (
-#                                                                                                   400.0, 69.0),
-#                                                                                               'end_center': (
-#                                                                                                   400.0, 320.0)},
-#                                                                                      'direction': 'N-S',
-#                                                                                      'interior_exterior': 'exterior'},
-#              "<ShearWall.Rectangle(0x1e25840cf70, pos=0,0) at 0x000001E2592E43C0>": {'label': 'SW2',
-#                                                                                      'coordinate': [(0.0, 197.0),
-#                                                                                                     (0.0, 277.0)],
-#                                                                                      'post': {'label_start': 'SWP3',
-#                                                                                               'label_end': 'SWP4',
-#                                                                                               'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1e25840c3f0, pos=0,0) at 0x000001E2592E4C40>",
-#                                                                                               'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1e25840c530, pos=0,0) at 0x000001E2592E4C80>",
-#                                                                                               'start_center': (
-#                                                                                                   0.0, 207.0),
-#                                                                                               'end_center': (
-#                                                                                                   0.0, 267.0)},
-#                                                                                      'direction': 'N-S',
-#                                                                                      'interior_exterior': 'exterior'}}
-# Beam = {"<Beam.Rectangle(0x1e25840ca30, pos=0,0) at 0x000001E2592CD980>": {'label': 'B1',
-#                                                                            'coordinate': [(0.0, 0.0), (400.0, 0.0)]},
-#         "<Beam.Rectangle(0x1e25840ce70, pos=0,0) at 0x000001E2592D06C0>": {'label': 'B2',
-#                                                                            'coordinate': [(0.0, 0.0), (0.0, 400.0)]},
-#         "<Beam.Rectangle(0x1e25840cbf0, pos=0,0) at 0x000001E2592E3480>": {'label': 'B3', 'coordinate': [(0.0, 400.0), (
-#             400.0, 400.0)]}, "<Beam.Rectangle(0x1e25840cf30, pos=0,0) at 0x000001E2592E36C0>": {'label': 'B4',
-#                                                                                                 'coordinate': [
-#                                                                                                     (400.0, 400.0),
-#                                                                                                     (400.0, 0.0)]},
-#         "<Beam.Rectangle(0x1e25840c9b0, pos=0,0) at 0x000001E2592E38C0>": {'label': 'B5', 'coordinate': [(0.0, 197.0), (
-#             400.0, 197.0)]}}
-# Post = {
-#     "<post_new.CustomRectItem(0x1e25840b570, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001E2592CCB00>": {
-#         'label': 'P1', 'coordinate': (0.0, 0.0)},
-#     "<post_new.CustomRectItem(0x1e25840bb70, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001E2592CD000>": {
-#         'label': 'P2', 'coordinate': (0.0, 400.0)}}
-# ShearWall = {"<ShearWall.Rectangle(0x1c31bbffa30, pos=0,0) at 0x000001C31C9AAF40>": {'label': 'SW1',
-#                                                                                      'coordinate': [(400.0, 0.0),
-#                                                                                                     (400.0, 140.0)],
-#                                                                                      'post': {'label_start': 'SWP1',
-#                                                                                               'label_end': 'SWP2',
-#                                                                                               'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1c31bbffaf0, pos=0,0) at 0x000001C31C9AB480>",
-#                                                                                               'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1c31bbff830, pos=0,0) at 0x000001C31C9AB4C0>",
-#                                                                                               'start_center': (
-#                                                                                                   400.0, 10.4.0),
-#                                                                                               'end_center': (
-#                                                                                                   400.0, 130.0)},
-#                                                                                      'direction': 'N-S',
-#                                                                                      'interior_exterior': 'exterior'},
-#              "<ShearWall.Rectangle(0x1c31bc00070, pos=0,0) at 0x000001C31C9AB1C0>": {'label': 'SW2',
-#                                                                                      'coordinate': [(47.0, 400.0),
-#                                                                                                     (217.0, 400.0)],
-#                                                                                      'post': {'label_start': 'SWP3',
-#                                                                                               'label_end': 'SWP4',
-#                                                                                               'start_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1c31bbff2b0, pos=0,0) at 0x000001C31C9ABA00>",
-#                                                                                               'end_rect_item': "<PySide6.QtWidgets.QGraphicsRectItem(0x1c31bbff8b0, pos=0,0) at 0x000001C31C9ABA40>",
-#                                                                                               'start_center': (
-#                                                                                                   57.0, 400.0),
-#                                                                                               'end_center': (
-#                                                                                                   207.0, 400.0)},
-#                                                                                      'direction': 'E-W',
-#                                                                                      'interior_exterior': 'exterior'}}
-# Beam = {"<Beam.Rectangle(0x1c31bbfffb0, pos=0,0) at 0x000001C31C98CB80>": {'label': 'B1', 'coordinate': [(0.0, 400.0), (
-#     400.0, 400.0)]}, "<Beam.Rectangle(0x1c31bbff9f0, pos=0,0) at 0x000001C31C9AA600>": {'label': 'B2',
-#                                                                                         'coordinate': [(0.0, 0.0),
-#                                                                                                        (400.0, 0.0)]},
-#         "<Beam.Rectangle(0x1c31bbff4b0, pos=0,0) at 0x000001C31C9AA880>": {'label': 'B3', 'coordinate': [(217.0, 0.0), (
-#             217.0, 400.0)]}}
-# Post = {
-#     "<post_new.CustomRectItem(0x1c31bbfff70, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001C31C98C440>": {
-#         'label': 'P1', 'coordinate': (0.0, 0.0)},
-#     "<post_new.CustomRectItem(0x1c31bbff430, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001C31C98C680>": {
-#         'label': 'P2', 'coordinate': (-10.4.0, 400.0)}}
-Beam = {"<Beam.Rectangle(0x1efd680d550, pos=0,0) at 0x000001EFD74D0E00>": {'label': 'B1', 'coordinate': [(0.0, 400.0), (
-    338.0, 400.0)]}, "<Beam.Rectangle(0x1efd680cdd0, pos=0,0) at 0x000001EFD74D0E80>": {'label': 'B2',
-                                                                                        'coordinate': [(302.0, 400.0),
-                                                                                                       (302.0, 210.0)]},
-        " <Beam.Rectangle(0x1efd680cb50, pos=0,0) at 0x000001EFD74D12C0>": {'label': 'B3', 'coordinate': [(202.0, 81.0),
-                                                                                                          (202.0,
-                                                                                                           275.0)]},
-        " <Beam.Rectangle(0x1efd680c7d0, pos=0,0) at 0x000001EFD74D0AC0>": {'label': 'B4',
-                                                                            'coordinate': [(302.0, 210.0),
-                                                                                           (202.0, 210.0)]},
-        "<Beam.Rectangle(0x1efd680ce90, pos=0,0) at 0x000001EFD74D1140>": {'label': 'B5', 'coordinate': [(202.0, 275.0),
-                                                                                                         (
-                                                                                                             29.0,
-                                                                                                             275.0)]},
-        "<Beam.Rectangle(0x1efd680d250, pos=0,0) at 0x000001EFD74D1B00>": {'label': 'B6',
-                                                                           'coordinate': [(0.0, 400.0), (0.0, 93.0)]},
-        "<Beam.Rectangle(0x1efd680cf50, pos=0,0) at 0x000001EFD74D1DC0>": {'label': 'B7', 'coordinate': [(0.0, 141.0), (
-            202.0, 141.0)]}}
-
-Post = {
-    "<post_new.CustomRectItem(0x1efd680d790, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001EFD74D0500>": {
-        'label': 'P1', 'coordinate': (0.0, 400.0)},
-    "<post_new.CustomRectItem(0x1efd680c810, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001EFD74D0840>": {
-        'label': 'P2', 'coordinate': (202.0, 81.0)},
-    "<post_new.CustomRectItem(0x1efd680c550, pos=0,0, flags=(ItemIsMovable|ItemIsSelectable)) at 0x000001EFD74D2980>": {
-        'label': 'P3', 'coordinate': (319.0, 90.0)}}
-
-ShearWall = {}
-
-# a = beam_control(Beam, Post, ShearWall)
-# beams = a.beam
-# for i in beams.values():
-#     print(i["support"])
