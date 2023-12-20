@@ -2,13 +2,11 @@ import sys
 
 sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion4")
 
-from Report_Lab.version1.main import Main
 from UI_Wood.stableVersion4.output.beam_output import beam_output
 from WOOD_DESIGN.mainbeamnewupdated import MainBeam
 from UI_Wood.stableVersion4.Sync.reaction import Control_reaction, Reaction_On
 from UI_Wood.stableVersion4.output.beamSql import beamSQL, WriteBeamInputSQL
 from UI_Wood.stableVersion4.run.beam import BeamStoryBy
-from Report_Lab.version1.beam.input import BeamInput
 from time import sleep
 from PySide6.QtWidgets import QDialog
 
