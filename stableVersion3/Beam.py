@@ -3,7 +3,7 @@ from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QGraphicsProxyWidget
 
-from pointer_control import control_post_range, range_post, beam_end_point, selectable_beam_range, \
+from pointer_control import control_post_range, range_post, range_post_shearWall, beam_end_point, selectable_beam_range, \
     control_selectable_beam_range
 from post_new import magnification_factor
 from DeActivate import deActive
@@ -117,28 +117,33 @@ class beamDrawing(QGraphicsRectItem):
                         post_ranges = range_post(self.post_instance.post_prop, self.post_dimension)
                         print("post_ranges", post_ranges)
                         beam_ranges = selectable_beam_range(self.beam_rect_prop, self.beam_width)
+                        post_shearWall_ranges = range_post_shearWall(self.shearWall_instance.shearWall_rect_prop,
+                                                                     self.post_dimension)
+
                         status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
+                        status_post_shearWall, x_post_shearWall, y_post_shearWall = control_post_range(
+                            post_shearWall_ranges, point[0], point[1])
                         status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
                         print(post_ranges)
                         print(status_post, x_post, y_post)
                         print("kjsdhfjasd")
                         print(self.post_instance.post_prop)
-                        shearWall_posts_start = [i["post"]["start_center"] for i in
-                                                 self.shearWall_instance.shearWall_rect_prop.values()]
-                        shearWall_posts_end = [i["post"]["end_center"] for i in
-                                               self.shearWall_instance.shearWall_rect_prop.values()]
-                        shearWall_posts = shearWall_posts_start + shearWall_posts_end
-                        if point in shearWall_posts:
-                            status_shearWall_post = True
-                        else:
-                            status_shearWall_post = False
-                        if status_post or status_beam or status_shearWall_post:
+                        # shearWall_posts_start = [i["post"]["start_center"] for i in
+                        #                          self.shearWall_instance.shearWall_rect_prop.values()]
+                        # shearWall_posts_end = [i["post"]["end_center"] for i in
+                        #                        self.shearWall_instance.shearWall_rect_prop.values()]
+                        # shearWall_posts = shearWall_posts_start + shearWall_posts_end
+                        # if point in shearWall_posts:
+                        #     status_shearWall_post = True
+                        # else:
+                        #     status_shearWall_post = False
+                        if status_post or status_beam or status_post_shearWall:
                             if status_post:
                                 x, y = x_post, y_post
                             elif status_beam:
                                 x, y = x_beam, y_beam
                             else:
-                                x, y = point[0], point[1]
+                                x, y = x_post_shearWall, y_post_shearWall
 
                             self.start_pos = QPointF(x, y)
 
