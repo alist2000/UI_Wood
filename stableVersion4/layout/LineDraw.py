@@ -1,6 +1,6 @@
-from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
-from UI_Wood.stableVersion3.Beam import Rectangle
-from UI_Wood.stableVersion3.mouse import SelectableLineItem
+from UI_Wood.stableVersion4.post_new import magnification_factor, CustomRectItem
+from UI_Wood.stableVersion4.Beam import Rectangle
+from UI_Wood.stableVersion4.mouse import SelectableLineItem
 
 from PySide6.QtGui import QPainter, QPixmap, QFont
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
@@ -315,7 +315,7 @@ class shearWallDraw:
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(f"DCR <sub>shear</sub>: {dcr_shear}, ")
         dcr2 = QLabel(f"DCR <sub>tension</sub>: {dcr_tension}, ")
-        dcr3 = QLabel(f"DCR <sub>comp</sub>: {dcr_compression}")
+        dcr3 = QLabel(f"DCR <sub>comp</sub>: {dcr_compression}, ")
         dcr4 = QLabel(f"DCR <sub>deflection</sub>: {dcr_deflection}")
         font = QFont()
         font.setPointSize(7)
@@ -328,6 +328,7 @@ class shearWallDraw:
         layout.addWidget(dcr1)
         layout.addWidget(dcr2)
         layout.addWidget(dcr3)
+        layout.addWidget(dcr4)
         widget = QWidget()
         widget.setLayout(layout)
         widget.setStyleSheet("background-color: transparent;")

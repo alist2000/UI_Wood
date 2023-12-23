@@ -148,6 +148,7 @@ class DrawShearWall(QDialog):
         layout.addWidget(dcr1)
         layout.addWidget(dcr2)
         layout.addWidget(dcr3)
+        layout.addWidget(dcr4)
         widget = QWidget()
         widget.setLayout(layout)
         widget.setStyleSheet("background-color: transparent;")
