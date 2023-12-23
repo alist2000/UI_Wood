@@ -74,7 +74,8 @@ class SeismicParamsSQL:
                 I FLOAT,
                 T_model FLOAT,
                 R_factor FLOAT,
-                risk_category TEXT
+                risk_category TEXT,
+                Regular_Building TEXT
             )
         """)
 

@@ -41,9 +41,9 @@ class Control_reaction(reaction_types):
     def control_every_reaction(self, loc, load):
         reaction_distance = (float(loc) * magnification_factor) + self.start_coordinate
         if self.direction_index == 1:
-            reaction_coordinate = (round(self.coordinate_beam[0][self.constant_index], 2), round(reaction_distance, 2))
+            reaction_coordinate = (round(self.coordinate_beam[0][self.constant_index], 0), round(reaction_distance, 0))
         else:
-            reaction_coordinate = (round(reaction_distance, 2), round(self.coordinate_beam[0][self.constant_index], 2))
+            reaction_coordinate = (round(reaction_distance, 0), round(self.coordinate_beam[0][self.constant_index], 0))
         support = self.selected_beam["support"]
 
         for i, magnitude in enumerate(load):
@@ -51,7 +51,7 @@ class Control_reaction(reaction_types):
             for supportItem in support:
                 if supportItem.get("reaction") is None:
                     supportItem["reaction"] = []
-                coordinate = tuple([round(i, 2) for i in supportItem["coordinate"]])
+                coordinate = tuple([round(i, 0) for i in supportItem["coordinate"]])
                 if coordinate == reaction_coordinate:
                     supportItem["reaction"].append({"magnitude": magnitude, "type": load_type})
 

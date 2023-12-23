@@ -1,6 +1,6 @@
-from UI_Wood.stableVersion3.layout.LineDraw import BeamLabel
-from UI_Wood.stableVersion3.post_new import magnification_factor, CustomRectItem
-from UI_Wood.stableVersion3.mouse import SelectableLineItem
+from UI_Wood.stableVersion4.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion4.post_new import magnification_factor, CustomRectItem
+from UI_Wood.stableVersion4.mouse import SelectableLineItem
 
 from PySide6.QtGui import QPainter, QPixmap, QFont, QPen, QBrush, QColor
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF
