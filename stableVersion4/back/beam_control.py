@@ -495,12 +495,18 @@ class beam_control_joist:
                 #         min(tributary_depth_number, midBeam), max(tributary_depth_number, midBeam))
                 #     tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
                 #                                 range_other_direction, midBeam)
+                beamPoint1 = beamProp["coordinate"][0]
+                beamPoint2 = beamProp["coordinate"][1]
+                if beamPoint1[0] <= beamPoint2[0]:
+                    startBeam = beamPoint1
+                else:
+                    startBeam = beamPoint2
                 beamProp["joist"].append(
                     {"label": joistProp["label"], "intersection_range": intersection_range,
                      "tributary_depth": tributary_depth})
                 load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
                                    tributary_depth, beamProp["direction"],
-                                   beamProp["load"]["joist_load"])
+                                   beamProp["load"]["joist_load"], joistProp["direction"], startBeam)
                 # else:
                 #     if tributary1:
                 #         range_other_direction = (min(joistStart, midBeam), max(joistStart, midBeam))
