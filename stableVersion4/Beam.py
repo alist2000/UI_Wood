@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QGraphicsRectItem, QWidget, QPushButton, QGraphics
 from DeActivate import deActive
 from beam_prop import BeamProperties
 from dimension import DimensionLabel
-from pointer_control import control_post_range, range_post, selectable_beam_range, \
+from pointer_control import control_post_range, range_post, range_post_shearWall, beam_end_point, selectable_beam_range, \
     control_selectable_beam_range
 from post_new import magnification_factor
 
@@ -80,14 +80,17 @@ class beamDrawing(QGraphicsRectItem):
                         # if snap to some point we don't need to check with snap line
                         if pos == snapped_pos:
                             snapped_pos = self.snapLine.snap(pos)
-                        self.finalize_rectangle(pos)
+                        self.finalize_rectangle(pos, main_self.shift_pressed)
                         # Create a new rectangle instance
                         self.start_pos = snapped_pos
                         if self.beam_loc:  # Add this condition
                             end_point = snapped_pos.toTuple()
                             start_point = self.beam_loc[0]
-                            # final_end_point = beam_end_point(start_point, end_point)
-                            final_end_point = end_point
+                            if main_self.shift_pressed:
+                                final_end_point = end_point
+                            else:
+                                final_end_point = beam_end_point(start_point, end_point)
+
                             self.beam_loc.append(final_end_point)
 
                             self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
@@ -111,6 +114,7 @@ class beamDrawing(QGraphicsRectItem):
                             self.beam_loc.clear()
 
                     else:
+                        print("shift button: ", main_self.shift_pressed)
                         self.dimension = QGraphicsProxyWidget()
                         snapped_pos = self.snapPoint.snap(pos)
                         # Start point just snap to point not line.
@@ -119,28 +123,33 @@ class beamDrawing(QGraphicsRectItem):
                         post_ranges = range_post(self.post_instance.post_prop, self.post_dimension)
                         print("post_ranges", post_ranges)
                         beam_ranges = selectable_beam_range(self.beam_rect_prop, self.beam_width)
+                        post_shearWall_ranges = range_post_shearWall(self.shearWall_instance.shearWall_rect_prop,
+                                                                     self.post_dimension)
+
                         status_post, x_post, y_post = control_post_range(post_ranges, point[0], point[1])
+                        status_post_shearWall, x_post_shearWall, y_post_shearWall = control_post_range(
+                            post_shearWall_ranges, point[0], point[1])
                         status_beam, x_beam, y_beam = control_selectable_beam_range(beam_ranges, point[0], point[1])
                         print(post_ranges)
                         print(status_post, x_post, y_post)
                         print("kjsdhfjasd")
                         print(self.post_instance.post_prop)
-                        shearWall_posts_start = [i["post"]["start_center"] for i in
-                                                 self.shearWall_instance.shearWall_rect_prop.values()]
-                        shearWall_posts_end = [i["post"]["end_center"] for i in
-                                               self.shearWall_instance.shearWall_rect_prop.values()]
-                        shearWall_posts = shearWall_posts_start + shearWall_posts_end
-                        if point in shearWall_posts:
-                            status_shearWall_post = True
-                        else:
-                            status_shearWall_post = False
-                        if status_post or status_beam or status_shearWall_post:
+                        # shearWall_posts_start = [i["post"]["start_center"] for i in
+                        #                          self.shearWall_instance.shearWall_rect_prop.values()]
+                        # shearWall_posts_end = [i["post"]["end_center"] for i in
+                        #                        self.shearWall_instance.shearWall_rect_prop.values()]
+                        # shearWall_posts = shearWall_posts_start + shearWall_posts_end
+                        # if point in shearWall_posts:
+                        #     status_shearWall_post = True
+                        # else:
+                        #     status_shearWall_post = False
+                        if status_post or status_beam or status_post_shearWall:
                             if status_post:
                                 x, y = x_post, y_post
                             elif status_beam:
                                 x, y = x_beam, y_beam
                             else:
-                                x, y = point[0], point[1]
+                                x, y = x_post_shearWall, y_post_shearWall
 
                             self.start_pos = QPointF(x, y)
 
@@ -167,58 +176,83 @@ class beamDrawing(QGraphicsRectItem):
                     (snapped_pos.y() - self.start_pos.y()) ** 2)) ** 0.5
             width = snapped_pos.x() - self.start_pos.x()
             height = snapped_pos.y() - self.start_pos.y()
-            if width == 0:
-                if height >= 0:
-                    teta = 90
+            if main_self.shift_pressed:
+                if width == 0:
+                    if height >= 0:
+                        teta = 90
+                    else:
+                        teta = -90
                 else:
-                    teta = -90
+                    teta = math.atan((snapped_pos.y() - self.start_pos.y()) / (
+                            snapped_pos.x() - self.start_pos.x())) * 180 / math.pi  # degree\
+                    if width < 0:
+                        teta = 180 + teta
+
+                self.current_rect.setRect(self.start_pos.x(),
+                                          self.start_pos.y() - self.beam_width / 2, length, self.beam_width)
+                dimension = DimensionLabel(length, magnification_factor)
+
+                self.dimension.setWidget(dimension)
+
+                self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
+                                      self.start_pos.y() - 2 * self.beam_width)
+
+                # Set the transformation origin to the start point
+                self.current_rect.setTransformOriginPoint(self.start_pos)
+                # self.dimension.setTransformOriginPoint(snapped_pos)
+                self.dimension.setRotation(teta)
+                # Rotate the rectangle
+                self.current_rect.setRotation(teta)  # rotate by teta degrees
             else:
-                teta = math.atan((snapped_pos.y() - self.start_pos.y()) / (
-                        snapped_pos.x() - self.start_pos.x())) * 180 / math.pi  # degree\
-                if width < 0:
-                    teta = 180 + teta
+                self.current_rect.setRotation(0)  # rotate by teta degrees
+                if abs(width) > abs(height):
+                    # Move horizontally, keep vertical dimension constant
+                    self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
+                                              self.start_pos.y() - self.beam_width / 2, abs(width), self.beam_width)
+                    dimension = DimensionLabel(width, magnification_factor)
 
-            self.current_rect.setRect(self.start_pos.x(),
-                                      self.start_pos.y() - self.beam_width / 2, length, self.beam_width)
-            dimension = DimensionLabel(length, magnification_factor)
+                    self.dimension.setWidget(dimension)
 
-            self.dimension.setWidget(dimension)
+                    self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
+                                          self.start_pos.y() - 2 * self.beam_width)
+                    self.dimension.setRotation(0)
+                else:
+                    # Move vertically, keep horizontal dimension constant
+                    self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2,
+                                              min(self.start_pos.y(), snapped_pos.y()), self.beam_width,
+                                              abs(height))
+                    dimension = DimensionLabel(height, magnification_factor)
 
-            self.dimension.setPos((self.start_pos.x() + snapped_pos.x()) / 2,
-                                  self.start_pos.y() - 2 * self.beam_width)
+                    self.dimension.setWidget(dimension)
 
-            # Set the transformation origin to the start point
-            self.current_rect.setTransformOriginPoint(self.start_pos)
-            # self.dimension.setTransformOriginPoint(snapped_pos)
-            self.dimension.setRotation(teta)
-            # Rotate the rectangle
-            self.current_rect.setRotation(teta)  # rotate by teta degrees
+                    self.dimension.setPos(self.start_pos.x() - 2 * self.beam_width,
+                                          (self.start_pos.y() + snapped_pos.y()) / 2)
+                    self.dimension.setRotation(-90)
 
             self.scene.addItem(self.dimension)
 
-    def finalize_rectangle(self, pos):
+    def finalize_rectangle(self, pos, shiftPressed):
         snapped_pos = self.snapPoint.snap(pos)
         # if snap to some point we don't need to check with snap line
         if pos == snapped_pos:
             snapped_pos = self.snapLine.snap(pos)
-        length = (((snapped_pos.x() - self.start_pos.x()) ** 2) + (
-                (snapped_pos.y() - self.start_pos.y()) ** 2)) ** 0.5
-        width = snapped_pos.x() - self.start_pos.x()
-        height = snapped_pos.y() - self.start_pos.y()
-        if width == 0:
-            if height >= 0:
-                teta = 90
-            else:
-                teta = -90
+        if shiftPressed:
+            length = (((snapped_pos.x() - self.start_pos.x()) ** 2) + (
+                    (snapped_pos.y() - self.start_pos.y()) ** 2)) ** 0.5
+
+            self.current_rect.setRect(self.start_pos.x(),
+                                      self.start_pos.y() - self.beam_width / 2, length, self.beam_width)
         else:
-            teta = math.atan((snapped_pos.y() - self.start_pos.y()) / (
-                    snapped_pos.x() - self.start_pos.x())) * 180 / math.pi  # degree\
-            if width < 0:
-                teta = 180 + teta
+            width = snapped_pos.x() - self.start_pos.x()
+            height = snapped_pos.y() - self.start_pos.y()
 
-        self.current_rect.setRect(self.start_pos.x(),
-                                  self.start_pos.y() - self.beam_width / 2, length, self.beam_width)
-
+            if abs(width) > abs(height):
+                self.current_rect.setRect(min(self.start_pos.x(), snapped_pos.x()),
+                                          self.start_pos.y() - self.beam_width / 2, abs(width), self.beam_width)
+            else:
+                self.current_rect.setRect(self.start_pos.x() - self.beam_width / 2,
+                                          min(self.start_pos.y(), snapped_pos.y()), self.beam_width,
+                                          abs(height))
         self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
         # self.current_rect = None

@@ -33,6 +33,7 @@ class GridWidget(QGraphicsView):
         # self.lastPanPoint = QPoint()
         self.menu = Image(self, slider)
         self.dragging_pixmap = False
+        self.shift_pressed = False
 
         self.grid = {"vertical": [], "horizontal": []}
         self.lineLabels = []
@@ -313,6 +314,12 @@ class GridWidget(QGraphicsView):
         self.setCursor(Qt.ArrowCursor)
         super().mouseReleaseEvent(event)
 
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Shift:
+            self.shift_pressed = False
+            print(self.shift_pressed)
+        super().keyReleaseEvent(event)
+
     #     # reset pixmap dragging flag
     #     self.dragging_pixmap = False
     #     self.scene.clearSelection()
@@ -351,6 +358,11 @@ class GridWidget(QGraphicsView):
             self.scene.clearSelection()
             deActive(None, self.post_instance, self.beam_instance, self.joist_instance, self.shearWall_instance,
                      self.studWall_instance, self.load_instance)
+
+        if event.key() == Qt.Key_Shift:
+            self.shift_pressed = True
+            print(self.shift_pressed)
+        super().keyPressEvent(event)
         # elif event.key() == Qt.Key_A:
         #     for item in self.scene.selectedItems():
         #         print(item)
