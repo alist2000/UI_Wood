@@ -51,21 +51,20 @@ class beam_output_handler:
         n1 = len(str(self.start).split(".")[1])
         n2 = len(str(self.end).split(".")[1])
         decimal_number = max(n1, n2)
-
-        ControlSupport(beamProp, self.direction_index, self.support_list)
+        length = round(self.end - self.start, max(n1, n2))
+        ControlSupport(beamProp, self.direction_index, self.support_list, length, self.end)
         self.support_list = list(set(self.support_list))
         if len(self.support_list) == 1:
             self.support_list[0] = [self.support_list[0][0], (1, 1, 1)]
-        n1 = len(str(self.start).split(".")[1])
-        n2 = len(str(self.end).split(".")[1])
-        length = round(self.end - self.start, max(n1, n2))
+
         # if beam have no support, we should ignore it.
         if self.support_list:
             self.pointLoad = ControlPointLoad(beamProp["load"]["point"], beamProp, self.direction_index)
             self.reactionLoad = ControlReactionLoad(beamProp["load"]["reaction"], beamProp, self.direction_index)
-            self.finalPointLoad = CombinePointLoads(self.pointLoad.loadSet, self.reactionLoad.loadSet,length)
-            self.distributedLoad = ControlDistributetLoad(beamProp["load"]["joist_load"]["load_map"], self.start)
-            self.lineLoad = ControlLineLoad(beamProp["load"]["line"], beamProp, self.direction_index)
+            self.finalPointLoad = CombinePointLoads(self.pointLoad.loadSet, self.reactionLoad.loadSet, length)
+            self.distributedLoad = ControlDistributetLoad(beamProp["load"]["joist_load"]["load_map"], self.start,
+                                                          length)
+            self.lineLoad = ControlLineLoad(beamProp["load"]["line"], beamProp, self.direction_index, length)
             print("loadset line load", self.lineLoad.loadSet)
             self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
                                                            decimal_number)
@@ -73,7 +72,7 @@ class beam_output_handler:
             self.beamProp_dict = {
                 "label": beamProp["label"],
                 "coordinate": [self.start, self.end],
-                "length": round(self.end - self.start, max(n1, n2)),
+                "length": length,
                 "support": self.support_list,
                 "load": {
                     "point": self.finalPointLoad.loadSet,
@@ -89,7 +88,7 @@ class beam_output_handler:
 
 
 class ControlSupport:
-    def __init__(self, beamProp, direction_index, support_list):
+    def __init__(self, beamProp, direction_index, support_list, length, end):
         """
         The function initializes a beam object with properties such as start and end coordinates, length, and support types.
 
@@ -102,16 +101,26 @@ class ControlSupport:
         support type for each support in the beam. Each tuple has two elements: the support location (`support_loc`) and the
         support type (`type_support`)
         """
+        self.end = end
+        self.length = length
+        lengthDecimal = len(str(self.length).split(".")[1])
+        n2 = len(str(self.end).split(".")[1])
         for support in beamProp["support"]:
-            loc = support["coordinate"][direction_index] / magnification_factor
-            self.start = min(beamProp["coordinate"][0][direction_index],
-                             beamProp["coordinate"][1][direction_index]) / magnification_factor
-            self.end = max(beamProp["coordinate"][0][direction_index],
-                           beamProp["coordinate"][1][direction_index]) / magnification_factor
-            n1 = len(str(self.start).split(".")[1])
-            n2 = len(str(self.end).split(".")[1])
-            self.length = round(self.end - self.start, max(n1, n2))
-            support_loc = loc - self.start
+            loc = [i / magnification_factor for i in support["coordinate"]]
+            one = beamProp["coordinate"][0][direction_index]
+            two = beamProp["coordinate"][1][direction_index]
+            if one <= two:
+                n1 = len(str(one).split(".")[1])
+                self.start = [i / magnification_factor for i in beamProp["coordinate"][0]]
+            else:
+                n1 = len(str(two).split(".")[1])
+                self.start = [i / magnification_factor for i in beamProp["coordinate"][1]]
+            #
+            # self.start = min(beamProp["coordinate"][0][direction_index],
+            #                  beamProp["coordinate"][1][direction_index]) / magnification_factor
+
+            # self.length = round(self.end - self.start, max(n1, n2))
+            support_loc = round(((loc[1] - self.start[1]) ** 2 + (loc[0] - self.start[0]) ** 2) ** 0.5, lengthDecimal)
             support_loc = self.control_point_on_beam(support_loc)
             # THIS PART SHOULD BE DEVELOPED. USER SHOULD BE ABLE TO CHANGE SUPPORT TYPE.
             type_support = (1, 1, 0)  # PINNED
@@ -129,7 +138,7 @@ class ControlSupport:
 
 # The `ControlDistributetLoad` class is used to distribute and control the load based on given ranges and load values.
 class ControlDistributetLoad:
-    def __init__(self, load, start):
+    def __init__(self, load, start, length=False):
         """
         The function initializes a class instance and processes a given load to create a load set.
 
@@ -138,6 +147,8 @@ class ControlDistributetLoad:
         :param start: The "start" parameter is the starting point or reference point for the load. It is used to calculate
         the relative positions of the load items
         """
+        # beamLength is for check
+
         self.load = load
         self.all_indexes = []
         self.loadSet = []
@@ -160,16 +171,26 @@ class ControlDistributetLoad:
                     for load_value in loadItem["load"]:
                         loadList.append(load_value)
             if loadList:
+                if length:
+                    self.length = length
+                    self.lengthDecimal = len(str(self.length).split(".")[1])
+                    startLoad = round(rangeItem[0] - start, self.lengthDecimal)
+                    endLoad = round(rangeItem[1] - start, self.lengthDecimal)
+                    if endLoad > self.length:
+                        endLoad = self.length
+                else:
+                    startLoad = rangeItem[0] - start
+                    endLoad = rangeItem[1] - start
                 self.loadSet.append({
-                    "start": rangeItem[0] - start,
-                    "end": rangeItem[1] - start,
+                    "start": startLoad,
+                    "end": endLoad,
                     "load": loadList
                 })
         ControlLoadType(self.loadSet)
 
 
 class ControlLineLoad:
-    def __init__(self, load, beamProp, direction_index):
+    def __init__(self, load, beamProp, direction_index, length=False):
         """
         The function initializes a class instance with load, beam properties, and direction index, and then performs various
         calculations and operations on the load and beam properties.
@@ -183,11 +204,17 @@ class ControlLineLoad:
         """
         self.start = min(beamProp["coordinate"][0][direction_index],
                          beamProp["coordinate"][1][direction_index]) / magnification_factor
-        self.end = max(beamProp["coordinate"][0][direction_index],
-                       beamProp["coordinate"][1][direction_index]) / magnification_factor
+        if length:
+            beamLength = length
+            self.end = self.start + beamLength
+        else:
+            self.end = max(beamProp["coordinate"][0][direction_index],
+                           beamProp["coordinate"][1][direction_index]) / magnification_factor
+            n1 = len(str(self.start).split(".")[1])
+            n2 = len(str(self.end).split(".")[1])
+            beamLength = round(self.end - self.start, max(n1, n2))
         n1 = len(str(self.start).split(".")[1])
         n2 = len(str(self.end).split(".")[1])
-        beamLength = round(self.end - self.start, max(n1, n2))
         self.load = load
         self.all_indexes = []
         self.loadSet = []
@@ -232,8 +259,6 @@ class ControlLineLoad:
                     distance = abs(loadItem["distance"] + loadItem["length"] - beamLength * magnification_factor)
                 start = distance / magnification_factor
                 end = start + loadLength
-                n1 = len(str(self.start).split(".")[1])
-                n2 = len(str(self.end).split(".")[1])
 
                 rangeLoad = (start,
                              end)
@@ -335,9 +360,12 @@ class ControlPointLoad:
             loads_types = [{'type': load[i]['type'], 'magnitude': load[i]['magnitude']} for i in item]
             start = min(beamProp["coordinate"][0][direction_index],
                         beamProp["coordinate"][1][direction_index])
-            self.end = max(beamProp["coordinate"][0][direction_index],
-                           beamProp["coordinate"][1][direction_index]) / magnification_factor
-            beamLength = self.end - (start / magnification_factor)
+            # self.end = max(beamProp["coordinate"][0][direction_index],
+            #                beamProp["coordinate"][1][direction_index]) / magnification_factor
+            # beamLength = self.end - (start / magnification_factor)
+            beamLength = (((beamProp["coordinate"][0][0] - beamProp["coordinate"][1][
+                0]) / magnification_factor) ** 2 + ((beamProp["coordinate"][0][1] - beamProp["coordinate"][1][
+                1]) / magnification_factor) ** 2) ** 0.5
             if start == beamProp["coordinate"][0][direction_index]:
                 distance = load[item[0]]['distance'] / magnification_factor
             else:
@@ -367,9 +395,17 @@ class ControlReactionLoad:
         self.loadSet = []
 
         for i in range(len(load)):
-            start = min(beamProp["coordinate"][0][direction_index],
-                        beamProp["coordinate"][1][direction_index])
-            distance = abs(start - load[i]['start'][direction_index]) / magnification_factor
+            one = beamProp["coordinate"][0][direction_index]
+            two = beamProp["coordinate"][1][direction_index]
+            if one <= two:
+                start = beamProp["coordinate"][0]
+            else:
+                start = beamProp["coordinate"][1]
+            # start = min(beamProp["coordinate"][0][direction_index],
+            #             beamProp["coordinate"][1][direction_index])
+            # distance = abs(start - load[i]['start'][direction_index]) / magnification_factor
+            distance = abs(((start[0] - load[i]['start'][0]) ** 2 + (
+                    start[1] - load[i]['start'][1]) ** 2) ** 0.5) / magnification_factor
             self.loadSet.append({
                 "start": distance,
                 "load": load[i]['load']
@@ -387,7 +423,7 @@ class CombinePointLoads:
         :param reactionLoad: The parameter "reactionLoad" is a list of dictionaries. Each dictionary represents a reaction
         load and has two key-value pairs: "start" and "load"
         """
-        start1 = [i["start"] if i["start"] <= length else length for i in pointLoad ]
+        start1 = [i["start"] if i["start"] <= length else length for i in pointLoad]
         start2 = [i["start"] if i["start"] <= length else length for i in reactionLoad]
         start = list(set(start1 + start2))
         self.loadSet = []
@@ -408,7 +444,6 @@ class CombinePointLoads:
             if loadItem["start"] == start:
                 loads += loadItem["load"]
         return loads
-
 
 
 class ControlLoadType:
