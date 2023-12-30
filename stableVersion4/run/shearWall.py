@@ -56,6 +56,8 @@ class DrawShearWall(QDialog):
     def finalize_rectangle_copy(self, start, end, prop):
         x1, y1 = start
         x2, y2 = end
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
         y1_main = min(y1, y2)
         x1_main = min(x1, x2)
         self.current_rect = Rectangle(x1,
@@ -129,7 +131,7 @@ class DrawShearWall(QDialog):
         # self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
         # self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
 
-        BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, "SW" + prop["label"], direction)
+        BeamLabel(x1 + length / 2, y1, self.scene, "SW" + prop["label"], direction, (x1, y1))
 
     def CheckValuesNew(self, dcr_shear, dcr_tension, dcr_compression,dcr_deflection, x, y, direction):
         mainText1 = QGraphicsProxyWidget()

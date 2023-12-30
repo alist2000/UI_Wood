@@ -120,6 +120,8 @@ class joistDraw:
         self.superClass = superClass
         x1, y1 = coordinate[0]
         x2, y2 = coordinate[1]
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
         rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
 
         if superClass.orientations[i] == "N-S":
@@ -154,7 +156,7 @@ class joistDraw:
                 self.rect_item.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
 
             self.TextValue(f"{size}", x_size, y_size, superClass.orientations[i])
-            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, superClass.labels[i], superClass.orientations[i])
+            BeamLabel(x1 + length / 2, y1, superClass.scene, superClass.labels[i], superClass.orientations[i], (x1, y1))
         else:
             self.rect_item.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 100)))
             self.rect_item.setPen(QPen(Qt.black))

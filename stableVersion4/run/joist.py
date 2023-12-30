@@ -37,6 +37,8 @@ class DrawJoist(QDialog):
         coordinate = properties["coordinate"]
         x1, y1 = coordinate[0]
         x2, y2 = coordinate[2]
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
         rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
 
         rect_item = joistRectangle(rect_x, rect_y, rect_w, rect_h, properties)
@@ -75,7 +77,7 @@ class DrawJoist(QDialog):
             rect_item.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
 
         self.TextValue(f"{properties['size']}", x_size, y_size, properties["direction"])
-        BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], properties["direction"])
+        BeamLabel(x1 + length / 2, y1, self.scene, properties["label"], properties["direction"], (x1, y1))
 
     def CheckValuesNew(self, bending_dcr, shear_dcr, deflection_dcr, x, y, direction):
         mainText1 = QGraphicsProxyWidget()
