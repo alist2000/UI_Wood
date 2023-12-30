@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QComboBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QComboBox, QApplication
 from general_properties import h_layout_control
 from InformationSaver import InformationSaver
 
@@ -6,6 +6,14 @@ from InformationSaver import InformationSaver
 class Widget_form(QWidget):
     def __init__(self, reportInput, parent=None):
         super().__init__(parent)
+        screen_geometry = QApplication.primaryScreen().availableGeometry()
+
+        # Calculate the desired width and height
+        desired_width = int(screen_geometry.width() * 1 / 2)
+        desired_height = int(screen_geometry.height() * 3 / 5)
+
+        # Set the size of the tab widget
+        self.setMinimumSize(desired_width, desired_height)
 
         # VALUES
         self.project_title = None
@@ -16,8 +24,6 @@ class Widget_form(QWidget):
         self.unit_system = None
 
         self.reportInput = reportInput
-
-        self.setMinimumSize(600, 500)
 
         projectTitle = QLabel("Project Title :")
         projectTitle.setFixedWidth(100)

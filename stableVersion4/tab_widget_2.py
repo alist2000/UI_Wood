@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QPushButton, QGraphicsView, QToolBar, \
-    QMainWindow, QMenu, QToolButton, QSlider, QMenuBar, QGraphicsItem
+    QMainWindow, QMenu, QToolButton, QSlider, QMenuBar, QApplication
 from PySide6.QtGui import QKeyEvent, QAction
 from PySide6.QtCore import Qt
 
@@ -25,6 +25,14 @@ class secondTabWidget(QMainWindow):
         super().__init__()
         self.slider = None
         self.tabWidget = QTabWidget()
+        screen_geometry = QApplication.primaryScreen().availableGeometry()
+
+        # Calculate the desired width and height
+        desired_width = int(screen_geometry.width() * 2 / 3)
+        desired_height = int(screen_geometry.height() * 4 / 5)
+
+        # Set the size of the tab widget
+        self.setMinimumSize(desired_width, desired_height)
         self.shapes = []
         self.grid = []
         self.inputs = inputs
@@ -188,6 +196,22 @@ class secondTabWidget(QMainWindow):
 
         # Show the QTabWidget
         self.tabWidget.show()
+
+    def showEvent(self, event):
+        # Get the screen size
+        screen_geometry = QApplication.primaryScreen().availableGeometry()
+
+        # Calculate the center of the screen
+        center = screen_geometry.center()
+
+        # Calculate the position of the tab widget to place it in the center of the screen
+        rect = self.frameGeometry()
+        rect.moveCenter(center)
+
+        # Move the tab widget to the calculated position
+        self.move(rect.topLeft())
+
+        super().showEvent(event)
 
     def tabs(self):
         return [self.tabWidget.widget(i) for i in range(self.tabWidget.count())]
