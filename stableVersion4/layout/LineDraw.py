@@ -2,11 +2,12 @@ from UI_Wood.stableVersion4.post_new import magnification_factor, CustomRectItem
 from UI_Wood.stableVersion4.Beam import Rectangle
 from UI_Wood.stableVersion4.mouse import SelectableLineItem
 
-from PySide6.QtGui import QPainter, QPixmap, QFont
+from PySide6.QtGui import QPainter, QPixmap, QFont, QPolygonF
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, \
-    QGraphicsRectItem, QHBoxLayout
+    QGraphicsRectItem, QHBoxLayout, QGraphicsPolygonItem, QGraphicsItemGroup
 from PySide6.QtGui import QPen, QBrush, QColor, QPainterPath
+import math
 
 
 class LineDraw:
@@ -156,24 +157,45 @@ class LineDraw:
 
 
 class BeamLabel:
-    def __init__(self, x, y, scene, label, direction, halfLength=108, startDist1=27, startDist2=108):
+    def __init__(self, x, y, scene, label, teta, originPoint, halfLength=108, startDist1=27, startDist2=108):
+        if teta == "N-S":
+            teta = 90
+        elif teta == "E-W":
+            teta = 0
         # Create a QPainterPath object
-        path = QPainterPath()
-        path.moveTo(x, y)
-        if direction == "E-W":
-            path.lineTo(x + halfLength, y - halfLength)
-            path.lineTo(x - halfLength, y - halfLength)
-        else:
-            path.lineTo(x + halfLength, y - halfLength)
-            path.lineTo(x + halfLength, y + halfLength)
-        path.closeSubpath()
+        # path = QPainterPath()
+        # path.moveTo(x, y)
+        # Calculate the coordinates of the triangle vertices
+        top_vertex = QPointF(x, y)
+        left_vertex = QPointF(x - halfLength, y - halfLength)
+        right_vertex = QPointF(x + halfLength, y - halfLength)
+        # Create a QPolygonF object and add the vertices
+        triangle = QPolygonF()
+        triangle.append(top_vertex)
+        triangle.append(left_vertex)
+        triangle.append(right_vertex)
+
+        # Create a QGraphicsPolygonItem and add it to the scene
+        triangle_item = QGraphicsPolygonItem(triangle)
+        # triangle_item.setPos(top_vertex)
+        # triangle_item.setRotation(-180 + teta)
+
+        # if direction == "E-W":
+        #     path.lineTo(x + halfLength, y - halfLength)
+        #     path.lineTo(x - halfLength, y - halfLength)
+        # else:
+        #     path.lineTo(x + halfLength, y - halfLength)
+        #     path.lineTo(x + halfLength, y + halfLength)
+        # path.closeSubpath()
 
         # Create a QGraphicsPathItem and set the path
-        path_item = QGraphicsPathItem(path)
-        path_item.setPen(QPen(Qt.black, 2))
+        # path_item = QGraphicsPathItem(path)
+        triangle_item.setPen(QPen(Qt.black, 2))
         brush = QBrush(QColor(252, 248, 118, 180))
-        path_item.setBrush(brush)  # Set the fill color
-        scene.addItem(path_item)
+        triangle_item.setBrush(brush)  # Set the fill color
+        # scene.addItem(triangle_item)
+
+        # scene.addItem(path_item)
         Label = QGraphicsProxyWidget()
         LabelText = QLabel(label)
         font = QFont()
@@ -181,14 +203,29 @@ class BeamLabel:
         LabelText.setFont(font)
         LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
         Label.setWidget(LabelText)
-        if direction == "N-S":
-            Label.setPos(x + startDist2, y - startDist1)
-            Label.setRotation(90)
+        Label.setPos(x - startDist1, y - startDist2)
+        # Label.setRotation(teta)
+        # if direction == "N-S":
+        #     Label.setPos(x + startDist2, y - startDist1)
+        #     Label.setRotation(90)
+        #
+        # else:
+        #     Label.setPos(x - startDist1, y - startDist2)
 
-        else:
-            Label.setPos(x - startDist1, y - startDist2)
+        # scene.addItem(Label)
+        # Create a QGraphicsItemGroup
+        self.group = QGraphicsItemGroup()
 
-        scene.addItem(Label)
+        # Add the rectangle and the label to the self.group
+        self.group.addToGroup(triangle_item)
+        self.group.addToGroup(Label)
+        # Add the self.group to the scene
+        Point = QPointF(originPoint[0], originPoint[1])
+
+        # Now you can rotate the self.group as a whole
+        self.group.setTransformOriginPoint(Point)
+        self.group.setRotation(teta)
+        scene.addItem(self.group)
 
 
 class ShearWallLabel:
@@ -232,6 +269,8 @@ class shearWallDraw:
         start, end = coordinate
         x1, y1 = start
         x2, y2 = end
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
         y1_main = min(y1, y2)
         x1_main = min(x1, x2)
         self.current_rect = Rectangle(x1,
@@ -302,7 +341,8 @@ class shearWallDraw:
                 self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
                 self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
             self.TextValue(f"{size}", x1_main, y1_main, direction)
-            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, "SW" + superClass.labels[i], direction, startDist1=45)
+            BeamLabel(x1 + length / 2, y1, superClass.scene, "SW" + superClass.labels[i], direction, (x1, y1),
+                      startDist1=45)
 
             # ShearWallLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, superClass.labels[i], direction)
         else:
@@ -384,9 +424,6 @@ class beamDraw:
         point1, point2 = coordinate
         x1, y1 = point1
         x2, y2 = point2
-        width = abs(x2 - x1)
-        height = abs(y2 - y1)
-        # x, y = (x1 + x2) / 2, (y1 + y2) / 2
         y1_main = min(y1, y2)
         x1_main = min(x1, x2)
         y2_main = max(y1, y2)
@@ -395,24 +432,42 @@ class beamDraw:
                                       y1 - superClass.beam_width / 2, None)
         superClass.scene.addItem(self.current_rect)
 
-        width = abs(x2 - x1)
-        height = abs(y2 - y1)
+        width = x2 - x1
+        height = y2 - y1
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
+        if width == 0:
+            if height >= 0:
+                teta = 90
+            else:
+                teta = -90
+        else:
+            teta = math.atan((y2 - y1) / (
+                    x2 - x1)) * 180 / math.pi  # degree\
+            if width < 0:
+                teta = 180 + teta
+
+        self.current_rect.setRect(x1,
+                                  y1 - superClass.beam_width / 2, length, superClass.beam_width)
+
+        startPoint = QPointF(x1, y1)
+        self.current_rect.setTransformOriginPoint(startPoint)
+
+        self.current_rect.setRotation(teta)  # rotate by teta degrees
+
+        # width = abs(x2 - x1)
+        # height = abs(y2 - y1)
 
         if abs(width) > abs(height):
-            self.current_rect.setRect(min(x1, x2),
-                                      y1 - superClass.beam_width / 2, abs(width), superClass.beam_width)
             direction = "E-W"
 
         else:
-            self.current_rect.setRect(x1 - superClass.beam_width / 2,
-                                      min(y1, y2), superClass.beam_width,
-                                      abs(height))
             direction = "N-S"
 
         if color == "normal":
             self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, superClass.labels[i], direction)
+            BeamLabel(x1 + length / 2, y1, superClass.scene, superClass.labels[i], teta, (x1, y1))
             dcr = [bending_dcr, shear_dcr, deflection_dcr]
             color = "green"
             for value in dcr:
@@ -422,7 +477,7 @@ class beamDraw:
             if color == "red":
                 self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
                 self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-                self.CheckValuesNew(bending_dcr, shear_dcr, deflection_dcr, x1_main, y1_main, direction)
+                self.CheckValuesNew(bending_dcr, shear_dcr, deflection_dcr, x1_main, y1_main, teta)
 
             else:
                 self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
@@ -434,14 +489,14 @@ class beamDraw:
             # self.CheckValues("DCR<sub>m</sub>", bending_dcr, x_dcr1, y_dcr1, direction)
             # self.CheckValues("DCR<sub>v</sub>", shear_dcr, x_dcr2, y_dcr2, direction)
             # self.CheckValues("DCR<sub>def</sub>", deflection_dcr, x_dcr3, y_dcr3, direction)
-            self.TextValue(f"{size}", x1_main, y1_main, direction)
+            self.TextValue(f"{size}", x1_main, y1_main, teta)
         else:
             self.current_rect.setPen(QPen(QColor.fromRgb(254, 0, 0, 100), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 100), Qt.SolidPattern))
             superClass.saveImageElement(superClass.labels[i])
             superClass.scene.removeItem(self.current_rect)
 
-    def CheckValuesNew(self, bending_dcr, shear_dcr, deflection_dcr, x, y, direction):
+    def CheckValuesNew(self, bending_dcr, shear_dcr, deflection_dcr, x, y, teta):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(f"DCR <sub>m</sub>: {bending_dcr}, ")
         dcr2 = QLabel(f"DCR <sub>v</sub>: {shear_dcr}, ")
@@ -465,11 +520,14 @@ class beamDraw:
         self.setColor(bending_dcr, dcr1)
         self.setColor(shear_dcr, dcr2)
         self.setColor(deflection_dcr, dcr3)
-        if direction == "N-S":
-            mainText1.setRotation(90)
-            mainText1.setPos(x - 0.4 * self.superClass.beam_width, y)
-        else:
-            mainText1.setPos(x, y + 0.4 * self.superClass.beam_width)
+        mainText1.setRotation(teta)
+        mainText1.setPos(x - 0.4 * self.superClass.beam_width, y)
+
+        # if direction == "N-S":
+        #     mainText1.setRotation(90)
+        #     mainText1.setPos(x - 0.4 * self.superClass.beam_width, y)
+        # else:
+        #     mainText1.setPos(x, y + 0.4 * self.superClass.beam_width)
 
         # LabelText = QLabel(label)
         self.superClass.scene.addItem(mainText1)
@@ -482,7 +540,7 @@ class beamDraw:
         else:
             label.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-    def TextValue(self, text, x, y, direction, color="black", size=30):
+    def TextValue(self, text, x, y, teta, color="black", size=30):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(text)
         font = QFont()
@@ -492,11 +550,13 @@ class beamDraw:
         # text = QGraphicsTextItem("Hello, PySide6!")
 
         dcr1.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color :" + f"{color}" + " ;}")
-        if direction == "N-S":
-            mainText1.setRotation(90)
-            mainText1.setPos(x + 2 * self.superClass.beam_width, y)
-        else:
-            mainText1.setPos(x, y - 2 * self.superClass.beam_width)
+        mainText1.setRotation(teta)
+        mainText1.setPos(x + 2 * self.superClass.beam_width, y)
+        # if direction == "N-S":
+        #     mainText1.setRotation(teta)
+        #     mainText1.setPos(x + 2 * self.superClass.beam_width, y)
+        # else:
+        #     mainText1.setPos(x, y - 2 * self.superClass.beam_width)
 
         # LabelText = QLabel(label)
         self.superClass.scene.addItem(mainText1)
@@ -510,6 +570,8 @@ class studWallDraw:
         start, end = coordinate
         x1, y1 = start
         x2, y2 = end
+        length = (((x2 - x1) ** 2) + (
+                (y2 - y1) ** 2)) ** 0.5
         y1_main = min(y1, y2)
         x1_main = min(x1, x2)
         # if snap to some point we don't need to check with snap line
@@ -545,7 +607,8 @@ class studWallDraw:
                 self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
                 self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
             self.TextValue(f"{size}", x1_main, y1_main, direction)
-            BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, superClass.scene, "ST" + superClass.labels[i], direction, startDist1=50)
+            BeamLabel(x1 + length / 2, y1, superClass.scene, "ST" + superClass.labels[i], direction, (x1, y1),
+                      startDist1=50)
         else:
             self.current_rect.setPen(QPen(QColor.fromRgb(254, 0, 0, 160), 2))
             self.current_rect.setBrush(QBrush(QColor.fromRgb(254, 0, 0, 150), Qt.SolidPattern))
