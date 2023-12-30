@@ -1,4 +1,5 @@
 import sqlite3
+from UI_Wood.stableVersion4.post_new import magnification_factor
 
 
 class beamSQL:
@@ -97,16 +98,16 @@ class WriteBeamInputSQL:
     def mainTable(self):
         label = self.beamProp["label"]
         length = self.beamProp["length"]
-        start = self.beamProp["coordinate"][0]
-        end = self.beamProp["coordinate"][1]
+        startCoord = [i / magnification_factor for i in self.beamProp["coordinate_main"][0]]
+        endCoord = [i / magnification_factor for i in self.beamProp["coordinate_main"][1]]
         constantCoordinate = self.beamProp["start"]
         direction = self.beamProp["direction"]
-        if direction == "N-S":
-            startCoord = (constantCoordinate, start)
-            endCoord = (constantCoordinate, end)
-        else:
-            startCoord = (start, constantCoordinate)
-            endCoord = (end, constantCoordinate)
+        # if direction == "N-S":
+        #     startCoord = (constantCoordinate, start)
+        #     endCoord = (constantCoordinate, end)
+        # else:
+        #     startCoord = (start, constantCoordinate)
+        #     endCoord = (end, constantCoordinate)
         self.db.cursor.execute(
             'INSERT INTO beamTable (ID, Story, Label, Length,'
             ' Coordinate_start, Coordinate_end) values(?, ?, ?, ?, ?, ?)',
