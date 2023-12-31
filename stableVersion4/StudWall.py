@@ -20,7 +20,7 @@ class StudWallButton(QWidget):
 
 
 class studWallDrawing(QGraphicsRectItem):
-    def __init__(self, studWallButton, x, y, grid, scene, snapPoint, snapLine):
+    def __init__(self, studWallButton, grid, scene, snapPoint, snapLine):
         super().__init__()
         self.studWall = studWallButton
         self.scene = scene

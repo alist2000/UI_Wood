@@ -19,7 +19,7 @@ class BeamButton(QWidget):
 
 
 class beamDrawing(QGraphicsRectItem):
-    def __init__(self, beamButton, x, y, scene, post_instance, shearWall_instance, snapPoint, snapLine):
+    def __init__(self, beamButton, scene, post_instance, shearWall_instance, snapPoint, snapLine):
         super().__init__()
         self.beam = beamButton
         self.scene = scene

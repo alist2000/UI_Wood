@@ -31,7 +31,7 @@ class PostButton(QWidget):
 
 
 class PostDrawing(QGraphicsRectItem):
-    def __init__(self, postButton, x, y, scene, snapPoint, snapLine):
+    def __init__(self, postButton, scene, snapPoint, snapLine):
         super().__init__()
         self.postButton = postButton
         self.scene = scene
