@@ -48,6 +48,7 @@ class set_uniform_load(QDialog):
 
         dialog = UniformLoadDialog(self.load_data)
         dialog.button_box.accepted.connect(dialog.accept_control)  # Change from dialog.accept to self.accept
+        dialog.button_box.rejected.connect(dialog.reject_control)  # Change from dialog.accept to self.accept
         deadSuperExist = False
         if dialog.exec() == QDialog.Accepted:
             self.loadSetId = uuid.uuid4()
@@ -154,6 +155,10 @@ class UniformLoadDialog(QDialog):
     def accept_control(self):
         self.uniform_load.print_values()
         self.accept()
+
+    def reject_control(self):
+        print("reject")
+        self.reject()
 
 
 class UniformLoad(QWidget):
