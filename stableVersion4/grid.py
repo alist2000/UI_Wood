@@ -16,10 +16,11 @@ from post_new import magnification_factor
 from snap import SnapLine, SnapPoint
 from menuBar import Image, visual
 from DeActivate import deActive
+from UI_Wood.stableVersion4.line import LineDrawHandler
 
 
 class GridWidget(QGraphicsView):
-    def __init__(self, h_grid_number, v_grid_number, y, x, post, joist, beam, shearWall, studWall, shapes, slider,
+    def __init__(self, x_grid, y_grid, post, joist, beam, shearWall, studWall, shapes, slider,
                  load, toolBar,
                  parent=None):
         super().__init__(parent)
@@ -35,22 +36,15 @@ class GridWidget(QGraphicsView):
         self.dragging_pixmap = False
         self.shift_pressed = False
 
-        self.grid = {"vertical": [], "horizontal": []}
         self.lineLabels = []
-        self.x = x
-        self.y = y
 
         # ALL SHAPES ADD HERE FOR SAVE AND LOAD
         self.shapes = shapes
 
-        # self.beam = beam
-
         self.current_rect = None
         self.start_pos = None
 
-        # control inputs
-        self.x, self.y = self.control_inputs()
-        self.snap_distance = min(min(self.x), min(self.y)) / 25  # Set the grid size
+        self.snap_distance = magnification_factor / 6  # Set the grid size
 
         # CREATE INSTANCE FOR SNAP
         self.snapPoint = snapPoint = SnapPoint()
@@ -58,61 +52,20 @@ class GridWidget(QGraphicsView):
         self.snapLine = snapLine = SnapLine()
         snapLine.set_snap_distance(self.snap_distance)
 
-        width_manual = sum(self.x)
-        height_manual = sum(self.y)
-        x_list, y_list = self.edit_spacing()
-
-        pen = QPen(Qt.black, 1, Qt.SolidLine)
-        h_line_label = []
-        for i in range(h_grid_number):
-            line_horizontal = SelectableLineItem(0, y_list[i], width_manual, y_list[i])
-            # snap
-            snapLine.add_line((0, y_list[i]), (width_manual, y_list[i]))
-            line_horizontal.setPen(pen)
-            self.scene.addItem(line_horizontal)
-            label = get_string_value(i + 1)
-            self.grid["horizontal"].append({
-                "label": label,
-                "position": y_list[i]
-            })
-            h_line_label.append(label)
-            self.lineLabels.append(label)
-
-        v_line_label = []
-        for i in range(v_grid_number):
-            line_vertical = SelectableLineItem(x_list[i], 0, x_list[i], height_manual)
-            # snap
-            snapLine.add_line((x_list[i], 0), (x_list[i], height_manual))
-            line_vertical.setPen(pen)
-            self.scene.addItem(line_vertical)
-
-            self.grid["vertical"].append({
-                "label": f"{i + 1}",
-                "position": x_list[i]
-            })
-            v_line_label.append(str(i + 1))
-            self.lineLabels.append(str(i + 1))
-
-        h_line_label.sort()
-        h_line_label.sort(key=len)
-        v_line_label.sort()
-        v_line_label.sort(key=len)
-        self.boundaryLineLabels = [min(h_line_label), max(h_line_label), min(v_line_label), max(v_line_label)]
-        # Add Snap Points (grid joint points)
-        for x in x_list:
-            for y in y_list:
-                snapPoint.add_point(x, y)
+        line = LineDrawHandler(x_grid, y_grid, self.scene, snapLine, snapPoint, "coordinate")
+        self.lineLabels, self.boundaryLineLabels, self.x_grid, self.y_grid = line.output()
+        self.grid = {"vertical": self.y_grid, "horizontal": self.x_grid}
 
         self.setRenderHint(QPainter.Antialiasing)
 
         self.joist_instance = joistDrawing(joist, self.scene, snapPoint, snapLine)
         self.load_instance = loadDrawing(load, self.scene, snapPoint, snapLine, toolBar)
-        self.post_instance = PostDrawing(post, self.x, self.y, self.scene, snapPoint, snapLine)
-        self.shearWall_instance = shearWallDrawing(shearWall, self.x, self.y, self.grid, self.scene, snapPoint,
+        self.post_instance = PostDrawing(post, self.scene, snapPoint, snapLine)
+        self.shearWall_instance = shearWallDrawing(shearWall, self.grid, self.scene, snapPoint,
                                                    snapLine)
-        self.beam_instance = beamDrawing(beam, self.x, self.y, self.scene, self.post_instance, self.shearWall_instance,
+        self.beam_instance = beamDrawing(beam, self.scene, self.post_instance, self.shearWall_instance,
                                          snapPoint, snapLine)
-        self.studWall_instance = studWallDrawing(studWall, self.x, self.y, self.grid, self.scene, snapPoint, snapLine)
+        self.studWall_instance = studWallDrawing(studWall, self.grid, self.scene, snapPoint, snapLine)
 
         # CONTROL ON OTHER BUTTONS
         self.post_instance.other_button = [self.beam_instance, self.joist_instance, self.shearWall_instance,
@@ -152,32 +105,6 @@ class GridWidget(QGraphicsView):
                         self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
                         self.load_instance.rect_prop)
 
-        # print("FIRST BEAM")
-        # for i in data.beam_properties.beam.values():
-        #     print(i)
-        # print(data.beam_properties.beam.values())
-        #
-        # beamOutput = beam_output(list(data.beam_properties.beam.values()))
-        # print("FINAL BEAM OUTPUT")
-        # # for i in beamOutput.beamProperties.values():
-        # for i in beamOutput.beamProperties:
-        #     print(i)
-        #
-        # # for loadItem in self.load_instance.rect_prop.keys():
-        # #     loadItem.setVisible(not loadItem.isVisible())
-        # # for i in data.joist_properties.joist.values():
-        # #     print(i)
-        # print(data.joist_properties.joist.values())
-        #
-        # # for i in data.shearWall_properties.shearWall.values():
-        # #     print(i)
-        # for i in self.post_instance.post_prop.values():
-        #     print(i)
-        # print(self.grid)
-        # print(self.joist_instance.rect_prop)
-        # print("RUN CLICK", data.midline.midline_dict)
-        # for i in data.midline.midline_dict:
-        #     print(i)
         return data.midline.midline_dict, self.lineLabels, self.boundaryLineLabels
 
     def wheelEvent(self, event):
@@ -261,25 +188,8 @@ class GridWidget(QGraphicsView):
                 return
 
         super().mousePressEvent(event)
-        #   self.scene.clearSelection()
-
-        # data = receiver(self.grid, self.post_instance.post_prop, self.beam_instance.beam_rect_prop,
-        #                 self.joist_instance.rect_prop,
-        #                 self.shearWall_instance.shearWall_rect_prop, self.studWall_instance.studWall_rect_prop,
-        #                 self.load_instance.rect_prop)
-        # self.lastPanPoint = event.position().toPoint()
-        # self.setCursor(Qt.ClosedHandCursor)
-        # self.scene.clearSelection()
 
     def mouseMoveEvent(self, event):
-        # if not self.lastPanPoint.isNull():
-        #     delta = self.mapToScene(self.lastPanPoint) - self.mapToScene(event.position().toPoint())
-        #     self.lastPanPoint = event.position().toPoint()
-        #     self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + delta.x())
-        #     self.verticalScrollBar().setValue(self.verticalScrollBar().value() + delta.y())
-        # else:
-        #     super().mouseMoveEvent(event)
-
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
             self.beam_instance.draw_beam_mouseMove(self, event)
         elif self.joist_instance.joist_status == 1:
@@ -320,14 +230,6 @@ class GridWidget(QGraphicsView):
             print(self.shift_pressed)
         super().keyReleaseEvent(event)
 
-    #     # reset pixmap dragging flag
-    #     self.dragging_pixmap = False
-    #     self.scene.clearSelection()
-
-    # def mouseReleaseEvent(self, event):
-    #     self.lastPanPoint = QPoint()
-    #     self.setCursor(Qt.ArrowCursor)
-
     def edit_spacing(self):
         x = self.x
         y = self.y
@@ -362,15 +264,6 @@ class GridWidget(QGraphicsView):
         if event.key() == Qt.Key_Shift:
             self.shift_pressed = True
             print(self.shift_pressed)
-        super().keyPressEvent(event)
-        # elif event.key() == Qt.Key_A:
-        #     for item in self.scene.selectedItems():
-        #         print(item)
-        #         self.scene.removeItem(item)
-        # elif event.key() == Qt.Key_Delete:
-        #     for item in self.scene.selectedItems():
-        #         print(item)
-        #         self.scene.removeItem(item)
         super().keyPressEvent(event)
 
 
