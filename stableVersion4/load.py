@@ -52,6 +52,7 @@ class Load:
 
         # set second tab features.
         general_properties = self.data["general_properties"]
+        UpdateGridData(general_properties)
         self.tabWidget = secondTabWidget(general_properties)
 
 
@@ -127,3 +128,50 @@ class set_toolBar:
             self.toolBar.dialogPage2.all_set_load[Id] = {load_data["name"]: load_data["properties"]}
             item = QListWidgetItem(load_data["name"])
             self.toolBar.dialogPage2.listWidget.addItem(item)
+
+
+class UpdateGridData:
+    def __init__(self, general_properties):
+        if not general_properties.get("grid_base"):
+            x_grid = [{
+                "label": "A",
+                "spacing": 0,
+                "start": "",
+                "end": ""
+            }]
+            y_grid = [{
+                "label": "1",
+                "spacing": 0,
+                "start": "",
+                "end": ""
+            }]
+            general_properties["grid_base"] = "spacing"
+            for i, x_spacing in enumerate(general_properties["h_spacing"]):
+                x_grid.append({
+                    "label": get_string_value(i + 2),
+                    "spacing": x_spacing,
+                    "start": "",
+                    "end": ""
+                })
+            for i, y_spacing in enumerate(general_properties["v_spacing"]):
+                y_grid.append({
+                    "label": str(i + 2),
+                    "spacing": y_spacing,
+                    "start": "",
+                    "end": ""
+                })
+
+            general_properties["x_grid"] = x_grid
+            general_properties["y_grid"] = y_grid
+            general_properties["grid_base"] = "spacing"
+
+        self.general_properties = general_properties
+
+
+def get_string_value(num):
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    result = ''
+    while num > 0:
+        num, remainder = divmod(num - 1, 26)
+        result = alphabet[remainder] + result
+    return result
