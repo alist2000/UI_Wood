@@ -58,7 +58,7 @@ class LineDrawHandler:
         self.drawLine.SnapPointHandler(self.x_prop, self.y_prop, snapPoint)
 
     def output(self):
-        return self.drawLine.lineLabels, self.drawLine.boundaryLineLabels
+        return self.drawLine.lineLabels, self.drawLine.boundaryLineLabels, self.x_prop, self.y_prop
 
 
 class LineProp:
