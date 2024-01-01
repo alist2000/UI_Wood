@@ -36,14 +36,15 @@ class ShearWallPostIntersection:
 
 
 class shearWall_control:  # stud wall also, item = studWall
-    def __init__(self, shearWall, joist, beam, item=None):
+    def __init__(self, shearWall, joist, beam, grid=None, item=None):
         self.shearWall = shearWall
         self.joist = joist
         self.beam = beam
-        beam_control_joist(self.shearWall, self.joist)
         if item != "studWall":
+            ShearWallLine(self.shearWall, grid)
             BeamOnShearWall(self.beam, self.shearWall)
             ShearWallPostIntersection(self.shearWall)
+        beam_control_joist(self.shearWall, self.joist)
 
 
 # WORK ON START END AND COORDINATE OF INTERSECTION AND AREA AND SOMETHING LIKE THIS
@@ -120,3 +121,76 @@ class CheckIntersection:
         y_intersection = range_intersection(y_range1, y_range2)
         if x_intersection and y_intersection:
             return True
+
+
+class ShearWallLine:
+    def __init__(self, shearWallProp, line):
+        self.shearWallProp = shearWallProp.values()
+        self.line = line
+        self.lineAssignment()
+
+    @staticmethod
+    def directionControl(start, end):
+        x1, y1 = start
+        x2, y2 = end
+        if x1 == x2:
+            return "N-S"
+        elif y1 == y2:
+            return "E-W"
+        else:
+            return "Inclined"
+
+    def lineAssignment(self):
+        vertical = self.line["vertical"]
+        print(vertical)
+        horizontal = self.line["horizontal"]
+        print(horizontal)
+        for shearWall in self.shearWallProp:
+            start = shearWall["coordinate"][0]
+            end = shearWall["coordinate"][1]
+            direction = self.directionControl(start, end)
+            if direction == "N-S":
+                swPosition = shearWall["coordinate"][0][0]
+                swRange = (min(shearWall["coordinate"][0][1], shearWall["coordinate"][1][1]),
+                           max(shearWall["coordinate"][0][1], shearWall["coordinate"][1][1]))
+                lineLabel, intExt = self.lineDetector(swPosition, swRange, vertical)
+            elif direction == "E-W":
+                swPosition = shearWall["coordinate"][0][1]
+                swRange = (min(shearWall["coordinate"][0][0], shearWall["coordinate"][1][0]),
+                           max(shearWall["coordinate"][0][0], shearWall["coordinate"][1][0]))
+                lineLabel, intExt = self.lineDetector(swPosition, swRange, horizontal)
+
+            else:  # inclined shearWall
+                lineLabel = "Should be developed"
+                intExt = "Should be developed"
+                pass
+
+            shearWall["line_label"] = lineLabel
+            shearWall["direction"] = direction
+            shearWall["interior_exterior"] = intExt
+
+    @staticmethod
+    def lineDetector(position, itemRange, lineProp):
+        linePos = [i["position"] for i in lineProp]
+        minPos = min(linePos)
+        maxPos = max(linePos)
+        lineLabels = [i["label"] for i in lineProp]
+        lineRanges = [(i["start"], i["end"]) for i in lineProp]
+        distance = []
+        for linePosition in linePos:
+            distance.append(abs(position - linePosition))
+
+        possibleLineIndex = []
+        for i, lineRange in enumerate(lineRanges):
+            intersection = range_intersection(itemRange, lineRange)
+            if intersection:
+                possibleLineIndex.append(i)
+        minDist = min([distance[i] for i in possibleLineIndex])
+        minDistIndex = distance.index(minDist)
+        if linePos[minDistIndex] == minPos or linePos[minDistIndex] == maxPos:
+            intExt = "exterior"
+        else:
+            intExt = "interior"
+        return lineLabels[minDistIndex], intExt
+
+        pass
