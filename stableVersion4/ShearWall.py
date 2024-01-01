@@ -19,7 +19,7 @@ class ShearWallButton(QWidget):
 
 
 class shearWallDrawing(QGraphicsRectItem):
-    def __init__(self, shearWallButton, x, y, grid, scene, snapPoint, snapLine):
+    def __init__(self, shearWallButton, grid, scene, snapPoint, snapLine):
         super().__init__()
         self.shearWall = shearWallButton
         self.grid = grid
@@ -28,10 +28,6 @@ class shearWallDrawing(QGraphicsRectItem):
         self.snapLine = snapLine
         self.dimension = None
         self.offset = 0
-        x_list, y_list = edit_spacing(x, y)
-
-        self.x_grid = x_list
-        self.y_grid = y_list
         self.current_rect = None
         self.start_pos = None
         self.direction = None
@@ -41,7 +37,7 @@ class shearWallDrawing(QGraphicsRectItem):
         self.other_button = None
         self.shearWall_width = magnification_factor  # Set shearWall width, magnification = 1 ft or 1 m
         # self.shearWall_width = min(min(x), min(y)) / 12  # Set shearWall width
-        self.post_dimension = min(min(x), min(y)) / 8  # Set post dimension
+        self.post_dimension = magnification_factor / 2  # Set post dimension
 
         # shearWall PROPERTIES
         # START / END
@@ -117,11 +113,8 @@ class shearWallDrawing(QGraphicsRectItem):
                         if self.direction == "both":
                             if width > height:
                                 self.direction = "E-W"
-                                self.line = self.line[1]
                             else:
                                 self.direction = "N-S"
-                                self.line = self.line[0]
-
                         # OFFSET CONTROL
                         # start_point, end_point = control_offset(self.direction, self.start_pos.toTuple(), end_point,
                         #                                         self.offset)
@@ -179,8 +172,8 @@ class shearWallDrawing(QGraphicsRectItem):
                         print(snapped_pos)
                         start = snapped_pos.toTuple()
                         x, y = start[0], start[1]
-                        status, self.direction, self.interior_exterior, self.line = pointer_control_shearWall(x, y,
-                                                                                                              self.grid)
+                        status, self.direction = pointer_control_shearWall(x, y,
+                                                                           self.grid)
 
                         if status:
                             self.start_pos = QPointF(x, y)
@@ -294,9 +287,9 @@ class shearWallDrawing(QGraphicsRectItem):
         # Calculate the positions and sizes for the start and end rectangles
         if direction == "E-W":
             start_rect_pos = QPoint(center_left.x(), center_left.y() - self.current_rect.boundingRect().height() // 2)
-            end_rect_pos = QPoint(center_right.x() - (magnification_factor / 2),
+            end_rect_pos = QPoint(center_right.x() - self.post_dimension,
                                   center_right.y() - self.current_rect.boundingRect().height() // 2)
-            rect_size = QSize((magnification_factor / 2), self.current_rect.boundingRect().height())
+            rect_size = QSize(self.post_dimension, self.current_rect.boundingRect().height())
 
             # post points
             start_x = min(self.start_pos.toTuple()[0], snapped_pos.toTuple()[0])
@@ -304,14 +297,14 @@ class shearWallDrawing(QGraphicsRectItem):
             start = (start_x, self.start_pos.toTuple()[1])
             end = (end_x, self.start_pos.toTuple()[1])
             # magnification_factor / 4 : 1 ft / 4 = 3 in or 1 m / 4 = 25 cm
-            post_start = (start_x + magnification_factor / 4, self.start_pos.toTuple()[1])
-            post_end = (end_x - magnification_factor / 4, self.start_pos.toTuple()[1])
+            post_start = (start_x + self.post_dimension / 2, self.start_pos.toTuple()[1])
+            post_end = (end_x - self.post_dimension / 2, self.start_pos.toTuple()[1])
 
         else:
             start_rect_pos = QPoint(center_top.x() - self.current_rect.boundingRect().width() // 2, center_top.y())
             end_rect_pos = QPoint(center_bottom.x() - self.current_rect.boundingRect().width() // 2,
-                                  center_bottom.y() - (magnification_factor / 2))
-            rect_size = QSize(self.current_rect.boundingRect().width(), (magnification_factor / 2))
+                                  center_bottom.y() - self.post_dimension)
+            rect_size = QSize(self.current_rect.boundingRect().width(), self.post_dimension)
 
             # post points
             start_y = min(self.start_pos.toTuple()[1], snapped_pos.toTuple()[1])
@@ -319,8 +312,8 @@ class shearWallDrawing(QGraphicsRectItem):
             start = (self.start_pos.toTuple()[0], start_y)
             end = (self.start_pos.toTuple()[0], end_y)
             # magnification_factor / 4 : 1 ft / 4 = 3 in or 1 m / 4 = 25 cm
-            post_start = (self.start_pos.toTuple()[0], start_y + magnification_factor / 4)
-            post_end = (self.start_pos.toTuple()[0], end_y - magnification_factor / 4)
+            post_start = (self.start_pos.toTuple()[0], start_y + self.post_dimension / 2)
+            post_end = (self.start_pos.toTuple()[0], end_y - self.post_dimension / 2)
 
         # Create the start and end rectangles
         start_rect = QRect(start_rect_pos, rect_size)
@@ -347,8 +340,6 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "start_center": post_start,
                                                            "end_center": post_end},
                                                        "direction": self.direction,
-                                                       "interior_exterior": self.interior_exterior,
-                                                       "line_label": self.line,
                                                        "thickness": "4 in",  # in
                                                        "load": {"point": [], "line": [], "reaction": []}
 
