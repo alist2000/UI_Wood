@@ -24,12 +24,13 @@ class LineHandler:
         elif base == "spacing":
             self.line = LineProp()
             self.line.SpacingBase(x_prop, y_prop)
-
+        else:
+            raise ValueError("base must be 'coordinate' or 'spacing'")
         self.x_prop, self.y_prop = self.line.controlStartEnd()
 
 
 class LineDrawHandler:
-    def __init__(self, x_prop, y_prop, scene, snapLine, snapPoint, base):
+    def __init__(self, x_prop, y_prop, scene, snapLine=None, snapPoint=None, base="coordinate"):
         """
         The function initializes a LineHandler object and a DrawLine object, and then draws lines based on the x_prop and
         y_prop properties.
@@ -55,7 +56,8 @@ class LineDrawHandler:
         self.drawLine.Draw(self.x_prop, "x")
         self.drawLine.Draw(self.y_prop, "y")
         # snap point control
-        self.drawLine.SnapPointHandler(self.x_prop, self.y_prop, snapPoint)
+        if snapPoint:
+            self.drawLine.SnapPointHandler(self.x_prop, self.y_prop, snapPoint)
 
     def output(self):
         return self.drawLine.lineLabels, self.drawLine.boundaryLineLabels, self.x_prop, self.y_prop
@@ -86,8 +88,8 @@ class LineProp:
         y_prop: [{label, spacing, start(y1), end(y2)}]
         '''
 
-        x = [i["spacing"] for i in x_prop]
-        y = [i["spacing"] for i in y_prop]
+        x = [i["spacing"] for i in x_prop[1:]]
+        y = [i["spacing"] for i in y_prop[1:]]
         x, y = self.edit_spacing(x, y)
         x, y = self.control_inputs(x, y)
         self.x_prop = self.convert_spacing_to_coordinate(x_prop, x)
@@ -119,11 +121,20 @@ class LineProp:
     def convert_spacing_to_coordinate(prop, coordinate):
         newProp = []
         for i, item in enumerate(prop):
+            try:
+                start = float(item["start"]) * magnification_factor
+            except:
+                start = ""
+            try:
+                end = float(item["end"]) * magnification_factor
+            except:
+                end = ""
+
             newProp.append({
                 "label": item["label"],
                 "position": coordinate[i],
-                "start": item["start"] * magnification_factor,
-                "end": item["end"] * magnification_factor
+                "start": start,
+                "end": end
             })
         return newProp
 
@@ -178,12 +189,16 @@ class DrawLine:
                 line = SelectableLineItem(prop[i]["start"], prop[i]["position"], prop[i]["end"],
                                           prop[i]["position"])  # horizontal line
                 # snap
-                self.snapLine.add_line((prop[i]["start"], prop[i]["position"]), (prop[i]["end"], prop[i]["position"]))
+                if self.snapLine:
+                    self.snapLine.add_line((prop[i]["start"], prop[i]["position"]),
+                                           (prop[i]["end"], prop[i]["position"]))
             else:
                 line = SelectableLineItem(prop[i]["position"], prop[i]["start"], prop[i]["position"],
                                           prop[i]["end"])  # vertical line
                 # snap
-                self.snapLine.add_line((prop[i]["position"], prop[i]["start"]), (prop[i]["position"], prop[i]["end"]))
+                if self.snapLine:
+                    self.snapLine.add_line((prop[i]["position"], prop[i]["start"]),
+                                           (prop[i]["position"], prop[i]["end"]))
 
             line.setPen(pen)
             self.scene.addItem(line)
