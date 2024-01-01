@@ -20,7 +20,7 @@ from UI_Wood.stableVersion4.line import LineDrawHandler
 
 
 class GridWidget(QGraphicsView):
-    def __init__(self, x_grid, y_grid, post, joist, beam, shearWall, studWall, shapes, slider,
+    def __init__(self, x_grid, y_grid, gridBase, post, joist, beam, shearWall, studWall, shapes, slider,
                  load, toolBar,
                  parent=None):
         super().__init__(parent)
@@ -44,7 +44,7 @@ class GridWidget(QGraphicsView):
         self.current_rect = None
         self.start_pos = None
 
-        self.snap_distance = magnification_factor / 6  # Set the grid size
+        self.snap_distance = magnification_factor / 4  # Set the grid size
 
         # CREATE INSTANCE FOR SNAP
         self.snapPoint = snapPoint = SnapPoint()
@@ -52,7 +52,7 @@ class GridWidget(QGraphicsView):
         self.snapLine = snapLine = SnapLine()
         snapLine.set_snap_distance(self.snap_distance)
 
-        line = LineDrawHandler(x_grid, y_grid, self.scene, snapLine, snapPoint, "coordinate")
+        line = LineDrawHandler(x_grid, y_grid, self.scene, snapLine, snapPoint, gridBase)
         self.lineLabels, self.boundaryLineLabels, self.x_grid, self.y_grid = line.output()
         self.grid = {"vertical": self.y_grid, "horizontal": self.x_grid}
 
