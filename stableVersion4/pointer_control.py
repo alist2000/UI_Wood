@@ -204,40 +204,24 @@ def pointer_control_shearWall(x, y, gridProp):
     print(vertical)
     horizontal = gridProp["horizontal"]
     print(horizontal)
-    x_start = vertical[0]["position"]
-    x_end = vertical[-1]["position"]
-    y_start = horizontal[0]["position"]
-    y_end = horizontal[-1]["position"]
+    x_start = min(i["position"] for i in vertical)
+    x_end = max(i["position"] for i in vertical)
+    y_start = min(i["position"] for i in horizontal)
+    y_end = max(i["position"] for i in horizontal)
     horizontal_dict = {item["position"]: item["label"] for item in horizontal}
     vertical_dict = {item["position"]: item["label"] for item in vertical}
 
     if (x_start <= x <= x_end and y in horizontal_dict.keys()) and (
             y_start <= y <= y_end and x in vertical_dict.keys()):
-        line = [vertical_dict[x], horizontal_dict[y]]
-
-        if (y == y_start or y == y_end) and (x == x_start or x == x_end):
-            int_ext = "exterior"
-        else:
-            int_ext = "interior"
-        return True, "both", int_ext, line
+        return True, "both"
     elif x_start <= x <= x_end and y in horizontal_dict.keys():
-        line = horizontal_dict[y]
-        if y == y_start or y == y_end:
-            int_ext = "exterior"
-        else:
-            int_ext = "interior"
-        return True, "E-W", int_ext, line
+        return True, "E-W"
 
     # point is on vertical grid
     elif y_start <= y <= y_end and x in vertical_dict.keys():
-        line = vertical_dict[x]
-        if x == x_start or x == x_end:
-            int_ext = "exterior"
-        else:
-            int_ext = "interior"
-        return True, "N-S", int_ext, line
+        return True, "N-S"
     else:
-        return False, "", "", ""
+        return False, ""
 
 
 def pointer_control_studWall(start, end, gridProp):
