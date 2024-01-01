@@ -36,17 +36,15 @@ class secondTabWidget(QMainWindow):
         self.shapes = []
         self.grid = []
         self.inputs = inputs
+        self.x_grid = inputs.get("x_grid")
+        self.y_grid = inputs.get("y_grid")
+        self.grid_base = inputs.get("grid_base")
         self.level_number = inputs.get("level_number")
-        self.h_grid_number = inputs.get("h_grid_number")
-        self.v_grid_number = inputs.get("v_grid_number")
         self.height_story = inputs.get("height_story")
-        self.h_spacing = inputs.get("h_spacing")
-        self.v_spacing = inputs.get("v_spacing")
         self.setWindowTitle("Grid")
 
         self.tabWidget.setMinimumSize(600, 500)
-        GridDrawClass = GridDraw(self.h_grid_number, self.v_grid_number, self.h_spacing,
-                                 self.v_spacing)
+        GridDrawClass = GridDraw(self.x_grid, self.y_grid, self.grid_base)
         # INFORMATION PROPERTIES
         self.information_properties = information_properties()
 
@@ -113,7 +111,7 @@ class secondTabWidget(QMainWindow):
             # runButton = QPushButton("RUN")
 
             # ADD GRID LINES
-            grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing, post_instance,
+            grid = GridWidget(self.x_grid, self.y_grid, self.grid_base, post_instance,
                               joist_instance, beam_instance, shearWall_instance, studWall_instance,
                               self.shapes, self.slider, load_instance, self.toolBar)
 
