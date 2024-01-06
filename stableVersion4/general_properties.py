@@ -227,7 +227,28 @@ class GridCoordinateDefine(QWidget):
                     "start": self.yGrids.tableWidgetXGrid.cellWidget(i, 2).value(),
                     "end": self.yGrids.tableWidgetXGrid.cellWidget(i, 3).value()
                 })
+
+        # check sort
+        if self.gridBase == "coordinate":
+            xGrid = self.sortCoordinate(xGrid)
+            yGrid = self.sortCoordinate(yGrid)
         return xGrid, yGrid, self.gridBase
+
+    @staticmethod
+    def sortCoordinate(grid):
+        sortedGrid = []
+        baseNumber = -99999999
+        for data in grid:
+            if data["position"] > baseNumber:
+                baseNumber = data["position"]
+                sortedGrid.append(data)
+            else:
+                for i in range(len(sortedGrid)):
+                    if data["position"] < sortedGrid[i]["position"]:
+                        sortedGrid.insert(i, data)
+                        break
+
+        return sortedGrid
 
 
 class GridLineDefine(QWidget):
