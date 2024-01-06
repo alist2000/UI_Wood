@@ -55,10 +55,8 @@ class joist_in_midline:
 class control:
     def __init__(self, joist, grid, direction, midline_dict):
 
-        for i in range(len(grid) - 1):
-            x1 = grid[i]["position"]
-            x2 = grid[i + 1]["position"]
-            gridRange = (min(x1, x2), max(x1, x2))
+        for i in range(len(grid)):
+            gridRange = self.GridRange(grid, i)
             if direction == "N-S":
                 free_range = 0  # vertical infinite
                 limit_range = 1  # horizontal limited
@@ -129,6 +127,20 @@ class control:
                 "magnitude": SuperDeadMag
             })
         return loads
+
+    @staticmethod
+    def GridRange(grids, i):
+        posMain = grids[i]["position"]
+        if i > 0:
+            startPos = (posMain + grids[i - 1]["position"]) / 2
+        else:
+            startPos = posMain
+
+        if i < len(grids) - 1:
+            endPos = (grids[i + 1]["position"] + posMain) / 2
+        else:
+            endPos = posMain
+        return startPos, endPos
 
 # joist = {"<joist_new.joistRectangle(0x29616f25bb0, pos=0,0) at 0x0000029617CDB000>": {'label': 'J1',
 #                                                                                       'coordinate': [(35.0, 95.0),
