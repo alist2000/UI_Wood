@@ -186,7 +186,11 @@ class ShearWallLine:
             if intersection:
                 possibleLineIndex.append(i)
         minDist = min([distance[i] for i in possibleLineIndex])
-        minDistIndex = distance.index(minDist)
+        for i in range(len(distance)):
+            if distance[i] == minDist and i in possibleLineIndex:
+                minDistIndex = i
+                break
+        # minDistIndex = distance.index(minDist)
         if linePos[minDistIndex] == minPos or linePos[minDistIndex] == maxPos:
             intExt = "exterior"
         else:
