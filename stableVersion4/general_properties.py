@@ -237,9 +237,9 @@ class GridCoordinateDefine(QWidget):
     @staticmethod
     def sortCoordinate(grid):
         sortedGrid = []
-        baseNumber = -99999999
+        baseNumber = -float("inf")
         for data in grid:
-            if data["position"] > baseNumber:
+            if data["position"] >= baseNumber:
                 baseNumber = data["position"]
                 sortedGrid.append(data)
             else:
