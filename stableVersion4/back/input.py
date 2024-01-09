@@ -3,6 +3,7 @@ from back.joist_control import joist_support_control
 from back.shearWall_control import shearWall_control
 from back.midline_control import joist_in_midline
 from back.load_control import load_on_joist
+from UI_Wood.stableVersion4.back.midline_control import EditGrid
 
 
 class receiver:
@@ -25,7 +26,9 @@ class receiver:
         self.joist_properties = joist_support_control(joist, beam, shearWall, studWall)
         self.shearWall_properties = shearWall_control(shearWall, joist, beam, grid)
         self.studWall_properties = shearWall_control(studWall, joist, beam, item="studWall")
-        self.midline = joist_in_midline(joist, grid)
+        gridInstance = EditGrid(shearWall, grid)
+        editedGrid = gridInstance.output()
+        self.midline = joist_in_midline(joist, editedGrid)
 
     # def beam_control(self):
     #     beam = self.beam
