@@ -60,24 +60,17 @@ class mainSync(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         TabData = ControlTab(self.tab, generalProp, self.general_information)
-        shearWallExistLine = TabData.shearWallSync.shearWallOutPut.shearWallExistLine
-        # LoadMapaAreaBefore = TabData.loadMapArea
-        # LoadMapMagBefore = TabData.loadMapMag
         JoistArea = TabData.joistArea
         storyName = TabData.storyName
-        noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
-        midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
-        midLineDictEdited = midLineInstance.newMidline
-        # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
-        LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
+        LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDict)
         seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
                                                   JoistArea)
-        ControlMidLine(midLineDictEdited)
+        ControlMidLine(midLineDict)
 
         print(seismicInstance.seismicPara)
-        print(midLineDictEdited)
+        print(midLineDict)
         a = time.time()
-        MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+        MainShearwall(seismicInstance.seismicPara, midLineDict)
         b = time.time()
         print("Shear wall run takes ", (b - a) / 60, " Minutes")
 
@@ -87,8 +80,6 @@ class mainSync(Data):
 class ControlGeneralProp:
     def __init__(self, generalProp):
         self.generalProp = generalProp
-        self.y = self.control_inputs(generalProp["h_spacing"])
-        self.x = self.control_inputs(generalProp["v_spacing"])
         self.height = [i / magnification_factor for i in self.control_inputs(generalProp["height_story"])]
         self.Hn = sum(self.height) / magnification_factor
 
@@ -155,7 +146,7 @@ class ControlTab:
 
         # JOIST
         a = time.time()
-        joistAnalysisInstance = joistAnalysisSync(self.joists, db)
+        # joistAnalysisInstance = joistAnalysisSync(self.joists, db)
         b = time.time()
         print("Joist analysis takes ", (b - a) / 60, "Minutes")
 
