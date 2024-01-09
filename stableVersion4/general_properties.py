@@ -3,10 +3,11 @@ import copy
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDoubleSpinBox, QLabel, QPushButton, \
     QTextEdit, QAbstractItemView, QTableWidget, \
-    QRadioButton, QSpacerItem
+    QRadioButton, QSpacerItem, QGraphicsView, QGraphicsScene
 
 from load import Load
 from tab_widget_2 import secondTabWidget
+from UI_Wood.stableVersion4.line import LineDrawHandler
 
 
 class Widget_button(QWidget):
@@ -34,9 +35,16 @@ class Widget_button(QWidget):
         self.storyInstance = StoryCoordinateDefine()
         spacer = QSpacerItem(380, 20)
         storyHeightLayout.addWidget(self.storyInstance)
-        storyHeightLayout.addItem(spacer)
+        # storyHeightLayout.addItem(spacer)
 
         self.gridInstance = GridCoordinateDefine()
+        self.previewGrid = GridPreview(self.gridInstance)
+        self.previewButton = QPushButton("PREVIEW")
+        self.previewButton.clicked.connect(self.previewGrid.preview)
+        previewLayout = QVBoxLayout()
+        previewLayout.addWidget(self.previewGrid)
+        previewLayout.addWidget(self.previewButton)
+        storyHeightLayout.addLayout(previewLayout)
 
         # RUN Button
         self.height_story = []
@@ -56,6 +64,7 @@ class Widget_button(QWidget):
 
     # SLOT FUNCTION
     def run_control(self):
+        self.previewGrid.preview()
         self.x_grid, self.y_grid, self.grid_base = self.gridInstance.output()
         self.level_final, self.height_story_final = self.storyInstance.output()
 
@@ -540,3 +549,19 @@ def get_string_value(num):
         num, remainder = divmod(num - 1, 26)
         result = alphabet[remainder] + result
     return result
+
+
+class GridPreview(QGraphicsView):
+    def __init__(self, gridData):
+        super(GridPreview, self).__init__()
+        self.gridData = gridData
+        self.x_grid, self.y_grid, self.grid_base = None, None, None
+        self.scene = QGraphicsScene()
+        self.setScene(self.scene)
+
+    def preview(self):
+        self.scene.clear()
+        self.x_grid, self.y_grid, self.grid_base = self.gridData.output()
+
+        line = LineDrawHandler(self.x_grid, self.y_grid, self.scene, "", "", self.grid_base)
+        self.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
