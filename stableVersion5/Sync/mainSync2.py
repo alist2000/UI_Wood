@@ -339,8 +339,6 @@ class mainSync2(Data):
 class ControlGeneralProp:
     def __init__(self, generalProp):
         self.generalProp = generalProp
-        self.y = self.control_inputs(generalProp["h_spacing"])
-        self.x = self.control_inputs(generalProp["v_spacing"])
         self.height = [i / magnification_factor for i in self.control_inputs(generalProp["height_story"])]
         self.Hn = sum(self.height) / magnification_factor
 

@@ -443,8 +443,6 @@ class shearWallDrawing(QGraphicsRectItem):
                                                            "start_center": post_start,
                                                            "end_center": post_end},
                                                        "direction": prop["direction"],
-                                                       "interior_exterior": prop["interior_exterior"],
-                                                       "line_label": prop["line_label"],
                                                        "thickness": prop["thickness"],  # in
                                                        "load": {"point": prop["load"]["point"],
                                                                 "line": prop["load"]["line"], "reaction": []}
