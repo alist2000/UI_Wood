@@ -615,9 +615,6 @@ class ShearWallProperties(QDialog):
         direction_label = QLabel("Direction")
         direction = QLabel(self.rect_prop[self.rectItem]["direction"])
 
-        interior_exterior_label = QLabel("Interior/Exterior")
-        interior_exterior = QLabel(self.rect_prop[self.rectItem]["interior_exterior"].upper())
-
         # LAYOUT
         h_layout0 = QHBoxLayout()
         h_layout0.addWidget(label0)
@@ -647,8 +644,6 @@ class ShearWallProperties(QDialog):
         h_layout4.addWidget(direction_label)
         h_layout4.addWidget(direction)
         h_layout5 = QHBoxLayout()
-        h_layout5.addWidget(interior_exterior_label)
-        h_layout5.addWidget(interior_exterior)
 
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout0)

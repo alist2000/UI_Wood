@@ -15,12 +15,11 @@ class secondTabWidgetLayout(QMainWindow):
         self.tabWidget = QTabWidget()
         self.grid = []
         self.inputs = inputs
+        self.x_grid = inputs.get("x_grid")
+        self.y_grid = inputs.get("y_grid")
+        self.grid_base = inputs.get("grid_base")
         self.level_number = inputs.get("level_number")
-        self.h_grid_number = inputs.get("h_grid_number")
-        self.v_grid_number = inputs.get("v_grid_number")
         self.height_story = inputs.get("height_story")
-        self.h_spacing = inputs.get("h_spacing")
-        self.v_spacing = inputs.get("v_spacing")
         self.setWindowTitle("Grid")
         self.tabWidget.setMinimumSize(600, 500)
 
@@ -43,7 +42,7 @@ class secondTabWidgetLayout(QMainWindow):
                 storyWall = "Roof"
 
             # OPACITY SLIDER
-            grid = GridWidget(self.h_grid_number, self.v_grid_number, self.h_spacing, self.v_spacing)
+            grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
 
             self.grid.append(grid)
             v_main_layout = QVBoxLayout()
@@ -67,9 +66,11 @@ class secondTabWidgetLayout(QMainWindow):
             except KeyError:
                 pass
             try:
+
                 beamLabels, beamCoordinate = self.BeamList[str(story)]["label"], self.BeamList[str(story)]["coordinate"]
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
+                grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
                 LineDraw(self.BeamList[str(story)], grid.scene, i, "beam")
             except KeyError:
@@ -84,6 +85,7 @@ class secondTabWidgetLayout(QMainWindow):
                     editedLabel.append(new)
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
+                grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
                 LineDraw(self.ShearWallList[str(storyWall)], grid.scene, i, "shearWall")
             except KeyError:
@@ -98,6 +100,7 @@ class secondTabWidgetLayout(QMainWindow):
                     editedLabel.append(new)
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
+                grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
                 LineDraw(self.StudWallList[str(storyWall)], grid.scene, i, "studWall")
             except KeyError:
@@ -109,6 +112,7 @@ class secondTabWidgetLayout(QMainWindow):
                                                                   self.JoistList[str(story)]["direction"]
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
+                grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
                 AreaDraw(self.JoistList[str(story)], grid.scene, i)
             except KeyError:
