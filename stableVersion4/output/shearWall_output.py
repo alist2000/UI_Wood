@@ -25,6 +25,7 @@ class EditLabel:
                 labelMain = shearWall["label"]
                 base_coordinate = shearWall["coordinate"]
                 label_list.append(labelMain)
+                pointLoadControlInstance = PointLoadFromAbove(shearWall)
 
                 if i < max_story:
                     for num, shearWallBottom in enumerate(self.shearWalls_rev[i + 1]):
@@ -33,6 +34,7 @@ class EditLabel:
                         if coordinate == base_coordinate:
                             shearWallBottom["label"] = labelMain
                             label_not_repeat_index.add(num)
+                            shearWallBottom = pointLoadControlInstance.loadOnSw(shearWallBottom)
 
             full_label[str(i)] = label_list
 
@@ -66,6 +68,39 @@ class EditLabel:
                     if num not in repeated_labels_dict[str(i)] and shearWall["label"] in controlLabel[str(i)]:
                         shearWall["label"] = f"{labelTitle}{str(labelNumber + 1)}"
                         labelNumber += 1
+
+
+class PointLoadFromAbove:
+    def __init__(self, swTop):
+        self.swTop = swTop
+
+    def loadOnSw(self, swBottom):
+        swBottom = swBottom
+        reactionLoadsBottom = swBottom["load"]["reaction"]
+        reactionLoadsTop = self.swTop["load"]["reaction"]
+        reactionLoadsBottom.extend(reactionLoadsTop)
+        swBottom["load"]["reaction"] = reactionLoadsBottom
+        return swBottom
+        # for loadItem in reactionLoadsBottom:
+        #     start = loadItem["start"]
+        #     loads = loadItem["load"]
+        #     for loadItemTop in reactionLoadsTop:
+        #         startTop = loadItemTop["start"]
+        #         loadsTop = loadItemTop["load"]
+        #         if start == startTop:
+        #             for load in loads:
+        #                 mag = load["magnitude"]
+        #                 loadType = load["type"]
+        #                 for loadTop in loadsTop:
+        #                     magTop = loadTop["magnitude"]
+        #                     loadTypeTop = loadTop["type"]
+        #                     if loadType == loadTypeTop:
+        #                         mag += magTop
+        #                         break
+        #             break
+
+    def loadOnBeam(self, beam):
+        pass
 
 
 class ShearWall_output:
@@ -175,10 +210,13 @@ class ShearWall_output:
             self.shearWallProperties[story] = shearWallProperties_everyTab
 
     def reaction_control(self, reaction, direction_index):
-        Pd = {"left": None, "right": None}
-        Pl = {"left": None, "right": None}
-        Pe = {"left": None, "right": None}
+        Pd_list = []
+        Pl_list = []
+        Pe_list = []
         for load in reaction:
+            Pd = {"left": None, "right": None}
+            Pl = {"left": None, "right": None}
+            Pe = {"left": None, "right": None}
             coordinate = abs((load["start"][direction_index] / magnification_factor) - self.start)
             side = self.side_control(coordinate, self.end, self.length)
             loads = load["load"]
@@ -203,7 +241,21 @@ class ShearWall_output:
                     Pl[side] = mag_live_roof
                 else:
                     Pl[side] = mag_live
-        return Pd, Pl, Pe
+
+            Pd_list.append(Pd)
+            Pl_list.append(Pl)
+            Pe_list.append(Pe)
+        Pd_res = self.reactionListToDict(Pd_list)
+        Pl_res = self.reactionListToDict(Pl_list)
+        Pe_res = self.reactionListToDict(Pe_list)
+
+        return Pd_res, Pl_res, Pe_res
+
+    @staticmethod
+    def reactionListToDict(myList):
+        left = [i["left"] if i["left"] else 0 for i in myList]
+        right = [i["right"] if i["right"] else 0 for i in myList]
+        return {"left": sum(left), "right": sum(right)}
 
     def intersection_control(self, shearWall_intersection, direction_index):
         share_post = {"left": None, "right": None}
