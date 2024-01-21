@@ -2,6 +2,7 @@ from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.back.load_control import load_joist_on_beam, range_intersection
 from sympy import Point, Polygon, Segment, Line
 from UI_Wood.stableVersion5.back.load_control import length_point
+import math
 
 
 class beam_control_length:
@@ -69,7 +70,8 @@ class beam_control_support:
             beamProp["support"] = []
             # Control post support
             for postItem, postProp in self.post.items():
-                is_support, post_range, coord = self.main_is_point_on_line(postProp["coordinate"], start, end, lineType=beamProp["direction"])
+                is_support, post_range, coord = self.main_is_point_on_line(postProp["coordinate"], start, end,
+                                                                           lineType=beamProp["direction"])
                 if is_support:
                     beamProp["support"].append(
                         {"label": postProp["label"], "type": "post", "coordinate": coord,
@@ -214,24 +216,59 @@ class beam_control_support:
         for beamProp in self.beam.values():
             post_supports = []
             beam_supports = []
+            shearWall_post_supports = []
             extra_support_index = []
+            extra_support_index_shearWall = []
             supports = beamProp["support"]
             for support in supports:
                 if support["type"] == "post":
                     post_supports.append(support)
+                elif support["type"] == "shearWall_post":
+                    shearWall_post_supports.append(support)
                 else:
                     beam_supports.append(support)
+
+            # remove beam extra support (prirority between post and beam)
             for i in range(len(beam_supports)):
                 for post_support in post_supports:
                     post_cor = post_support["coordinate"]
-                    if beam_supports[i]["coordinate"] == post_cor:
+                    dist = distance(post_cor, beam_supports[i]["coordinate"])
+                    # if beam_supports[i]["coordinate"] == post_cor:
+                    if dist < magnification_factor / 10:  # set a tolerance range
                         extra_support_index.append(i)
+
+            # remove beam extra support (prirority between shearwall post and beam)
+            for i in range(len(beam_supports)):
+                for shearWall_post_support in shearWall_post_supports:
+                    post_cor = shearWall_post_support["coordinate"]
+                    dist = distance(post_cor, beam_supports[i]["coordinate"])
+                    # if beam_supports[i]["coordinate"] == post_cor:
+                    if dist < magnification_factor / 10:  # set a tolerance range
+                        extra_support_index.append(i)
+
+            # remove beam extra support (prirority between shearwall post and itself)
+            for i in range(len(shearWall_post_supports)):
+                for j, shearWall_post_support in enumerate(shearWall_post_supports):
+                    if i != j:
+                        post_cor = shearWall_post_support["coordinate"]
+                        dist = distance(post_cor, shearWall_post_supports[i]["coordinate"])
+                        # if beam_supports[i]["coordinate"] == post_cor:
+                        if dist < magnification_factor / 4:  # set a tolerance range min shear wall post width
+                            extra_support_index_shearWall.append(i)
+
+            extra_support_index = list(set(extra_support_index))
+            extra_support_index_shearWall = list(set(extra_support_index_shearWall))
+            for j in extra_support_index_shearWall:
+                try:
+                    del shearWall_post_supports[j]
+                except:
+                    pass
             for j in extra_support_index:
                 try:
                     del beam_supports[j]
                 except:
                     pass
-            final_support = post_supports + beam_supports
+            final_support = post_supports + beam_supports + shearWall_post_supports
             beamProp["support"] = final_support
 
     @staticmethod
@@ -292,7 +329,7 @@ class beam_control_support:
         slope2 = (y0 - y1) / (x0 - x1)
         different = abs(y0 - y1)
 
-        return different < error and min(x1, x2) <= x0 <= max(x1, x2), (x0, y1)
+        return different < error and min(x1, x2) - error <= x0 <= max(x1, x2) + error, (x0, y1)
 
     def main_is_point_on_line(self, point, start, end, error=magnification_factor / 5, lineType="N-S"):
         if lineType == "N-S" or lineType == "E-W":
@@ -591,3 +628,7 @@ class beam_control:
         beam_control_direction_and_line(self.beam)
         beam_control_support(self.beam, self.post, self.shearWall)
         beam_control_joist(self.beam, self.joist)
+
+
+def distance(point1, point2):
+    return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
