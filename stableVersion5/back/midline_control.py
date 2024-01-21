@@ -145,7 +145,8 @@ class control:
             startPos = (posMain + grids[iNew - 1]["position"]) / 2
 
         else:
-            startPos = posMain
+            # startPos = posMain
+            startPos = -float("inf")
 
         if i < len(grids) - 1:
             iNew = copy.deepcopy(i)
@@ -153,7 +154,8 @@ class control:
                 iNew = iNew + 1
             endPos = (grids[iNew + 1]["position"] + posMain) / 2
         else:
-            endPos = posMain
+            # endPos = posMain
+            endPos = float("inf")
         return startPos, endPos
 
     @staticmethod
