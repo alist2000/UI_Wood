@@ -257,22 +257,22 @@ class mainSync2(Data):
             JoistArea = JoistSumArea(self.joists)
             storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
             shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
-            self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
 
-            shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
-            noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
-            midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
-            midLineDictEdited = midLineInstance.newMidline
+            # self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
+            # shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
+            # noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
+            # midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
+            # midLineDictEdited = midLineInstance.newMidline
             # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
-            LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
+            LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDict)
             seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
                                                       JoistArea)
-            ControlMidLine(midLineDictEdited)
+            ControlMidLine(midLineDict)
 
             print(seismicInstance.seismicPara)
-            print(midLineDictEdited)
+            print(midLineDict)
             a = time.time()
-            MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+            MainShearwall(seismicInstance.seismicPara, midLineDict)
             b = time.time()
             print("Shear wall run takes ", (b - a) / 60, " Minutes")
             self.shearWallRun = True
