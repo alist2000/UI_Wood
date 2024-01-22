@@ -11,7 +11,7 @@ from UI_Wood.stableVersion5.Sync.data import Data
 from UI_Wood.stableVersion5.Sync.Image import saveImage
 from UI_Wood.stableVersion5.Sync.postSync import PostSync
 from UI_Wood.stableVersion5.Sync.joistSync import joistAnalysisSync
-from UI_Wood.stableVersion5.Sync.beamSync import beamAnalysisSync
+from UI_Wood.stableVersion5.Sync.beamSync import BeamSync
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
     NoShearWallLines, MidlineEdit
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
@@ -103,12 +103,25 @@ class ControlTab:
         self.shearWalls = []
         self.studWalls = []
         self.loadMaps = []
+        tabReversed = self.reverse_dict(self.tab)  # top to bottom
+        # CREATE DB FOR OUTPUT.
+        db = Sqlreports()
+        db.beam_table()
+        db.joist_table()
+        db.post_table()
+        a = time.time()
 
-        for i, Tab in self.tab.items():
-            post = {i: Tab["post"]}
+        beamSync = BeamSync(db, len(tabReversed) - 1)
+        for i, Tab in tabReversed.items():
+            # post = {i: Tab["post"]}
+            post = Tab["post"]
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
+            c = time.time()
+            beamSync.AnalyseDesign(beam, post, shearWall, i)
+            d = time.time()
+            print(f"Beam analysis story {i} takes ", (d - c) / 60, "Minutes")
             studWall = Tab["studWall"]
             loadMap = Tab["loadMap"]
             self.posts.append(post)
@@ -118,6 +131,8 @@ class ControlTab:
             self.studWalls.append(studWall)
             self.loadMaps.append(loadMap)
 
+        b = time.time()
+        print("Beam analysis takes ", (b - a) / 60, "Minutes")
         # # Design should be started from Roof.
         # self.posts.reverse()
         # self.beams.reverse()
@@ -126,15 +141,9 @@ class ControlTab:
         # self.studWalls.reverse()
         # self.loadMaps.reverse()
 
-        # CREATE DB FOR OUTPUT.
-        db = Sqlreports()
-        db.beam_table()
-        db.joist_table()
-        db.post_table()
-
         # BEAM
         a = time.time()
-        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, generalInfo, db)
+        # beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, db)
         b = time.time()
         print("Beam analysis takes ", (b - a) / 60, "Minutes")
 
@@ -161,6 +170,18 @@ class ControlTab:
         # print("ALL POSTS : ", self.posts)
         # print("ALL BEAMS : ", self.beams)
         print("ALL SHEAR WALLS : ", self.shearWalls)
+
+    @staticmethod
+    def reverse_dict(Dict):
+        key = list(Dict.keys())
+        value = list(Dict.values())
+        key.reverse()
+        value.reverse()
+        newDict = {}
+        for k, v in zip(key, value):
+            newDict[k] = v
+
+        return newDict
 
 
 def LoadMapArea(loadMaps):

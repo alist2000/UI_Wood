@@ -5,7 +5,7 @@ from UI_Wood.stableVersion5.Sync.Image import saveImage
 from UI_Wood.stableVersion5.Sync.postSync import PostSync
 from UI_Wood.stableVersion5.Sync.postSync2 import PostSync2
 from UI_Wood.stableVersion5.Sync.joistSync import joistAnalysisSync
-from UI_Wood.stableVersion5.Sync.beamSync import beamAnalysisSync
+from UI_Wood.stableVersion5.Sync.beamSync import beamAnalysisSync, BeamSync
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
     NoShearWallLines, MidlineEdit, ShearWallStoryCount
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
@@ -15,6 +15,8 @@ from UI_Wood.stableVersion5.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion5.output.joist_output import Joist_output
 from UI_Wood.stableVersion5.Sync.shearWallSync2 import ShearWallSync2
 from UI_Wood.stableVersion5.Sync.studWallSync2 import StudWallSync2
+from UI_Wood.stableVersion5.run.beam import BeamStoryBy
+from PySide6.QtWidgets import QDialog
 import time
 
 
@@ -130,37 +132,65 @@ class mainSync2(Data):
             saveImage(self.grid, currentTab)
 
         self.saveFunc()
+        # generalProp = ControlGeneralProp(self.general_properties)
 
-        generalProp = ControlGeneralProp(self.general_properties)
-        # TabData = ControlTab(self.tab, generalProp, self.general_information)
         if not self.beamRun and not self.postRun:
+            self.db.beam_table()
+            self.db.post_table()
+            # TabData = ControlTab(self.tab, generalProp, self.general_information)
+            beamSync = BeamSync(self.db, self.tabWidgetCount - 1)
             self.posts = []
             self.beams = []
             self.shearWalls = []
-            for i, Tab in self.tab.items():
-                post = {i: Tab["post"]}
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
+            j = 0
+            for i, Tab in tabReversed.items():
+                post = Tab["post"]
                 beam = Tab["beam"]
                 shearWall = Tab["shearWall"]
+
+                c = time.time()
+                beamSync.AnalyseDesign(beam, post, shearWall, i)
+                d = time.time()
+                print(f"Beam analysis story {i} takes ", (d - c) / 60, "Minutes")
 
                 self.posts.append(post)
                 self.beams.append(beam)
                 self.shearWalls.append(shearWall)
+
+                storyByStoryInstance = BeamStoryBy(beamSync.BeamStories[j], self.GridDrawClass, i + 1)
+                j += 1
+                if i == self.tabWidgetCount - 1:
+                    self.beamRun = True
+                if storyByStoryInstance.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
+            self.BeamDesigned = beamSync.BeamStories
+
+        else:
+            for i, item in enumerate(self.BeamDesigned):
+                storyByStoryInstance = BeamStoryBy(item, self.GridDrawClass, i + 1)
+                # if story == len(beam) - 1:
+                #     self.report = True
+                if storyByStoryInstance.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
 
             # Design should be started from Roof.
             # self.posts.reverse()
             # self.beams.reverse()
             # self.shearWalls.reverse()
             # CREATE DB FOR OUTPUT.
-            self.db.beam_table()
-            self.db.post_table()
 
         # BEAM
-        a = time.time()
-        beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, self.general_information,
-                                                self.db, self.GridDrawClass, True, self.beamRun, self.BeamDesigned)
-        self.BeamDesigned = beamAnalysisInstance.BeamStories
-        b = time.time()
-        self.beamRun = beamAnalysisInstance.report
+        # a = time.time()
+        # beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, self.general_information,
+        #                                         self.db, self.GridDrawClass, True, self.beamRun, self.BeamDesigned)
+        # self.BeamDesigned = beamAnalysisInstance.BeamStories
+        # b = time.time()
+        # self.beamRun = beamAnalysisInstance.report
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
 
@@ -320,6 +350,18 @@ class mainSync2(Data):
         for grid in self.grid:
             grid.setEnabled(False)
         self.unlockButton.setEnabled(True)
+
+    @staticmethod
+    def reverse_dict(Dict):
+        key = list(Dict.keys())
+        value = list(Dict.values())
+        key.reverse()
+        value.reverse()
+        newDict = {}
+        for k, v in zip(key, value):
+            newDict[k] = v
+
+        return newDict
 
     def Unlock(self):
         self.unlockButton.setEnabled(False)
