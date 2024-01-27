@@ -16,6 +16,8 @@ from UI_Wood.stableVersion5.output.joist_output import Joist_output
 from UI_Wood.stableVersion5.Sync.shearWallSync2 import ShearWallSync2
 from UI_Wood.stableVersion5.Sync.studWallSync2 import StudWallSync2
 from UI_Wood.stableVersion5.run.beam import BeamStoryBy
+from UI_Wood.stableVersion5.run.post import PostStoryBy
+
 from PySide6.QtWidgets import QDialog
 import time
 
@@ -47,18 +49,9 @@ class mainSync2(Data):
 
     def send_report_generator(self, reportGenerator):
         self.reportGenerator = reportGenerator
-        # self.reportGenerator.triggered.connect(self.runn)
-
-    # def runn(self):
-    #     self.ReportTab = ReportGeneratorTab(self.tabWidgetCount, self.general_information)
-    #     secondTabWidgetLayout(self.general_properties, self.ReportTab)
-    #     print("REPORT GENERATOR BUTTON CLICKED")
 
     def Run_and_Analysis_Post(self):
-        # self.reportGenerator.setEnabled(True)
         midLineDict = {}
-        lineLabels = None
-        boundaryLineLabels = None
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
             midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
             if currentTab == self.tabWidgetCount - 1:
@@ -72,41 +65,53 @@ class mainSync2(Data):
         self.saveFunc()
 
         generalProp = ControlGeneralProp(self.general_properties)
-        # TabData = ControlTab(self.tab, generalProp, self.general_information)
-        if not self.beamRun and not self.postRun:
-            self.posts = []
-            self.beams = []
-            self.shearWalls = []
-            for i, Tab in self.tab.items():
-                post = {i: Tab["post"]}
-                beam = Tab["beam"]
-                shearWall = Tab["shearWall"]
+        if not self.postRun:
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
+            height_from_top = list(reversed(generalProp.height))
 
-                self.posts.append(post)
-                self.beams.append(beam)
-                self.shearWalls.append(shearWall)
-
-            # Design should be started from Roof.
-            # self.posts.reverse()
-            # self.beams.reverse()
-            # self.shearWalls.reverse()
-            # CREATE DB FOR OUTPUT.
             self.db.beam_table()
             self.db.post_table()
+            postSync = PostSync(self.db)
+            self.posts = []
+            if not self.beamRun:
+                self.beams = []
+                self.shearWalls = []
+                beamSync = BeamSync(self.db, self.tabWidgetCount - 1)
 
-        # POST
-        a = time.time()
-        PostDesigned = PostSync2(self.GridDrawClass, self.beams, self.posts, self.shearWalls, generalProp.height,
-                                 self.general_information,
-                                 self.db,
-                                 self.postRun, self.beamRun, self.PostDesigned
-                                 )
-        self.PostDesigned = PostDesigned.PostStories
-        if PostDesigned.BeamStories:
-            self.BeamDesigned = PostDesigned.BeamStories
-        b = time.time()
-        self.beamRun = PostDesigned.reportBeam
-        self.postRun = PostDesigned.reportPost
+            postTop = None
+            j = 0
+            for i, Tab in tabReversed.items():
+                post = Tab["post"]
+                if not self.beamRun:
+                    beam = Tab["beam"]
+                    shearWall = Tab["shearWall"]
+                    beamSync.AnalyseDesign(beam, post, shearWall, i)
+                    self.beams.append(beam)
+                    self.shearWalls.append(shearWall)
+
+                postSync.AnalyseDesign(post, height_from_top[j], i, postTop)
+                postStoryDesigned = PostStoryBy(postSync.PostStories[j], self.GridDrawClass, i + 1)
+                postTop = post
+                self.posts.append(post)
+                j += 1
+                if i == 0:
+                    self.beamRun = True
+                    self.postRun = True
+                if postStoryDesigned.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
+            self.PostDesigned = postSync.PostStories
+            if not self.BeamDesigned:
+                self.BeamDesigned = beamSync.BeamStories
+
+        else:
+            for i, item in enumerate(self.PostDesigned):
+                postStoryDesigned = PostStoryBy(item, self.GridDrawClass, len(self.PostDesigned) - i)
+                if postStoryDesigned.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
 
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
@@ -118,10 +123,7 @@ class mainSync2(Data):
 
     def Run_and_Analysis_Beam(self):
 
-        # self.reportGenerator.setEnabled(True)
         midLineDict = {}
-        lineLabels = None
-        boundaryLineLabels = None
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
             midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
             if currentTab == self.tabWidgetCount - 1:
@@ -132,12 +134,10 @@ class mainSync2(Data):
             saveImage(self.grid, currentTab)
 
         self.saveFunc()
-        # generalProp = ControlGeneralProp(self.general_properties)
 
         if not self.beamRun and not self.postRun:
             self.db.beam_table()
             self.db.post_table()
-            # TabData = ControlTab(self.tab, generalProp, self.general_information)
             beamSync = BeamSync(self.db, self.tabWidgetCount - 1)
             self.posts = []
             self.beams = []
@@ -160,7 +160,7 @@ class mainSync2(Data):
 
                 storyByStoryInstance = BeamStoryBy(beamSync.BeamStories[j], self.GridDrawClass, i + 1)
                 j += 1
-                if i == self.tabWidgetCount - 1:
+                if i == 0:
                     self.beamRun = True
                 if storyByStoryInstance.result == QDialog.Accepted:
                     continue
@@ -170,27 +170,12 @@ class mainSync2(Data):
 
         else:
             for i, item in enumerate(self.BeamDesigned):
-                storyByStoryInstance = BeamStoryBy(item, self.GridDrawClass, i + 1)
-                # if story == len(beam) - 1:
-                #     self.report = True
+                storyByStoryInstance = BeamStoryBy(item, self.GridDrawClass, len(self.BeamDesigned) - i)
                 if storyByStoryInstance.result == QDialog.Accepted:
                     continue
                 else:
                     break
 
-            # Design should be started from Roof.
-            # self.posts.reverse()
-            # self.beams.reverse()
-            # self.shearWalls.reverse()
-            # CREATE DB FOR OUTPUT.
-
-        # BEAM
-        # a = time.time()
-        # beamAnalysisInstance = beamAnalysisSync(self.beams, self.posts, self.shearWalls, self.general_information,
-        #                                         self.db, self.GridDrawClass, True, self.beamRun, self.BeamDesigned)
-        # self.BeamDesigned = beamAnalysisInstance.BeamStories
-        # b = time.time()
-        # self.beamRun = beamAnalysisInstance.report
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
 
@@ -199,10 +184,7 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_Joist(self):
-        # self.reportGenerator.setEnabled(True)
         midLineDict = {}
-        lineLabels = None
-        boundaryLineLabels = None
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
             midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
             if currentTab == self.tabWidgetCount - 1:
