@@ -109,27 +109,36 @@ class ControlTab:
         db.beam_table()
         db.joist_table()
         db.post_table()
-        a = time.time()
+        height_from_top = list(reversed(generalProp.height))
 
+        a = time.time()
         beamSync = BeamSync(db, len(tabReversed) - 1)
-        for i, Tab in tabReversed.items():
+        postSync = PostSync(db)
+        j = 0
+        postTop = None
+        for story, Tab in tabReversed.items():
             # post = {i: Tab["post"]}
             post = Tab["post"]
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
             c = time.time()
-            beamSync.AnalyseDesign(beam, post, shearWall, i)
+            beamSync.AnalyseDesign(beam, post, shearWall, story)
             d = time.time()
-            print(f"Beam analysis story {i} takes ", (d - c) / 60, "Minutes")
+            print(f"Beam analysis story {story} takes ", (d - c) / 60, "Minutes")
+
+            postSync.AnalyseDesign(post, height_from_top[j], story, postTop)
             studWall = Tab["studWall"]
             loadMap = Tab["loadMap"]
             self.posts.append(post)
+            postTop = post
             self.beams.append(beam)
             self.joists.append(joist)
             self.shearWalls.append(shearWall)
             self.studWalls.append(studWall)
             self.loadMaps.append(loadMap)
+
+            j += 1
 
         b = time.time()
         print("Beam analysis takes ", (b - a) / 60, "Minutes")
@@ -149,13 +158,13 @@ class ControlTab:
 
         # POST
         a = time.time()
-        PostSync(self.posts, generalProp.height, generalInfo, db)
+        # PostSync(self.posts, generalProp.height, generalInfo, db)
         b = time.time()
         print("Post analysis takes ", (b - a) / 60, "Minutes")
 
         # JOIST
         a = time.time()
-        joistAnalysisInstance = joistAnalysisSync(self.joists, db)
+        # joistAnalysisInstance = joistAnalysisSync(self.joists, db)
         b = time.time()
         print("Joist analysis takes ", (b - a) / 60, "Minutes")
 
