@@ -6,39 +6,33 @@ from UI_Wood.stableVersion5.output.postSql import PostSQL, WritePostInputSQL
 
 
 class post_output:
-    def __init__(self, posts, height, storyBy=False, inputDB=None):
+    def __init__(self, posts, height, topPosts, story):
         self.posts = posts
-        # self.height = [10, 10, 10, 10]
         self.height = height  # should be checked.
+        self.story = story
         self.postProperties = []
         pointLoadCalculator = PointLoadCalculator()
         reactionLoadCalculator = ReactionLoadCalculator()
-        LoadRoot(posts, pointLoadCalculator, reactionLoadCalculator)
-        if storyBy:
-            self.inputDB = inputDB
-            self.create_dict()
-        else:
-            self.inputDB = PostSQL()
-            self.create_dict2()
+        if topPosts:
+            LoadRoot(posts, topPosts, pointLoadCalculator, reactionLoadCalculator)
+
+        self.create_dict()
 
     def create_dict(self):
-        postId = 1
-        for i, postTab in self.posts[0].items():
-            for Post in postTab:
-                loadSet = Post["load"]["point"] + Post["load"]["reaction"]
-                loadControl = ControlLoadType(loadSet)
-                properties = {
-                    "label": Post["label"],
-                    "coordinate": (
-                        Post["coordinate"][0] / magnification_factor, Post["coordinate"][1] / magnification_factor),
-                    "story": i + 1,
-                    "width": float(Post["wall_width"][0]),
-                    "height": self.height[i],
-                    "load": loadControl.load_list
-                }
-                self.postProperties.append(properties)
-                WritePostInputSQL(properties, postId, self.inputDB)
-                postId += 1
+        # for i, postTab in self.posts:
+        for Post in self.posts:
+            loadSet = Post["load"]["point"] + Post["load"]["reaction"]
+            loadControl = ControlLoadType(loadSet)
+            properties = {
+                "label": Post["label"],
+                "coordinate": (
+                    Post["coordinate"][0] / magnification_factor, Post["coordinate"][1] / magnification_factor),
+                "story": self.story + 1,
+                "width": float(Post["wall_width"][0]),
+                "height": self.height,
+                "load": loadControl.load_list
+            }
+            self.postProperties.append(properties)
 
     def create_dict2(self):
         postId = 1
@@ -81,8 +75,9 @@ class ReactionLoadCalculator(LoadCalculator):
 
 # The `LoadRoot` class calculates point loads and reaction loads for posts in a hierarchical structure.
 class LoadRoot:
-    def __init__(self, posts, point_load_calculator, reaction_load_calculator):
+    def __init__(self, posts, topPosts, point_load_calculator, reaction_load_calculator):
         self.posts = posts
+        self.topPosts = topPosts
         self.point_load_calculator = point_load_calculator
         self.reaction_load_calculator = reaction_load_calculator
         self.calculate_loads()
@@ -91,17 +86,13 @@ class LoadRoot:
         """
         The function calculates loads for each post based on their coordinates and the posts above them.
         """
-        max_level = len(self.posts) - 1
-        for i, postTab in enumerate(self.posts):
-            for Post in list(postTab.values())[0]:
-                coordinate = Post["coordinate"]
-                if i < max_level:  # Use the loop variable `i`
-                    for j in range(1, max_level - i + 1):
-                        for PostTab_top in self.posts[i + j].values():
-                            for Post_top in PostTab_top:
-                                if Post_top["coordinate"] == coordinate:
-                                    Post["load"]["point"] = self.point_load_calculator.calculate(Post, Post_top)
-                                    Post["load"]["reaction"] = self.reaction_load_calculator.calculate(Post, Post_top)
+        for i, Post in enumerate(self.posts):
+            coordinate = Post["coordinate"]
+            for Post_top in self.topPosts:
+                if Post_top["coordinate"] == coordinate:
+                    Post["load"]["point"] = self.point_load_calculator.calculate(Post, Post_top)
+                    Post["load"]["reaction"] = self.reaction_load_calculator.calculate(Post, Post_top)
+                    break
 
 
 class ControlLoadType:
