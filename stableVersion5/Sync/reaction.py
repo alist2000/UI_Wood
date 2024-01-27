@@ -107,7 +107,8 @@ class Reaction_On:
                 Reaction_on_beam(self.beams, support_label, reaction, coordinate)
 
     def do_post(self):
-        for post in list(self.posts.values())[0]:
+        # for post in list(self.posts.values())[0]:
+        for post in self.posts:
             post["load"]["reaction"].clear()
         for shearWall in self.shearWalls:
             shearWall["load"]["reaction"].clear()
@@ -135,7 +136,8 @@ class Reaction_on_beam:
 
 class Reaction_on_post:
     def __init__(self, posts, support_label, reaction):
-        for post in list(posts.values())[0]:
+        # for post in list(posts.values())[0]:
+        for post in posts:
             if post["label"] == support_label:
                 post["load"]["reaction"].extend(reaction
                                                 )
