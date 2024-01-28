@@ -5,67 +5,71 @@ from UI_Wood.stableVersion5.output.joistSql import joistSQL, WriteJoistInputSQL
 
 
 class Joist_output:
-    def __init__(self, joists):
-        mainJoist = FindJoistInArea(joists)
+    def __init__(self, joists, story, joistDB, joistAreaId):
+        mainJoist = FindJoistInArea(joists, story, joistDB, joistAreaId)
+        self.joistIdInput = mainJoist.joistAreaId
+
         self.Joists = mainJoist.allJoists
         pass
 
 
 class FindJoistInArea:
-    def __init__(self, joists):
+    def __init__(self, joists, story, joistDB, joistAreaId):
         self.allJoists = []
-        joistAreaId = 1
-        joistDB = joistSQL()
-        for story, joistTab in enumerate(joists):
-            tabJoists = []
-            for joist in joistTab:
-                direction = joist["direction"]
-                if direction == "N-S":
-                    self.direction_index = 1
-                    self.constant_index = 0
-                    self.line_index = 0
-                else:
-                    self.direction_index = 0
-                    self.constant_index = 1
-                    self.line_index = 1
-                self.start = None
-                self.end = None
-                floor = joist["floor"]
-                length = self.length(joist)
-                self.support = [(0, (1, 1, 0)), (length, (1, 1, 0))]
-                self.loadSets = self.joist_seperator(joist)
-                self.finalLoadSet = []
-                for load in self.loadSets:
-                    item = ControlDistributetLoad(load, self.start)
+        # joistAreaId = 1
+        # joistDB = joistSQL()
+        # for story, joistTab in enumerate(joists):
+        #     tabJoists = []
+        #     for joist in joistTab:
+        for joist in joists:
+            direction = joist["direction"]
+            if direction == "N-S":
+                self.direction_index = 1
+                self.constant_index = 0
+                self.line_index = 0
+            else:
+                self.direction_index = 0
+                self.constant_index = 1
+                self.line_index = 1
+            self.start = None
+            self.end = None
+            floor = joist["floor"]
+            length = self.length(joist)
+            self.support = [(0, (1, 1, 0)), (length, (1, 1, 0))]
+            self.loadSets = self.joist_seperator(joist)
+            self.finalLoadSet = []
+            for load in self.loadSets:
+                item = ControlDistributetLoad(load, self.start)
 
-                    self.finalLoadSet.append(item.loadSet)
+                self.finalLoadSet.append(item.loadSet)
 
-                # distributed = ControlDistributetLoad(self.loadSets, self.start)
-                # self.loadSets = distributed.loadSet
+            # distributed = ControlDistributetLoad(self.loadSets, self.start)
+            # self.loadSets = distributed.loadSet
 
-                joistProp = {
-                    "label": joist["label"],
-                    "story": story + 1,
-                    "coordinate": joist["coordinate"],
-                    "direction": joist["direction"],
-                    "length": length,
-                    "joist_item": []
-                }
+            joistProp = {
+                "label": joist["label"],
+                "story": story + 1,
+                "coordinate": joist["coordinate"],
+                "direction": joist["direction"],
+                "length": length,
+                "joist_item": []
+            }
 
-                joistId = 1
-                WriteJoistInputSQLInstance = WriteJoistInputSQL(joistProp, joistAreaId, joistDB)
-                finalLoadSetEdited = self.DeleteSimilarLoads()
-                for load in finalLoadSetEdited:
-                    control_load_range(load, length)
+            joistId = 1
+            WriteJoistInputSQLInstance = WriteJoistInputSQL(joistProp, joistAreaId, joistDB)
+            finalLoadSetEdited = self.DeleteSimilarLoads()
+            for load in finalLoadSetEdited:
+                control_load_range(load, length)
 
-                    joistItem = {"length": length, "support": self.support, "load": {"distributed": load, "point": []},
-                                 "floor": floor}
-                    joistProp["joist_item"].append(joistItem)
-                    WriteJoistInputSQLInstance.distLoadTable(joistId, joistItem)
-                    joistId += 1
-                tabJoists.append(joistProp)
-                joistAreaId += 1
-            self.allJoists.append(tabJoists)
+                joistItem = {"length": length, "support": self.support, "load": {"distributed": load, "point": []},
+                             "floor": floor}
+                joistProp["joist_item"].append(joistItem)
+                WriteJoistInputSQLInstance.distLoadTable(joistId, joistItem)
+                joistId += 1
+            # tabJoists.append(joistProp)
+            joistAreaId += 1
+            self.allJoists.append(joistProp)
+        self.joistAreaId = joistAreaId
 
     def length(self, joist):
         lengthRange = joist["line"]["properties"][self.line_index]["range"]
