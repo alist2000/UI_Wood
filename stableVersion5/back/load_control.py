@@ -205,8 +205,12 @@ class load_on_joist:
 
 
 def range_intersection(range1, range2):
-    x1, x2 = range1
-    y1, y2 = range2
+    x1_primary, x2_primary = range1
+    y1_primary, y2_primary = range2
+    x1 = min(x1_primary, x2_primary)
+    x2 = max(x1_primary, x2_primary)
+    y1 = min(y1_primary, y2_primary)
+    y2 = max(y1_primary, y2_primary)
     start = max(x1, y1)
     end = min(x2, y2)
     if x2 >= start and start <= y2 and end >= x1 and y1 <= end and start < end:
@@ -216,10 +220,24 @@ def range_intersection(range1, range2):
     return intersection
 
 
+
 def length_point(point1, point2):
-    x1 = point1.args[0]
-    y1 = point1.args[1]
-    x2 = point2.args[0]
-    y2 = point2.args[1]
+    try:
+        x1 = point1.args[0]
+    except:
+        x1 = point1[0]
+    try:
+        y1 = point1.args[1]
+    except:
+        y1 = point1[1]
+    try:
+        x2 = point2.args[0]
+    except:
+        x2 = point2[0]
+    try:
+        y2 = point2.args[1]
+    except:
+        y2 = point2[1]
+
     length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
     return length
