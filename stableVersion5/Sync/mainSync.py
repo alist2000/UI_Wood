@@ -114,6 +114,7 @@ class ControlTab:
         a = time.time()
         beamSync = BeamSync(db, len(tabReversed) - 1)
         postSync = PostSync(db)
+        joistSync = joistAnalysisSync(db)
         j = 0
         postTop = None
         for story, Tab in tabReversed.items():
@@ -122,12 +123,17 @@ class ControlTab:
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
+            # BEAM DESIGN
             c = time.time()
             beamSync.AnalyseDesign(beam, post, shearWall, story)
             d = time.time()
             print(f"Beam analysis story {story} takes ", (d - c) / 60, "Minutes")
 
+            # POST DESIGN
             postSync.AnalyseDesign(post, height_from_top[j], story, postTop)
+
+            # JOIST DESIGN
+            joistSync.AnalyseDesign(joist, story)
             studWall = Tab["studWall"]
             loadMap = Tab["loadMap"]
             self.posts.append(post)
