@@ -17,6 +17,7 @@ from UI_Wood.stableVersion5.Sync.shearWallSync2 import ShearWallSync2
 from UI_Wood.stableVersion5.Sync.studWallSync2 import StudWallSync2
 from UI_Wood.stableVersion5.run.beam import BeamStoryBy
 from UI_Wood.stableVersion5.run.post import PostStoryBy
+from UI_Wood.stableVersion5.run.joist import JoistStoryBy
 
 from PySide6.QtWidgets import QDialog
 import time
@@ -199,26 +200,48 @@ class mainSync2(Data):
 
         generalProp = ControlGeneralProp(self.general_properties)
         # TabData = ControlTab(self.tab, generalProp, self.general_information)
-        self.joists = []
-        for i, Tab in self.tab.items():
-            joist = Tab["joist"]
+        if not self.joistRun:
+            self.db.joist_table()
+            self.joists = []
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
+            joistSync = joistAnalysisSync(self.db)
+            j = 0
+            for i, Tab in tabReversed.items():
+                joist = Tab["joist"]
+                joistSync.AnalyseDesign(joist, i)
 
-            self.joists.append(joist)
+                self.joists.append(joist)
+
+                storyByStoryInstance = JoistStoryBy(joistSync.JoistStories[j], self.GridDrawClass, i + 1)
+                j += 1
+                if i == 0:
+                    self.joistRun = True
+                if storyByStoryInstance.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
+            self.JoistDesigned = joistSync.JoistStories
+        else:
+            for i, item in enumerate(self.JoistDesigned):
+                storyByStoryInstance = JoistStoryBy(item, self.GridDrawClass, len(self.JoistDesigned) - i)
+                if storyByStoryInstance.result == QDialog.Accepted:
+                    continue
+                else:
+                    break
 
         # Design should be started from Roof.
         # self.joists.reverse()
 
         # CREATE DB FOR OUTPUT.
-        self.db.joist_table()
 
-        # JOIST
-        a = time.time()
-        joistAnalysisInstance = joistAnalysisSync(self.joists, self.db, self.GridDrawClass, True, self.joistRun)
-        self.JoistDesigned = joistAnalysisInstance.JoistStories
-        b = time.time()
-        self.joistRun = joistAnalysisInstance.report
-
-        print("Joist analysis takes ", (b - a) / 60, "Minutes")
+        # # JOIST
+        # a = time.time()
+        # joistAnalysisInstance = joistAnalysisSync(self.joists, self.db, self.GridDrawClass, True, self.joistRun)
+        # self.JoistDesigned = joistAnalysisInstance.JoistStories
+        # b = time.time()
+        # self.joistRun = joistAnalysisInstance.report
+        #
+        # print("Joist analysis takes ", (b - a) / 60, "Minutes")
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
             self.reportGenerator.setEnabled(True)
         for grid in self.grid:
