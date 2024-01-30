@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 
 class shearWallSQL:
@@ -126,3 +127,45 @@ class MidlineSQL:
 
         self.conn.commit()
         return tableName
+
+
+class DropTables:
+    def __init__(self, database_relative_path):
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+
+        # Combine the script directory with the provided relative path
+        database_path = os.path.abspath(os.path.join(script_directory, database_relative_path))
+
+        print(f"Database Path: {database_path}")  # For debugging
+
+        try:
+            # Continue with the rest of the function...
+            connection = sqlite3.connect(database_path)
+            cursor = connection.cursor()
+        except sqlite3.Error as e:
+            print(f"Error: {e}")
+            return
+
+        try:
+            # Step 2: Query the list of tables
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+
+            # Step 3: Drop each table
+            for table in tables:
+                table_name = table[0]
+                cursor.execute(f"DROP TABLE IF EXISTS {table_name};")
+                print(f"Table '{table_name}' dropped.")
+
+            # Commit the changes and close the connection
+            connection.commit()
+
+        except sqlite3.Error as e:
+            print(f"Error: {e}")
+
+        finally:
+            connection.close()
+
+
+# db = '../../../Output/ShearWall_output.db'
+# DropTables(db)
