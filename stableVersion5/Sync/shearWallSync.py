@@ -6,24 +6,25 @@ from UI_Wood.stableVersion5.output.shearWall_output import ShearWall_output, Edi
 
 
 class ShearWallSync:
-    def __init__(self, shearWall, height, db):
+    def __init__(self, shearWall, height, story, db):
         shearWallEditedInstance = EditLabel(shearWall)
-        shearWallEdited = list(reversed(shearWallEditedInstance.shearWalls_rev))
-        self.shearWallOutPut = ShearWall_output(shearWallEdited, height)
-        print("*** SHEAR PROP IS HERE", self.shearWallOutPut.shearWallProperties)
+        # shearWallEdited = list(reversed(shearWallEditedInstance.shearWalls_rev))
+        self.shearWallOutPut = ShearWall_output(shearWall[-1], height, story, db)
+        self.shearWallTab = self.shearWallOutPut.shearWallProperties_everyTab
+        # print("*** SHEAR PROP IS HERE", self.shearWallOutPut.shearWallProperties)
         shearWallId = 1
 
 
 class ControlSeismicParameter:
-    def __init__(self, seismicPara, storyName, areaLoad, magLoad, areaJoist):
+    def __init__(self, seismicPara, storyName, areaLoad, magLoad, areaJoist, DB):
         self.seismicPara = seismicPara
         self.seismicPara["story_name"] = storyName
         self.seismicPara["load_area"] = areaLoad
         self.seismicPara["load_magnitude"] = magLoad
         self.seismicPara["joist_area"] = areaJoist
 
-        DB = DataBaseSeismic()
-        DB.SeismicParams(seismicPara)
+        # DB = DataBaseSeismic()
+        # DB.SeismicParams(seismicPara)
         DB.Loads(storyName, areaLoad, magLoad, areaJoist)
 
 
@@ -182,35 +183,3 @@ def NoShearWallLines(shearWallLines, names_set):
 
 class ShearWallStoryCount:
     storyFinal = 1
-
-# def NoShearWallLines(names_set):
-#     # Connect to the SQLite database
-#     conn = sqlite3.connect('../../Output/ShearWall_Input.db')
-#
-#     # Create a cursor object
-#     cursor = conn.cursor()
-#
-#     # Execute the query
-#     cursor.execute("SELECT Story, Line FROM wallTable")
-#
-#     # Fetch all the rows
-#     rows = cursor.fetchall()
-#
-#     # Close the connection
-#     conn.close()
-#     stories = set()
-#     for row in rows:
-#         stories.add(row[0])
-#     stories = list(stories)
-#     stories.sort()
-#     noShearWalls = {}
-#     for story in stories:
-#         noShearWalls[story] = set()
-#         for row in rows:
-#             if row[0] == story:
-#                 noShearWalls[story].add(row[1])
-#         noShearWalls[story] = names_set - noShearWalls[story]
-#
-#         noShearWalls[story] = list(noShearWalls[story])
-#         noShearWalls[story].sort()
-#     return noShearWalls

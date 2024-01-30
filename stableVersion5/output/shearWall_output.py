@@ -5,14 +5,13 @@ from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL
 
 
 class EditLabel:
-    def __init__(self, shearWalls, itemName="shearWall"):
-        self.shearWalls = shearWalls
+    def __init__(self, shearWalls_rev, itemName="shearWall"):
+        # self.shearWalls = shearWalls
         self.itemName = itemName
-        shearWalls_rev = list(reversed(shearWalls))
+        # shearWalls_rev = list(reversed(shearWalls))
         self.shearWalls_rev = shearWalls_rev
-        # full_label, full_label_repeat_index = self.edit_label()
-        self.edit_label()
-        # self.edit_repeated_label(full_label_repeat_index, full_label)
+        if all(self.shearWalls_rev):
+            self.edit_label()
 
     def edit_label_old(self):
         max_story = len(self.shearWalls_rev) - 1
@@ -48,7 +47,7 @@ class EditLabel:
         full_label_repeat_index = {}
         full_label = {}
         labelStory = []
-        if self.itemName =="shearWall":
+        if self.itemName == "shearWall":
             labelName = "SW"
         else:
             labelName = "ST"
@@ -154,110 +153,118 @@ class PointLoadFromAbove:
 
 
 class ShearWall_output:
-    def __init__(self, shearWalls, height):
+    def __init__(self, shearWalls, height, story, db):
+
+        # final database must be added later
         self.shearWallProperties = {}
         self.shearWallExistLine = {}
 
         self_weight_dict = {"I": 10, "E": 20}
 
         self.roof_level_number = len(shearWalls)
-        db = shearWallSQL()
-        db.createTable()
+        # db = shearWallSQL()
+        # db.createTable()
         shearWallId = 1
-        for story, shearWallsTab in enumerate(shearWalls):
-            self.Story = story + 1
-            shearWallProperties_everyTab = []
-            if self.Story == self.roof_level_number:
-                StoryName = "Roof"
+        # for i, shearWallsTab in enumerate(shearWalls):
+        #     self.Story = story + 1
+        #     shearWallProperties_everyTab = []
+        #     if self.Story == self.roof_level_number:
+        #         StoryName = "Roof"
+        #     else:
+        #         StoryName = self.Story
+
+        self.shearWallProperties_everyTab = []
+        self.Story = story
+        StoryName = story
+        self.shearWallExistLine[str(StoryName)] = set()
+        for ShearWallItem in shearWalls:
+            label = ShearWallItem["label"][2:]
+            self.length = ShearWallItem["length"] / magnification_factor
+            line = ShearWallItem["line_label"]
+            self.shearWallExistLine[str(StoryName)].add(line)
+            opening_width = 0  # for now
+            interior_exterior = ShearWallItem["interior_exterior"][0].upper()
+            self_weight = self_weight_dict[interior_exterior]
+            direction = ShearWallItem["direction"]
+            if direction == "N-S":
+                orientation = "NS"
+                direction_index = 1
+                constant_index = 0
             else:
-                StoryName = self.Story
-            self.shearWallExistLine[str(StoryName)] = set()
-            for ShearWallItem in shearWallsTab:
-                label = ShearWallItem["label"][2:]
-                self.length = ShearWallItem["length"] / magnification_factor
-                line = ShearWallItem["line_label"]
-                self.shearWallExistLine[str(StoryName)].add(line)
-                opening_width = 0  # for now
-                interior_exterior = ShearWallItem["interior_exterior"][0].upper()
-                self_weight = self_weight_dict[interior_exterior]
-                direction = ShearWallItem["direction"]
-                if direction == "N-S":
-                    orientation = "NS"
-                    direction_index = 1
-                    constant_index = 0
-                else:
-                    orientation = "EW"
-                    direction_index = 0
-                    constant_index = 1
+                orientation = "EW"
+                direction_index = 0
+                constant_index = 1
 
-                self.start = min(ShearWallItem["coordinate"][0][direction_index],
-                                 ShearWallItem["coordinate"][1][direction_index]) / magnification_factor
-                self.end = max(ShearWallItem["coordinate"][0][direction_index],
-                               ShearWallItem["coordinate"][1][direction_index]) / magnification_factor
-                constant = ShearWallItem["coordinate"][0][constant_index] / magnification_factor
-                if direction == "N-S":
-                    coordinateStart = (constant, self.start)
-                    coordinateEnd = (constant, self.end)
-                else:
-                    coordinateStart = (self.start, constant)
-                    coordinateEnd = (self.end, constant)
+            self.start = min(ShearWallItem["coordinate"][0][direction_index],
+                             ShearWallItem["coordinate"][1][direction_index]) / magnification_factor
+            self.end = max(ShearWallItem["coordinate"][0][direction_index],
+                           ShearWallItem["coordinate"][1][direction_index]) / magnification_factor
+            constant = ShearWallItem["coordinate"][0][constant_index] / magnification_factor
+            if direction == "N-S":
+                coordinateStart = (constant, self.start)
+                coordinateEnd = (constant, self.end)
+            else:
+                coordinateStart = (self.start, constant)
+                coordinateEnd = (self.end, constant)
 
-                # reaction control
-                Pd, Pl, Pe = self.reaction_control(ShearWallItem["load"]["reaction"], direction_index)
+            # reaction control
+            Pd, Pl, Pe = self.reaction_control(ShearWallItem["load"]["reaction"], direction_index)
 
-                # share post check
-                share_post = self.intersection_control(ShearWallItem["shearWall_intersection"], direction_index)
+            # share post check
+            share_post = self.intersection_control(ShearWallItem["shearWall_intersection"], direction_index)
 
-                n1 = len(str(self.start).split(".")[1])
-                n2 = len(str(self.end).split(".")[1])
-                decimal_number = max(n1, n2)
-                # distributed load control
-                self.distributedLoad = ControlDistributetLoad(ShearWallItem["load"]["joist_load"]["load_map"],
-                                                              self.start)
-                self.lineLoad = ControlLineLoad(ShearWallItem["load"]["line"], ShearWallItem, direction_index)
-                print("loadset line load", self.lineLoad.loadSet)
-                self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
-                                                               decimal_number)
-                start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
-                    self.finalDistributedLoad.loadSet)
-                db.cursor.execute(
-                    'INSERT INTO WallTable (ID, Story, Coordinate_start, Coordinate_end, Line, Wall_Label,'
-                    ' Wall_Length, Story_Height, Opening_Width, Int_Ext,  Wall_Self_Weight,'
-                    ' start, end, Rd, Rl, Rlr, Rs, Left_Bottom_End,'
-                    ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [
-                        shearWallId, str(StoryName), str(coordinateStart), str(coordinateEnd), line, label,
-                        round(self.end - self.start, max(n1, n2)),
-                        height[story],
-                        str(opening_width), interior_exterior, self_weight, start_load, end_load, dead_load, live_load,
-                        lr_load,
-                        snow_load, str(share_post["left"]),
-                        str(share_post["right"]),
-                        str(Pd["left"]), str(Pl["left"]), str(Pe["left"]), str(Pd["right"]), str(Pl["right"]),
-                        str(Pe["right"]), orientation
-                    ])
-                db.conn.commit()
-                shearWallId += 1
-                self.shearWall_dict = {
-                    "label": label,
-                    "coordinate": [self.start, self.end],
-                    "story": StoryName,
-                    "line_label": line,
-                    "length": round(self.end - self.start, max(n1, n2)),
-                    "height": height[story],
-                    "opening_width": opening_width,
-                    "interior_exterior": interior_exterior,
-                    "self_weight": self_weight,
-                    "direction": orientation,
+            n1 = len(str(self.start).split(".")[1])
+            n2 = len(str(self.end).split(".")[1])
+            decimal_number = max(n1, n2)
+            # distributed load control
+            self.distributedLoad = ControlDistributetLoad(ShearWallItem["load"]["joist_load"]["load_map"],
+                                                          self.start)
+            self.lineLoad = ControlLineLoad(ShearWallItem["load"]["line"], ShearWallItem, direction_index)
+            print("loadset line load", self.lineLoad.loadSet)
+            self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
+                                                           decimal_number)
+            start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
+                self.finalDistributedLoad.loadSet)
+            db.cursor.execute(
+                'INSERT INTO WallTable (ID, Story, Coordinate_start, Coordinate_end, Line, Wall_Label,'
+                ' Wall_Length, Story_Height, Opening_Width, Int_Ext,  Wall_Self_Weight,'
+                ' start, end, Rd, Rl, Rlr, Rs, Left_Bottom_End,'
+                ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [
+                    shearWallId, str(StoryName), str(coordinateStart), str(coordinateEnd), line, label,
+                    round(self.end - self.start, max(n1, n2)),
+                    # height[story],
+                    height,
+                    str(opening_width), interior_exterior, self_weight, start_load, end_load, dead_load, live_load,
+                    lr_load,
+                    snow_load, str(share_post["left"]),
+                    str(share_post["right"]),
+                    str(Pd["left"]), str(Pl["left"]), str(Pe["left"]), str(Pd["right"]), str(Pl["right"]),
+                    str(Pe["right"]), orientation
+                ])
+            db.conn.commit()
+            shearWallId += 1
+            self.shearWall_dict = {
+                "label": label,
+                "coordinate": [self.start, self.end],
+                "story": StoryName,
+                "line_label": line,
+                "length": round(self.end - self.start, max(n1, n2)),
+                # "height": height[story],
+                "height": height,
+                "opening_width": opening_width,
+                "interior_exterior": interior_exterior,
+                "self_weight": self_weight,
+                "direction": orientation,
 
-                    "load": {
-                        "distributed": self.finalDistributedLoad.loadSet,
-                        "reaction": {"Dead": Pd, "Live": Pl, "Seismic": Pe}
-                    },
-                    "share_post": share_post
-                }
-                shearWallProperties_everyTab.append(self.shearWall_dict)
-            self.shearWallProperties[story] = shearWallProperties_everyTab
+                "load": {
+                    "distributed": self.finalDistributedLoad.loadSet,
+                    "reaction": {"Dead": Pd, "Live": Pl, "Seismic": Pe}
+                },
+                "share_post": share_post
+            }
+            self.shearWallProperties_everyTab.append(self.shearWall_dict)
+            # self.shearWallProperties[story] = shearWallProperties_everyTab
 
     def reaction_control(self, reaction, direction_index):
         Pd_list = []
@@ -281,7 +288,8 @@ class ShearWall_output:
                     mag_live = item["magnitude"]
                 else:
                     mag_live_roof = item["magnitude"]
-            if self.Story < self.roof_level_number:
+            # if self.Story < self.roof_level_number:
+            if self.Story != "Roof":
                 if mag_live:
                     Pl[side] = mag_live
                 else:
