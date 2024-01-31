@@ -1,14 +1,17 @@
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
     QTableWidget, QAbstractItemView
+from PySide6.QtGui import QPen, QBrush, QColor
+from PySide6.QtCore import Qt
 
 # from post_new import magnification_factor
 magnification_factor = 40
 
 
 class PostProperties(QDialog):
-    def __init__(self, rectItem, post_properties, parent=None):
+    def __init__(self, rectItem, post_properties, timer, parent=None):
         super().__init__(parent)
+        self.timer = timer
         self.rect = rectItem
         self.post_prop = post_properties
         self.setWindowTitle("Post Properties")
@@ -17,7 +20,7 @@ class PostProperties(QDialog):
         self.wallWidth_default = post_properties[rectItem]["wall_width"]
         self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.button_box.rejected.connect(self.reject_control)  # Change from dialog.reject to self.reject
 
         v_layout = QVBoxLayout()
 
@@ -85,6 +88,13 @@ class PostProperties(QDialog):
     def accept_control(self):
         self.pointLoad.print_values()
         self.accept()
+        self.timer.stop()
+        self.rect.setBrush(QBrush(QColor("#E76161"), Qt.SolidPattern))
+
+    def reject_control(self):
+        self.reject()
+        self.timer.stop()
+        self.rect.setBrush(QBrush(QColor("#E76161"), Qt.SolidPattern))
 
     def create_assignment_tab(self):
         tab = QWidget()
@@ -113,6 +123,11 @@ class PostProperties(QDialog):
     def wall_width_control(self):
         self.thickness_default = self.wallWidth.currentText()
         self.post_prop[self.rect]["wall_width"] = self.thickness_default
+
+    def closeEvent(self, event):
+        self.timer.stop()
+        self.rect.setBrush(QBrush(QColor("#E76161"), Qt.SolidPattern))
+        super().closeEvent(event)
 
 
 class pointLoad(QWidget):

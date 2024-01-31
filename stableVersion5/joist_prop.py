@@ -3,16 +3,17 @@ from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QTableWidget, QAbstractItemView, QCheckBox
 
 from PySide6.QtCore import Qt, QRectF
-from PySide6.QtGui import QPen, QColor
+from PySide6.QtGui import QPen, QColor, QBrush
 
 from area_centroid_calculator import calculate_centroid_and_area
 from post_new import magnification_factor
 
 
 class JoistProperties(QDialog):
-    def __init__(self, rectItem, rect_prop, center_position, joint_coordinate, image, scene, parent=None):
+    def __init__(self, rectItem, rect_prop, center_position, joint_coordinate, image, scene, timer, parent=None):
         super().__init__(parent)
         self.direction = None
+        self.timer = timer
         self.default = rect_prop[rectItem]["direction"]
         self.final_direction = rect_prop[rectItem]["direction"]
         self.rectItem = rectItem
@@ -59,6 +60,9 @@ class JoistProperties(QDialog):
                 print("deleting")
                 self.scene.removeItem(load)
                 # self.loadRect.remove(load)
+        self.timer.stop()
+        self.rectItem.setPen(QPen(Qt.black))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
         super().closeEvent(event)
 
     def accept_control(self):
@@ -81,6 +85,16 @@ class JoistProperties(QDialog):
                 # self.loadRect.remove(load)
 
         print(self.rect_prop)
+
+        self.timer.stop()
+        self.rectItem.setPen(QPen(Qt.black))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
+
+    def reject_control(self):
+        self.reject()
+        self.timer.stop()
+        self.rectItem.setPen(QPen(Qt.black))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
 
     def create_geometry_tab(self):
         point1 = tuple([round(i / magnification_factor, 2) for i in self.joint_coordinate[0]])
@@ -172,7 +186,7 @@ class JoistProperties(QDialog):
 
         self.joistDepth.setCurrentText(floorText)
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.button_box.rejected.connect(self.reject_control)  # Change from dialog.reject to self.reject
         self.joistDepth.currentTextChanged.connect(self.joist_depth_control)
 
         # LAYOUT

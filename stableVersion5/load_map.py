@@ -1,6 +1,6 @@
 import itertools
 
-from PySide6.QtCore import Qt, QPointF
+from PySide6.QtCore import Qt, QPointF, QTimer
 from PySide6.QtGui import QPen, QBrush, QColor, QKeyEvent
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton
 
@@ -65,6 +65,7 @@ class loadDrawing(QGraphicsRectItem):
             self.scene.removeItem(self.temp_rect)
 
             rect_item.setBrush(QColor(properties["color"]))
+            rect_item.update_color(QColor(properties["color"]))
 
             # Save coordinates of the rectangle corners
             self.rect_prop[rect_item] = {"label": properties["label"],
@@ -118,6 +119,7 @@ class loadDrawing(QGraphicsRectItem):
                         dialog = Choose_load_and_color(self.EditedLoadSet)
 
                         result = dialog.exec()
+                        rect_item.update_color(QColor(dialog.color))
                         rect_item.setBrush(QColor(dialog.color))
                         print(f"Value chosen in combo box: {dialog.combo_box.currentText()}")
                         load = []
@@ -214,6 +216,15 @@ class loadRectangle(QGraphicsRectItem):
         self.rect_prop = rect_prop
         self.all_load = all_load
         self.elementName = "loadMap"
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.change_color)
+        self.color = self.brush().color()
+        self.colors = [self.color, QColor.fromRgb(253, 231, 103, 230)]
+        self.current_color = 0
+
+    def update_color(self, color):
+        self.color = color
+        self.colors = [self.color, QColor.fromRgb(253, 231, 103, 230)]
 
     # CONTROL ON LOAD MAP
     def mousePressEvent(self, event):
@@ -224,10 +235,16 @@ class loadRectangle(QGraphicsRectItem):
             width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
             load_joint_coordinates = find_coordinate(center[0], center[1], width, height)
             self.load_properties_page = LoadProperties(self, self.rect_prop, center, load_joint_coordinates,
-                                                       self.all_load, self.scene())
+                                                       self.all_load, self.scene(), self.timer)
             print("RECT", self.rect_prop[self])
             print("LOAD SETS ", self.all_load)
             self.load_properties_page.show()
+            if not self.timer.isActive():
+                self.timer.start(400)  # Change color every 500 ms
+
+    def change_color(self):
+        self.setBrush(QColor(self.colors[self.current_color]))
+        self.current_color = (self.current_color + 1) % len(self.colors)
 
 
 def find_coordinate(xc, yc, width, height):

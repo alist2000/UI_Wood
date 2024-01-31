@@ -3,15 +3,16 @@ from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QTableWidget, QAbstractItemView, QCheckBox
 
 from PySide6.QtCore import Qt, QRectF
-from PySide6.QtGui import QPen, QColor
+from PySide6.QtGui import QPen, QColor, QBrush
 
 from area_centroid_calculator import calculate_centroid_and_area
 from post_new import magnification_factor
 
 
 class LoadProperties(QDialog):
-    def __init__(self, rectItem, rect_prop, center_position, joint_coordinate, all_load, scene, parent=None):
+    def __init__(self, rectItem, rect_prop, center_position, joint_coordinate, all_load, scene, timer, parent=None):
         super().__init__(parent)
+        self.timer = timer
         self.uniformLoad = None
         self.defaultLoad = rect_prop[rectItem]["label"]
         self.rectItem = rectItem
@@ -69,17 +70,19 @@ class LoadProperties(QDialog):
             self.rect_prop[self.rectItem]["load"] = []
 
         self.accept()
-        # self.loadTab.print_values()
-        # self.loadTab_custom.print_values()
-
-        # # self.loadRect = self.loadTab_custom.rectangleList
-        # for load in self.loadRect:
-        #     if load is not None:
-        #         print("deleting")
-        #         self.scene.removeItem(load)
-        #         # self.loadRect.remove(load)
+        current_color = self.rect_prop[self.rectItem]["color"]
+        self.timer.stop()
+        self.rectItem.setBrush(QBrush(current_color))
+        self.rectItem.setPen(QPen(Qt.black))
 
         print(self.rect_prop)
+
+    def reject_control(self):
+        self.reject()
+        current_color = self.rect_prop[self.rectItem]["color"]
+        self.timer.stop()
+        self.rectItem.setBrush(QBrush(current_color))
+        self.rectItem.setPen(QPen(Qt.black))
 
     def create_geometry_tab(self):
         point1 = tuple([round(i / magnification_factor, 2) for i in self.joint_coordinate[0]])
@@ -170,7 +173,7 @@ class LoadProperties(QDialog):
         #     uniformLoad.addItem(load["label"])
         self.uniformLoad.setCurrentText(self.rect_prop[self.rectItem]["label"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.button_box.rejected.connect(self.reject_control)  # Change from dialog.reject to self.reject
         self.uniformLoad.currentTextChanged.connect(self.uniformLoad_control)
 
         # LAYOUT
@@ -187,3 +190,10 @@ class LoadProperties(QDialog):
     # SLOT
     def uniformLoad_control(self):
         self.defaultLoad = self.uniformLoad.currentText()
+
+    def closeEvent(self, event):
+        current_color = self.rect_prop[self.rectItem]["color"]
+        self.timer.stop()
+        self.rectItem.setBrush(QBrush(current_color))
+        self.rectItem.setPen(QPen(Qt.black))
+        super().closeEvent(event)

@@ -1,14 +1,17 @@
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
     QTableWidget, QAbstractItemView
+from PySide6.QtGui import QPen, QBrush, QColor
+from PySide6.QtCore import Qt
 
 from post_new import magnification_factor
 
 
 class BeamProperties(QDialog):
-    def __init__(self, rectItem, rect_prop, scene, parent=None):
+    def __init__(self, rectItem, rect_prop, scene, timer, parent=None):
         super().__init__(parent)
         self.direction = None
+        self.timer = timer
         self.rectItem = rectItem
         self.rect_prop = rect_prop
         self.beamDepth = None
@@ -25,7 +28,7 @@ class BeamProperties(QDialog):
         self.tab_widget.setWindowTitle("Object Data")
         self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.button_box.rejected.connect(self.reject_control)  # Change from dialog.reject to self.reject
 
         self.create_geometry_tab()
         self.create_assignment_tab()
@@ -44,8 +47,17 @@ class BeamProperties(QDialog):
         self.lineLoad.print_values()
         self.pointLoad.print_values()
         self.accept()
+        self.timer.stop()
+        self.rectItem.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
 
         print(self.rect_prop)
+
+    def reject_control(self):
+        self.reject()
+        self.timer.stop()
+        self.rectItem.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
 
     def create_geometry_tab(self):
         start = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["coordinate"][0]])
@@ -131,6 +143,12 @@ class BeamProperties(QDialog):
         y2 = end[1]
         l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
         return round(l, 2)
+
+    def closeEvent(self, event):
+        self.timer.stop()
+        self.rectItem.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
+        super().closeEvent(event)
 
 
 class lineLoad(QWidget):

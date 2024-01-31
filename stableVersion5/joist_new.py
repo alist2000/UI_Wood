@@ -1,6 +1,6 @@
 import itertools
 
-from PySide6.QtCore import Qt, QPointF
+from PySide6.QtCore import Qt, QPointF, QTimer
 from PySide6.QtGui import QPen, QBrush, QColor, QKeyEvent
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox
@@ -201,6 +201,10 @@ class joistRectangle(QGraphicsRectItem):
         self.joist_properties_page = None
         self.rect_prop = rect_prop
         self.elementName = "joist"
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.change_color)
+        self.colors = [QColor.fromRgb(249, 155, 125, 100), QColor.fromRgb(253, 231, 103, 230)]
+        self.current_color = 0
 
     # CONTROL ON JOIST
     def mousePressEvent(self, event):
@@ -211,8 +215,14 @@ class joistRectangle(QGraphicsRectItem):
             width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
             joist_joint_coordinates = find_coordinate(center[0], center[1], width, height)
             self.joist_properties_page = JoistProperties(self, self.rect_prop, center, joist_joint_coordinates,
-                                                         self.image, self.scene())
+                                                         self.image, self.scene(), self.timer)
             self.joist_properties_page.show()
+            if not self.timer.isActive():
+                self.timer.start(400)  # Change color every 500 ms
+
+    def change_color(self):
+        self.setBrush(QColor(self.colors[self.current_color]))
+        self.current_color = (self.current_color + 1) % len(self.colors)
 
 
 def find_coordinate(xc, yc, width, height):

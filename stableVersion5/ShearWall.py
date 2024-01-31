@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QPointF, QRect, QSize, QPoint
+from PySide6.QtCore import Qt, QPointF, QRect, QSize, QPoint, QTimer
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QGraphicsProxyWidget
@@ -522,6 +522,10 @@ class Rectangle(QGraphicsRectItem):
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.setPen(QPen(Qt.blue, 2))  # Set the border color to blue
         self.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))  # Set the fill color to transparent
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.change_color)
+        self.colors = [QColor.fromRgb(255, 133, 81, 100), QColor.fromRgb(253, 231, 103, 230)]
+        self.current_color = 0
 
         self.rect_prop = rect_prop
         self.shearWall_properties_page = None
@@ -535,14 +539,26 @@ class Rectangle(QGraphicsRectItem):
             height = self.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
             width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
             self.shearWall_properties_page = ShearWallProperties(self, self.rect_prop,
-                                                                 self.scene())
+                                                                 self.scene(), self.timer)
             self.shearWall_properties_page.show()
+
+            if not self.timer.isActive():
+                self.timer.start(400)  # Change color every 500 ms
+            # else:
+            #     self.timer.stop()
+            #     self.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+            #     self.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+
+    def change_color(self):
+        self.setBrush(QColor(self.colors[self.current_color]))
+        self.current_color = (self.current_color + 1) % len(self.colors)
 
 
 class ShearWallProperties(QDialog):
-    def __init__(self, rectItem, rect_prop, scene, parent=None):
+    def __init__(self, rectItem, rect_prop, scene, timer, parent=None):
         super().__init__(parent)
         self.direction = None
+        self.timer = timer
         self.rectItem = rectItem
         self.rect_prop = rect_prop
         self.thickness = None
@@ -561,7 +577,7 @@ class ShearWallProperties(QDialog):
         self.tab_widget.setWindowTitle("Object Data")
         self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
+        self.button_box.rejected.connect(self.reject_control)  # Change from dialog.reject to self.reject
 
         self.create_geometry_tab()
         self.create_assignment_tab()
@@ -578,8 +594,16 @@ class ShearWallProperties(QDialog):
 
     def accept_control(self):
         self.lineLoad.print_values()
-        # self.pointLoad.print_values()
         self.accept()
+        self.timer.stop()
+        self.rectItem.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+
+    def reject_control(self):
+        self.reject()
+        self.timer.stop()
+        self.rectItem.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
 
     def create_geometry_tab(self):
         start = tuple([round(i / magnification_factor, 2) for i in self.rect_prop[self.rectItem]["coordinate"][0]])
@@ -693,6 +717,12 @@ class ShearWallProperties(QDialog):
     def thickness_control(self):
         self.thickness_default = self.thickness.currentText()
         self.rect_prop[self.rectItem]["thickness"] = self.thickness_default
+
+    def closeEvent(self, event):
+        self.timer.stop()
+        self.rectItem.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+        self.rectItem.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+        super().closeEvent(event)
 
 
 def edit_spacing(x, y):

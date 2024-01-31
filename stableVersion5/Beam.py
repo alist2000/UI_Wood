@@ -1,6 +1,6 @@
 import math
 
-from PySide6.QtCore import Qt, QPointF
+from PySide6.QtCore import Qt, QPointF, QTimer
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QGraphicsRectItem, QWidget, QPushButton, QGraphicsProxyWidget
 
@@ -370,7 +370,10 @@ class Rectangle(QGraphicsRectItem):
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.setPen(QPen(Qt.blue, 2))  # Set the border color to blue
         self.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))  # Set the fill color to transparent
-
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.change_color)
+        self.colors = [QColor.fromRgb(245, 80, 80, 100), QColor.fromRgb(253, 231, 103, 230)]
+        self.current_color = 0
         self.rect_prop = rect_prop
         self.beam_properties_page = None
         self.elementName = "beam"
@@ -383,5 +386,12 @@ class Rectangle(QGraphicsRectItem):
             height = self.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
             width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
             self.beam_properties_page = BeamProperties(self, self.rect_prop,
-                                                       self.scene())
+                                                       self.scene(), self.timer)
             self.beam_properties_page.show()
+
+            if not self.timer.isActive():
+                self.timer.start(400)  # Change color every 500 ms
+
+    def change_color(self):
+        self.setBrush(QColor(self.colors[self.current_color]))
+        self.current_color = (self.current_color + 1) % len(self.colors)

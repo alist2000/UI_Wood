@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal, QObject, QEvent
+from PySide6.QtCore import Qt, Signal, QObject, QTimer
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem, QGraphicsProxyWidget
@@ -196,7 +196,10 @@ class CustomRectItem(QGraphicsRectItem):
             self.setBrush(QBrush(QColor("#E76161")))
         else:
             self.setBrush(QBrush(QColor("#FFB100")))
-
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.change_color)
+        self.colors = [QColor("#E76161"), QColor.fromRgb(253, 231, 103, 230)]
+        self.current_color = 0
         # Properties
         self.post_properties_page = None
         self.post_prop = post_prop
@@ -208,7 +211,14 @@ class CustomRectItem(QGraphicsRectItem):
         if event.button() == Qt.RightButton:
             try:
                 wallWidth_default = self.post_prop[self]["wall_width"]
-                self.post_properties_page = PostProperties(self, self.post_prop)
+                self.post_properties_page = PostProperties(self, self.post_prop, self.timer)
                 self.post_properties_page.show()
             except KeyError:
                 pass
+
+            if not self.timer.isActive():
+                self.timer.start(400)  # Change color every 500 ms
+
+    def change_color(self):
+        self.setBrush(QColor(self.colors[self.current_color]))
+        self.current_color = (self.current_color + 1) % len(self.colors)
