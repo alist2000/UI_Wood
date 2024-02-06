@@ -5,9 +5,10 @@ from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL
 
 
 class EditLabel:
-    def __init__(self, shearWalls_rev, itemName="shearWall"):
+    def __init__(self, shearWalls_rev, aboveHeight, itemName="shearWall"):
         # self.shearWalls = shearWalls
         self.itemName = itemName
+        self.aboveHeight = aboveHeight
         # shearWalls_rev = list(reversed(shearWalls))
         self.shearWalls_rev = shearWalls_rev
         if all(self.shearWalls_rev):
@@ -66,7 +67,7 @@ class EditLabel:
                 labelMain = shearWall["label"]
                 base_coordinate = shearWall["coordinate"]
                 label_list.append(labelMain)
-                LoadControlInstance = LoadFromAbove(shearWall)
+                LoadControlInstance = LoadFromAbove(shearWall, self.aboveHeight)
                 transferred = False
                 if i < max_story:
                     for num, shearWallBottom in enumerate(self.shearWalls_rev[i + 1]):
@@ -128,8 +129,9 @@ class EditLabel:
 
 
 class LoadFromAbove:
-    def __init__(self, swTop):
+    def __init__(self, swTop, aboveHeight):
         self.swTop = swTop
+        self.aboveHeight = aboveHeight
 
     def pointLoadOnSW(self, swBottom):
         swBottom = swBottom
@@ -156,7 +158,14 @@ class LoadFromAbove:
         lineLoadBottom.extend(lineLoadTop)
         swBottom["load"]["line"] = lineLoadBottom
 
-        # *** Self weight load should be added too ***
+        # SELF WEIGHT
+        if self.swTop["interior_exterior"] == "exterior":
+            deadLoad = 0.02  # ksf
+        else:
+            deadLoad = 0.01  # ksf
+        swBottom["load"]["line"].append({"distance": 0, "length": swBottom["length"],
+                                         "magnitude": deadLoad * self.aboveHeight,
+                                         "type": "Dead"})
 
         return swBottom
 
