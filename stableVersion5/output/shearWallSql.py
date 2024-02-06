@@ -44,7 +44,9 @@ class shearWallSQL:
                 Po_Right TEXT,
                 Pl_Right TEXT,
                 Pe_Right TEXT,
-                Wall_Orientation TEXT
+                Wall_Orientation TEXT,
+                v_abv FLOAT,
+                pe_abv FLOAT
             )
         """)
 
@@ -165,7 +167,6 @@ class DropTables:
 
         finally:
             connection.close()
-
 
 # db = '../../../Output/ShearWall_output.db'
 # DropTables(db)
