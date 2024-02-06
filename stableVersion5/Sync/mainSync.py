@@ -139,7 +139,7 @@ class ControlTab:
             joist = Tab["joist"]
             self.joists.append(joist)
             self.shearWalls.append(shearWall)
-            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], height_from_top[j], storySW,
+            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [0, height_from_top[j]], storySW,
                                                shearWall_input_db, False)
             shearWallTop = shearWall
             j += 1
@@ -172,6 +172,7 @@ class ControlTab:
         shearWall_input_db.createTable()
         shearWallTop = None
         studWallTop = None
+        heightTop = None
         for story, Tab in tabReversed.items():
             # post = {i: Tab["post"]}
             post = Tab["post"]
@@ -209,7 +210,7 @@ class ControlTab:
 
             # SHEAR WALL DESIGN
             c = time.time()
-            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], height_from_top[j], storySW,
+            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
                                                shearWall_input_db)
             TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
             shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
@@ -233,7 +234,7 @@ class ControlTab:
             print(f"Shear wall analysis story {story} takes ", (d - c) / 60, "Minutes")
 
             # STUD WALL DESIGN
-            self.studWallSync = StudWallSync([studWallTop, studWall], height_from_top[j], storySW,
+            self.studWallSync = StudWallSync([studWallTop, studWall], [heightTop, height_from_top[j]], storySW,
                                              studWall_input_db)
 
             loadMap = Tab["loadMap"]
@@ -246,6 +247,7 @@ class ControlTab:
             postTop = post
             shearWallTop = shearWall
             studWallTop = studWall
+            heightTop = height_from_top[j]
 
             j += 1
 
