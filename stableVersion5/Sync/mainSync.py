@@ -1,11 +1,6 @@
+import copy
 import sys
-
-sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion5")
-sys.path.append(r"D:\git\Wood")
-from UI_Wood.stableVersion5.output.joist_output import Joist_output
-from UI_Wood.stableVersion5.output.shearWallSql import MidlineSQL, SeismicParamsSQL
-from WOOD_DESIGN.mainbeamnew import MainBeam
-from WOOD_DESIGN.mainshearwall import MainShearall_verion5
+from WOOD_DESIGN.mainshearwall import MainShearWall_version5
 from WOOD_DESIGN.reports import Sqlreports
 from UI_Wood.stableVersion5.Sync.data import Data
 from UI_Wood.stableVersion5.Sync.Image import saveImage
@@ -13,10 +8,11 @@ from UI_Wood.stableVersion5.Sync.postSync import PostSync
 from UI_Wood.stableVersion5.Sync.joistSync import joistAnalysisSync
 from UI_Wood.stableVersion5.Sync.beamSync import BeamSync
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
-    NoShearWallLines, MidlineEdit, DataBaseSeismic
+    DataBaseSeismic
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion5.Sync.Transfer import Transfer
 from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL, DropTables
+from UI_Wood.stableVersion5.output.studWallSql import studWallSQL
 
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.report.ReportGenerator import ReportGeneratorTab
@@ -96,6 +92,10 @@ class ControlTab:
         self.studWalls = []
         self.loadMaps = []
         tabReversed = self.reverse_dict(self.tab)  # top to bottom
+
+        # TRANSFER
+        TransferInstance = Transfer()
+
         # CREATE DB FOR OUTPUT.
         db = Sqlreports()
         db.beam_table()
@@ -104,9 +104,18 @@ class ControlTab:
 
         # drop all shear wall output table
         DropTables("../../../Output/ShearWall_output.db")
+        # drop all stud wall output table
+        DropTables("../../../Output/stud_report.db")
         # shear wall database input
         shearWall_input_db = shearWallSQL()
         shearWall_input_db.createTable()
+        # stud wall database input
+        studWall_input_db = studWallSQL()
+        studWall_input_db.createTable()
+        studWall_input_db.createTable("Exterior")
+        studWall_input_db.createTable("Interior4")
+        studWall_input_db.createTable("Interior6")
+
         height_from_top = list(reversed(generalProp.height))
         # seismic parameters database
         seismic_parameters_database = DataBaseSeismic()
@@ -116,15 +125,69 @@ class ControlTab:
         beamSync = BeamSync(db, len(tabReversed) - 1)
         postSync = PostSync(db)
         joistSync = joistAnalysisSync(db)
-        j = 0
         postTop = None
         shearWallTop = None
+        j = 0
+        storyNames = []
+        for story, Tab in tabReversed.items():
+            if j == 0:
+                storySW = "Roof"
+            else:
+                storySW = str(story + 1)
+            storyNames.append(storySW)
+            shearWall = Tab["shearWall"]
+            joist = Tab["joist"]
+            self.joists.append(joist)
+            self.shearWalls.append(shearWall)
+            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], height_from_top[j], storySW,
+                                               shearWall_input_db, False)
+            shearWallTop = shearWall
+            j += 1
+
+        # SHEAR WALL DESIGN
+        c = time.time()
+
+        loadMapaArea, loadMapMag = LoadMapAreaNew(midLineDict)
+
+        self.joistArea = JoistSumArea(self.joists)
+
+        # self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
+
+        seismicInstance = ControlSeismicParameter(seismic_parameters, storyNames, loadMapaArea,
+                                                  loadMapMag,
+                                                  self.joistArea, seismic_parameters_database)
+        shearWallDesign = MainShearWall_version5(seismicInstance.seismicPara, midLineDict
+                                                 )
+        shearWallExist = shearWallDesign.to_elfp()
+        if shearWallExist:
+            shearWallDesign.to_diaphragms()
+            shearWallDesign.diaphragm_design()
+            # shearWallDesign.to_master_shearwall()
+
+        j = 0
+        self.shearWalls = []
+
+        DropTables("../../../Output/ShearWall_Input.db")
+        shearWall_input_db = shearWallSQL()
+        shearWall_input_db.createTable()
+        shearWallTop = None
+        studWallTop = None
         for story, Tab in tabReversed.items():
             # post = {i: Tab["post"]}
             post = Tab["post"]
             beam = Tab["beam"]
             joist = Tab["joist"]
             shearWall = Tab["shearWall"]
+            studWall = Tab["studWall"]
+
+            if j == 0:
+                storySW = "Roof"
+            else:
+                storySW = story + 1
+
+            # CONTROL STACK
+            TransferInstance.StackControl(shearWallTop, shearWall, storySW, "shearWall")
+            print("This list should be transferred: ", TransferInstance.transferListShearWall)
 
             # BEAM DESIGN
             c = time.time()
@@ -146,27 +209,33 @@ class ControlTab:
 
             # SHEAR WALL DESIGN
             c = time.time()
-            if j == 0:
-                storySW = "Roof"
-            else:
-                storySW = story + 1
             self.shearWallSync = ShearWallSync([shearWallTop, shearWall], height_from_top[j], storySW,
                                                shearWall_input_db)
-            # self.studWallSync = StudWallSync(self.studWalls, height_from_top)
-            loadMapaArea, loadMapMag = LoadMapAreaNew({storySW: midLineDict[str(storySW)]})
+            TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
+            shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
+            TransferInstance.get_data_after_run(shearWall, storySW)
 
-            self.joistArea = JoistSumArea([joist])
+            # self.studWallSync = StudWallSync(self.studWalls, height_from_top)
+            # loadMapaArea, loadMapMag = LoadMapAreaNew({storySW: midLineDict[str(storySW)]})
+
+            # self.joistArea = JoistSumArea([joist])
 
             # self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
 
-            seismicInstance = ControlSeismicParameter(seismic_parameters, [str(storySW)], loadMapaArea,
-                                                      loadMapMag,
-                                                      self.joistArea, seismic_parameters_database)
-            MainShearall_verion5(seismicInstance.seismicPara, {storySW: midLineDict[str(storySW)]}, storySW)
+            # seismicInstance = ControlSeismicParameter(seismic_parameters, [str(storySW)], loadMapaArea,
+            #                                           loadMapMag,
+            #                                           self.joistArea, seismic_parameters_database)
+            # MainShearall_verion5(seismicInstance.seismicPara, {storySW: midLineDict[str(storySW)]}, height_from_top[j:],
+            #                      storySW)
+            # add to shearWall pe_main, it is PE_initial or v_design or ect.
+
             d = time.time()
             print(f"Shear wall analysis story {story} takes ", (d - c) / 60, "Minutes")
 
-            studWall = Tab["studWall"]
+            # STUD WALL DESIGN
+            self.studWallSync = StudWallSync([studWallTop, studWall], height_from_top[j], storySW,
+                                             studWall_input_db)
+
             loadMap = Tab["loadMap"]
             self.posts.append(post)
             self.beams.append(beam)
@@ -176,11 +245,15 @@ class ControlTab:
             self.loadMaps.append(loadMap)
             postTop = post
             shearWallTop = shearWall
+            studWallTop = studWall
 
             j += 1
 
+        # Stud wall design has not been changed yet
+        # self.studWallSync = StudWallSync(list(reversed(self.studWalls)), generalProp.height, storySW, studWall_input_db)
+
         b = time.time()
-        print("Beam analysis takes ", (b - a) / 60, "Minutes")
+        print("Total analysis takes ", (b - a) / 60, "Minutes")
 
     @staticmethod
     def reverse_dict(Dict):
