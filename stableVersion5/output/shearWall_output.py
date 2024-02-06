@@ -25,7 +25,7 @@ class EditLabel:
                 labelMain = shearWall["label"]
                 base_coordinate = shearWall["coordinate"]
                 label_list.append(labelMain)
-                pointLoadControlInstance = PointLoadFromAbove(shearWall)
+                pointLoadControlInstance = LoadFromAbove(shearWall)
 
                 if i < max_story:
                     for num, shearWallBottom in enumerate(self.shearWalls_rev[i + 1]):
@@ -34,7 +34,7 @@ class EditLabel:
                         if coordinate == base_coordinate:
                             shearWallBottom["label"] = labelMain
                             label_not_repeat_index.add(num)
-                            shearWallBottom = pointLoadControlInstance.loadOnSw(shearWallBottom)
+                            shearWallBottom = pointLoadControlInstance.pointLoadOnSW(shearWallBottom)
 
             full_label[str(i)] = label_list
 
@@ -66,16 +66,18 @@ class EditLabel:
                 labelMain = shearWall["label"]
                 base_coordinate = shearWall["coordinate"]
                 label_list.append(labelMain)
-                pointLoadControlInstance = PointLoadFromAbove(shearWall)
-
+                LoadControlInstance = LoadFromAbove(shearWall)
+                transferred = False
                 if i < max_story:
                     for num, shearWallBottom in enumerate(self.shearWalls_rev[i + 1]):
                         maxLabel = labelStory[i + 1]
                         coordinate = shearWallBottom["coordinate"]
-
                         if coordinate == base_coordinate:
                             shearWallBottom["label"] = labelMain
-                            shearWallBottom = pointLoadControlInstance.loadOnSw(shearWallBottom)
+                            shearWallBottom = LoadControlInstance.pointLoadOnSW(shearWallBottom)
+                            shearWallBottom = LoadControlInstance.distLoadOnSW(shearWallBottom)
+                            # Self wall weight  also should be transfer from above.
+                            # Transfer shear should be done here
 
                             # control repeated label
                             for num1, shearWallBottom1 in enumerate(self.shearWalls_rev[i + 1]):
@@ -84,6 +86,12 @@ class EditLabel:
                                     shearWallBottom1["label"] = labelName + str(maxLabel)
 
                                 # label_not_repeat_index.add(num)
+
+                            transferred = True
+                            break
+
+                    if not transferred:  # control and check for transfer manually.
+                        pass
             #
             # full_label[str(i)] = label_list
             #
@@ -119,34 +127,63 @@ class EditLabel:
                         labelNumber += 1
 
 
-class PointLoadFromAbove:
+class LoadFromAbove:
     def __init__(self, swTop):
         self.swTop = swTop
 
-    def loadOnSw(self, swBottom):
+    def pointLoadOnSW(self, swBottom):
         swBottom = swBottom
         reactionLoadsBottom = swBottom["load"]["reaction"]
         reactionLoadsTop = self.swTop["load"]["reaction"]
         reactionLoadsBottom.extend(reactionLoadsTop)
         swBottom["load"]["reaction"] = reactionLoadsBottom
         return swBottom
-        # for loadItem in reactionLoadsBottom:
-        #     start = loadItem["start"]
-        #     loads = loadItem["load"]
-        #     for loadItemTop in reactionLoadsTop:
-        #         startTop = loadItemTop["start"]
-        #         loadsTop = loadItemTop["load"]
-        #         if start == startTop:
-        #             for load in loads:
-        #                 mag = load["magnitude"]
-        #                 loadType = load["type"]
-        #                 for loadTop in loadsTop:
-        #                     magTop = loadTop["magnitude"]
-        #                     loadTypeTop = loadTop["type"]
-        #                     if loadType == loadTypeTop:
-        #                         mag += magTop
-        #                         break
-        #             break
+
+    def distLoadOnSW(self, swBottom):
+        swBottom = swBottom
+
+        # Load Map
+        loadMapBottom = swBottom["load"]["joist_load"]["load_map"]
+        loadMapTop = self.swTop["load"]["joist_load"]["load_map"]
+
+        loadMapBottom.extend(loadMapTop)
+        swBottom["load"]["joist_load"]["load_map"] = loadMapBottom
+
+        # Line Load
+        lineLoadBottom = swBottom["load"]["line"]
+        lineLoadTop = self.swTop["load"]["line"]
+
+        lineLoadBottom.extend(lineLoadTop)
+        swBottom["load"]["line"] = lineLoadBottom
+
+        # *** Self weight load should be added too ***
+
+        return swBottom
+
+    def transferShearLoad(self, swBottom, transfer):
+        # sw = {"transfer":[ {"label":"sw5", "percent": 50}, {"label":"sw6", "percent": 50} ]}
+        # sw = {"pe_abv": 10}
+        # sw = {"pe_main": 10} --> after design calculated and added
+        swBottom["pe_abv"] = self.swTop["pe_main"] * transfer["percent"] / 100
+        return swBottom
+
+    # for loadItem in reactionLoadsBottom:
+    #     start = loadItem["start"]
+    #     loads = loadItem["load"]
+    #     for loadItemTop in reactionLoadsTop:
+    #         startTop = loadItemTop["start"]
+    #         loadsTop = loadItemTop["load"]
+    #         if start == startTop:
+    #             for load in loads:
+    #                 mag = load["magnitude"]
+    #                 loadType = load["type"]
+    #                 for loadTop in loadsTop:
+    #                     magTop = loadTop["magnitude"]
+    #                     loadTypeTop = loadTop["type"]
+    #                     if loadType == loadTypeTop:
+    #                         mag += magTop
+    #                         break
+    #             break
 
     def loadOnBeam(self, beam):
         pass
@@ -186,6 +223,8 @@ class ShearWall_output:
             interior_exterior = ShearWallItem["interior_exterior"][0].upper()
             self_weight = self_weight_dict[interior_exterior]
             direction = ShearWallItem["direction"]
+            v_abv = 0
+            pe_abv = 0
             if direction == "N-S":
                 orientation = "NS"
                 direction_index = 1
@@ -229,7 +268,7 @@ class ShearWall_output:
                 'INSERT INTO WallTable (ID, Story, Coordinate_start, Coordinate_end, Line, Wall_Label,'
                 ' Wall_Length, Story_Height, Opening_Width, Int_Ext,  Wall_Self_Weight,'
                 ' start, end, Rd, Rl, Rlr, Rs, Left_Bottom_End,'
-                ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation, v_abv, pe_abv) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     shearWallId, str(StoryName), str(coordinateStart), str(coordinateEnd), line, label,
                     round(self.end - self.start, max(n1, n2)),
@@ -240,7 +279,7 @@ class ShearWall_output:
                     snow_load, str(share_post["left"]),
                     str(share_post["right"]),
                     str(Pd["left"]), str(Pl["left"]), str(Pe["left"]), str(Pd["right"]), str(Pl["right"]),
-                    str(Pe["right"]), orientation
+                    str(Pe["right"]), orientation, v_abv, pe_abv
                 ])
             db.conn.commit()
             shearWallId += 1
