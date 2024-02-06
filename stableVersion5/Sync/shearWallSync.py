@@ -6,8 +6,9 @@ from UI_Wood.stableVersion5.output.shearWall_output import ShearWall_output, Edi
 
 
 class ShearWallSync:
-    def __init__(self, shearWall, height, story, db):
-        shearWallEditedInstance = EditLabel(shearWall)
+    def __init__(self, shearWall, height, story, db, edit_label=True):
+        if edit_label:
+            shearWallEditedInstance = EditLabel(shearWall)
         # shearWallEdited = list(reversed(shearWallEditedInstance.shearWalls_rev))
         self.shearWallOutPut = ShearWall_output(shearWall[-1], height, story, db)
         self.shearWallTab = self.shearWallOutPut.shearWallProperties_everyTab
