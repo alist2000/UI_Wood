@@ -18,6 +18,7 @@ from Sync.mainSync import mainSync
 from Sync.mainSync2 import mainSync2
 from InformationSaver import InformationSaver
 from UI_Wood.stableVersion5.run.grid import GridDraw
+from UI_Wood.stableVersion5.styles import TabWidgetStyle
 
 
 class secondTabWidget(QMainWindow):
@@ -26,7 +27,7 @@ class secondTabWidget(QMainWindow):
         self.slider = None
         self.tabWidget = QTabWidget()
         screen_geometry = QApplication.primaryScreen().availableGeometry()
-
+        self.setStyleSheet(TabWidgetStyle)
         # Calculate the desired width and height
         desired_width = int(screen_geometry.width() * 2 / 3)
         desired_height = int(screen_geometry.height() * 4 / 5)

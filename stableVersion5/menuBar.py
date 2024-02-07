@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QFileDialog, \
     QGraphicsPixmapItem, QGraphicsItem, QGraphicsOpacityEffect
 from PySide6.QtGui import QPixmap, QAction
 from PySide6.QtCore import Qt
+from UI_Wood.stableVersion5.styles import menuStyle
 
 
 class Image(QMainWindow):
@@ -22,6 +23,9 @@ class Image(QMainWindow):
         # Create menu bar for individual tab
         menu_bar = QMenuBar()
         file_menu = QMenu("Image")
+        menu_bar.setStyleSheet(menuStyle)
+        file_menu.setStyleSheet(menuStyle)
+
 
         # Create a Save action
         openAction = QAction("Open", self, shortcut="Ctrl+O", triggered=self.openImage)
@@ -122,6 +126,9 @@ class visual(QMainWindow):
         # Create menu bar for individual tab
         menu_bar = QMenuBar()
         file_menu = QMenu("Visual Setting")
+        menu_bar.setStyleSheet(menuStyle)
+        file_menu.setStyleSheet(menuStyle)
+
 
         # Create a Save action
         postAction = QAction("Post Hide/Show", self, shortcut="Ctrl+Shift+P", triggered=self.postHideShow)

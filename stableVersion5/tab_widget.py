@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QApplication
 from general_properties import Widget_button
 from Information import Widget_form
-
+from UI_Wood.stableVersion5.styles import TabWidgetStyle
 from report.report import Inputs
 
 
@@ -9,13 +9,13 @@ class tabWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-
         # Inputs for Report
         reportInputs = Inputs()
 
         self.setWindowTitle("WOOD DESIGN APPLICATION")
 
         tab_widget = QTabWidget(self)
+        self.setStyleSheet(TabWidgetStyle)
 
         # Information - Tab 1
         widget_form = Widget_form(reportInputs)
