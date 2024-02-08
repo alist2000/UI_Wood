@@ -144,3 +144,24 @@ menuStyle = """
                 color: white;
             }
         """
+
+tableStyle = """
+            QTableWidget {
+                gridline-color: transparent;
+                border:  1px solid #ddd;
+            }
+            QHeaderView::section {
+                background-color: #f1f1f1;
+                padding:  4px;
+                border:  1px solid #ddd;
+                border-bottom: none;
+                font-weight: bold;
+            }
+            QTableWidget::item {
+                padding:  4px;
+                border: none;
+            }
+            QTableWidget::item:selected {
+                background-color: #dcf4fc;
+            }
+        """
