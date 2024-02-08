@@ -166,6 +166,7 @@ class ControlTab:
 
         j = 0
         self.shearWalls = []
+        self.joists = []
 
         DropTables("../../../Output/ShearWall_Input.db")
         shearWall_input_db = shearWallSQL()
