@@ -51,8 +51,9 @@ class joist_in_midline:
         vertical_grid = grid["vertical"]
         horizontal_grid = grid["horizontal"]
         self.midline_dict = []
-        control(joist, vertical_grid, horizontal_grid, "N-S", self.midline_dict)
-        control(joist, horizontal_grid, vertical_grid, "E-W", self.midline_dict)
+        if vertical_grid and horizontal_grid:
+            control(joist, vertical_grid, horizontal_grid, "N-S", self.midline_dict)
+            control(joist, horizontal_grid, vertical_grid, "E-W", self.midline_dict)
 
 
 class control:
