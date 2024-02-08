@@ -13,6 +13,7 @@ from ShearWall import ShearWallButton
 from StudWall import StudWallButton
 from action import save_tabs, load_tabs
 from tool_bar import ToolBar
+from TransferControl import TransferControl
 from back.check_model import checkModel
 from Sync.mainSync import mainSync
 from Sync.mainSync2 import mainSync2
@@ -60,11 +61,13 @@ class secondTabWidget(QMainWindow):
         self.mainSync = mainSync(self.toolBar.savePage.save_data, self.grid, self.level_number)
         self.mainSync2 = mainSync2(self.toolBar.savePage.save_data, self.grid, self.level_number,
                                    GridDrawClass, Unlock)
+        self.transfer = TransferControl(self.toolBar.savePage.save_data, self.grid, self.level_number)
         Unlock.triggered.connect(self.mainSync2.Unlock)
 
         self.toolBar.savePage.add_subscriber(self.mainSync)
         self.toolBar.savePage.add_subscriber(self.mainSync2)
         self.toolBar.savePage.add_subscriber(self.checkModel)
+        self.toolBar.savePage.add_subscriber(self.transfer)
         self.show()
 
         self.create_tab()
@@ -162,12 +165,15 @@ class secondTabWidget(QMainWindow):
         self.mainSync.send_report_generator(report_generator)
         self.mainSync2.send_report_generator(report_generator)
 
-        run = QAction('RUN', self)
+        run = QAction('Run', self)
+        transfer = QAction('Transfer', self)
         check_model = QAction('Check Model', self)
         run.triggered.connect(self.mainSync.Run_and_Analysis)
+        transfer.triggered.connect(self.transfer.transferClicked)
         check_model.triggered.connect(self.checkModel.check_model_run)
 
         tool_bar.addAction(check_model)
+        tool_bar.addAction(transfer)
         tool_bar.addAction(run)
         tool_bar.addAction(report_generator)
 
