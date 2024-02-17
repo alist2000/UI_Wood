@@ -61,7 +61,7 @@ class secondTabWidget(QMainWindow):
         self.mainSync = mainSync(self.toolBar.savePage.save_data, self.grid, self.level_number)
         self.mainSync2 = mainSync2(self.toolBar.savePage.save_data, self.grid, self.level_number,
                                    GridDrawClass, Unlock)
-        self.transfer = TransferControl(self.toolBar.savePage.save_data, self.grid, self.level_number)
+        self.transfer = TransferControl(self.toolBar.savePage.save_data, self.grid, self.level_number, GridDrawClass)
         Unlock.triggered.connect(self.mainSync2.Unlock)
 
         self.toolBar.savePage.add_subscriber(self.mainSync)
