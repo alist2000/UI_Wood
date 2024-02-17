@@ -1,30 +1,82 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QGraphicsView, QGraphicsScene, QGraphicsTextItem
-from PySide6.QtGui import QPainterPath
-from PySide6.QtCore import Qt
-from PySide6.QtCore import Qt, QRect, QPoint, QSize
-from PySide6.QtGui import QPen, QBrush, QColor
-from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem, QGraphicsProxyWidget
-from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, \
-    QGraphicsRectItem
-from PySide6.QtGui import QFont, QColor
-from PySide6.QtWidgets import QGraphicsTextItem
+from PySide6.QtCore import Qt, QRect, QPoint, QSize, QEvent
+from PySide6.QtGui import QFont, QColor, QPen, QBrush, QLinearGradient, QPainter, QUndoStack
 
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
-    QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
-    QTableWidget, QAbstractItemView
+    QLabel, QWidget, QVBoxLayout, QPushButton, QGraphicsProxyWidget, QGraphicsRectItem, QHBoxLayout, \
+    QGraphicsView, QGraphicsScene, QGraphicsSceneMouseEvent
+
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion5.grid import SelectCommand, DeselectCommand
+
+
+class ShearWallsView(QGraphicsView):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.view = self
+        self.scene = QGraphicsScene()
+        self.undoStack = QUndoStack()
+
+    def resizeEvent(self, event):
+        # Call the base class implementation to handle the resize event
+        super(ShearWallsView, self).resizeEvent(event)
+
+        # Fit the view to the scene and center the contents
+        self.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+        self.centerOn(self.scene.itemsBoundingRect().center())
+
+    def mousePressEvent(self, event):
+        print("hi mouse press")
+
+        if event.button() == Qt.LeftButton:
+            self.view.setRenderHint(QPainter.Antialiasing)
+            self.view.setRenderHint(QPainter.SmoothPixmapTransform)
+            self.view.setDragMode(QGraphicsView.ScrollHandDrag)
+            self.view.viewport().setCursor(Qt.OpenHandCursor)
+
+        item = self.view.itemAt(event.pos())
+        print(item)
+        if item:
+            isSelected = item.isSelected()
+            command = DeselectCommand(item) if isSelected else SelectCommand(item)
+            self.undoStack.push(command)
+
+            # Create a QGraphicsSceneMouseEvent and set its properties
+            sceneEvent = QGraphicsSceneMouseEvent(QEvent.GraphicsSceneMousePress)
+            sceneEvent.setScenePos(self.view.mapToScene(event.position().toPoint()))
+            sceneEvent.setLastScenePos(self.view.mapToScene(event.position().toPoint()))
+            sceneEvent.setScreenPos(event.globalPosition().toPoint())
+            sceneEvent.setLastScreenPos(event.globalPosition().toPoint())
+
+            sceneEvent.setButtons(event.buttons())
+            sceneEvent.setButton(event.button())
+            sceneEvent.setModifiers(event.modifiers())
+
+            item.mousePressEvent(sceneEvent)
+
+            if sceneEvent.isAccepted():
+                event.accept()
+                return
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.setDragMode(QGraphicsView.NoDrag)
+        self.setCursor(Qt.ArrowCursor)
+        super().mouseReleaseEvent(event)
 
 
 class DrawShearWall(QDialog):
     def __init__(self, GridClass, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Continue or Break?")
-
+        self.shearWalls = []
+        self.selectedWalls = []
         self.mainLayout = QVBoxLayout()
-        self.view = QGraphicsView()
-        self.scene = QGraphicsScene()
+        self.view = ShearWallsView()
+        self.scene = self.view.scene
+        self.view.setRenderHint(QPainter.Antialiasing)  # Corrected attribute
+        self.view.setInteractive(True)
         GridClass.Draw(self.scene)
         self.current_rect = None
         self.start_pos = None
@@ -53,7 +105,10 @@ class DrawShearWall(QDialog):
     # x2, y2 = coordinate[1]
     # self.finalize_rectangle_copy((x1, y1), (x2, y2), properties)
 
-    def finalize_rectangle_copy(self, start, end, prop):
+    def setTitle(self, title):
+        self.setWindowTitle(title)
+
+    def finalize_rectangle_copy(self, start, end, prop, label=None, fromAbove=False):
         x1, y1 = start
         x2, y2 = end
         length = (((x2 - x1) ** 2) + (
@@ -61,7 +116,7 @@ class DrawShearWall(QDialog):
         y1_main = min(y1, y2)
         x1_main = min(x1, x2)
         self.current_rect = Rectangle(x1,
-                                      y1, prop)
+                                      y1)
         self.scene.addItem(self.current_rect)
         width = abs(x2 - x1)
         height = abs(y2 - y1)
@@ -77,6 +132,7 @@ class DrawShearWall(QDialog):
             self.current_rect.setRect(x1 - self.shearWall_width / 2,
                                       min(y1, y2), self.shearWall_width,
                                       abs(height))
+        self.shearWalls.append({self.current_rect: prop})
 
         center_left = QPoint(self.current_rect.boundingRect().left(),
                              self.current_rect.boundingRect().top() + self.current_rect.boundingRect().height() // 2)
@@ -103,37 +159,49 @@ class DrawShearWall(QDialog):
         # Create the start and end rectangles
         start_rect = QRect(start_rect_pos, rect_size)
         end_rect = QRect(end_rect_pos, rect_size)
-
         start_rect_item = QGraphicsRectItem(start_rect)
         end_rect_item = QGraphicsRectItem(end_rect)
+        if fromAbove:
+            start_rect_item.setPen(QPen(QColor.fromRgb(255, 255, 255, 100), 2, Qt.DashLine))
+            end_rect_item.setPen(QPen(QColor.fromRgb(255, 255, 255, 100), 2, Qt.DashLine))
         self.scene.addItem(start_rect_item)
         self.scene.addItem(end_rect_item)
-        dcr_shear = prop["dcr_shear"]
-        dcr_tension = prop["dcr_tension"]
-        dcr_compression = prop["dcr_compression"]
-        dcr_deflection = prop["dcr_deflection"]
-        dcr = [dcr_shear, dcr_tension, dcr_compression, dcr_deflection]
-        color = "green"
-        for i in dcr:
-            if i > 1:
-                color = "red"
-                break
-        if color == "red":
-            self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
-            self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
-            self.CheckValuesNew(dcr_shear, dcr_tension, dcr_compression, dcr_deflection, x1_main, y1_main, direction)
+        if not label:
+            dcr_shear = prop["dcr_shear"]
+            dcr_tension = prop["dcr_tension"]
+            dcr_compression = prop["dcr_compression"]
+            dcr_deflection = prop["dcr_deflection"]
+            dcr = [dcr_shear, dcr_tension, dcr_compression, dcr_deflection]
+            color = "green"
+            for i in dcr:
+                if i > 1:
+                    color = "red"
+                    break
+            if color == "red":
+                self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+                self.current_rect.setBrush(QBrush(QColor.fromRgb(245, 80, 80, 100), Qt.SolidPattern))
+                self.CheckValuesNew(dcr_shear, dcr_tension, dcr_compression, dcr_deflection, x1_main, y1_main,
+                                    direction)
 
+            else:
+                self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
+                self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
+            self.TextValue(f"{prop['type']}", x1_main, y1_main, direction)
+
+            # self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+            # self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+
+            BeamLabel(x1 + length / 2, y1, self.scene, "SW" + prop["label"], direction, (x1, y1))
         else:
-            self.current_rect.setPen(QPen(QColor.fromRgb(150, 194, 145, 100), 2))
-            self.current_rect.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
-        self.TextValue(f"{prop['type']}", x1_main, y1_main, direction)
+            if fromAbove:
+                self.current_rect.setPen(QPen(QColor.fromRgb(0, 0, 0, 200), 2, Qt.DashLine))
 
-        # self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
-        # self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+            else:
+                self.current_rect.setPen(QPen(QColor.fromRgb(245, 80, 80, 100), 2))
+                self.current_rect.setBrush(QBrush(QColor.fromRgb(255, 133, 81, 100), Qt.SolidPattern))
+                BeamLabel(x1 + length / 2, y1, self.scene, label, direction, (x1, y1))
 
-        BeamLabel(x1 + length / 2, y1, self.scene, "SW" + prop["label"], direction, (x1, y1))
-
-    def CheckValuesNew(self, dcr_shear, dcr_tension, dcr_compression,dcr_deflection, x, y, direction):
+    def CheckValuesNew(self, dcr_shear, dcr_tension, dcr_compression, dcr_deflection, x, y, direction):
         mainText1 = QGraphicsProxyWidget()
         dcr1 = QLabel(f"DCR <sub>shear</sub>: {dcr_shear}, ")
         dcr2 = QLabel(f"DCR <sub>tension</sub>: {dcr_tension}, ")
@@ -217,6 +285,35 @@ class DrawShearWall(QDialog):
         # self.setScene(self.scene)
         # self.show()
 
+    def ShowTransfer(self):
+        # Fit the view to the scene and center the contents
+        self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+        self.view.centerOn(self.scene.itemsBoundingRect().center())
+        # Add the view to the layout
+        yes_button = QPushButton("Next")
+
+        no_button = QPushButton("Cancel")
+        yes_button.clicked.connect(self.accept_control)  # Connect "Yes" button to accept()
+        # I should open second tab and show selected transferred data
+
+        no_button.clicked.connect(self.reject)  # Connect "No" button to reject()
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(no_button)
+        hLayout.addWidget(yes_button)
+        self.view.setScene(self.scene)
+        self.mainLayout.addWidget(self.view)
+        self.mainLayout.addLayout(hLayout)
+        self.setLayout(self.mainLayout)
+
+        return self.selectedWalls
+
+    def accept_control(self):
+        self.accept()
+        for item in self.scene.selectedItems():
+            for sh in self.shearWalls:
+                if list(sh.keys())[0] == item:
+                    self.selectedWalls.append(list(sh.values())[0])
+
     def wheelEvent(self, event):
         zoomInFactor = 1.25
         zoomOutFactor = 1 / zoomInFactor
@@ -240,21 +337,11 @@ class DrawShearWall(QDialog):
 
 
 class Rectangle(QGraphicsRectItem):
-    def __init__(self, x, y, rect_prop):
+    def __init__(self, x, y):
         super().__init__(x, y, 0, 0)
+        self.setFlag(QGraphicsRectItem.ItemIsSelectable, True)
         self.setPen(QPen(Qt.blue, 2))  # Set the border color to blue
         self.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))  # Set the fill color to transparent
-
-        self.rect_prop = rect_prop
-
-    # CONTROL ON BEAM
-    def mousePressEvent(self, event):
-        center = self.boundingRect().center().toTuple()
-        # properties page open
-        if event.button() == Qt.RightButton:  # beam Properties page
-            height = self.boundingRect().height() - 1  # ATTENTION: I don't know why but this method return height + 1
-            width = self.boundingRect().width() - 1  # ATTENTION: I don't know why but this method return width + 1
-            print(f"Shear wall {self.rect_prop['label']} CLICKED")
 
 
 class ShearWallStoryBy:
