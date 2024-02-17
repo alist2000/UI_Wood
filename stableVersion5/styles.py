@@ -31,7 +31,7 @@ TabWidgetStyle = """
                 font-size:   14px;
                 margin:   4px   2px;
                 cursor: pointer;
-                padding:   6px   16px;
+                padding:   4px   16px;
                 text-decoration: none;
                 border-radius:  4px;
                 box-shadow:  0  4px  8px  0 rgba(0,  0,  0,  0.2),  0  6px  20px  0 rgba(0,  0,  0,  0.19);
