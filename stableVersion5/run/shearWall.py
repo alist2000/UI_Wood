@@ -3,7 +3,7 @@ from PySide6.QtGui import QFont, QColor, QPen, QBrush, QLinearGradient, QPainter
 
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QGraphicsProxyWidget, QGraphicsRectItem, QHBoxLayout, \
-    QGraphicsView, QGraphicsScene, QGraphicsSceneMouseEvent
+    QGraphicsView, QGraphicsScene, QGraphicsSceneMouseEvent, QListWidget, QListWidgetItem, QDoubleSpinBox
 
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
@@ -72,6 +72,9 @@ class DrawShearWall(QDialog):
         self.setWindowTitle("Continue or Break?")
         self.shearWalls = []
         self.selectedWalls = []
+        self.labels = []
+        self.percents = []
+        self.Story = None
         self.mainLayout = QVBoxLayout()
         self.view = ShearWallsView()
         self.scene = self.view.scene
@@ -90,6 +93,7 @@ class DrawShearWall(QDialog):
         mainText = QGraphicsProxyWidget()
         if story == "999999":
             story = "Roof"
+        self.Story = story
 
         dcr = QLabel(f"Story {story}")
         font = QFont()
@@ -285,7 +289,7 @@ class DrawShearWall(QDialog):
         # self.setScene(self.scene)
         # self.show()
 
-    def ShowTransfer(self):
+    def ShowTransfer(self, selectedWalls):
         # Fit the view to the scene and center the contents
         self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         self.view.centerOn(self.scene.itemsBoundingRect().center())
@@ -293,7 +297,7 @@ class DrawShearWall(QDialog):
         yes_button = QPushButton("Next")
 
         no_button = QPushButton("Cancel")
-        yes_button.clicked.connect(self.accept_control)  # Connect "Yes" button to accept()
+        yes_button.clicked.connect(self.next)  # Connect "Yes" button to accept()
         # I should open second tab and show selected transferred data
 
         no_button.clicked.connect(self.reject)  # Connect "No" button to reject()
@@ -303,16 +307,144 @@ class DrawShearWall(QDialog):
         self.view.setScene(self.scene)
         self.mainLayout.addWidget(self.view)
         self.mainLayout.addLayout(hLayout)
+        if selectedWalls:
+            list_widget = QListWidget(self)
+            widget = QWidget()
+            titleLayout = QHBoxLayout(widget)
+            # Get the last widget in the layout and delete it
+            self.delete_widget()
+            self.delete_widget()
+            # Add labels
+            label = QLabel("Label")
+            story = QLabel("Percentage")
+            titles = [label, story]
+            for i in titles:
+                i.setStyleSheet("""
+                            font-family: 'Arial';
+                            font-size:  14pt;
+                            font-weight: bold;
+                        """)
+
+                titleLayout.addWidget(i)
+            # Create a QListWidgetItem to hold the custom widget
+            list_item = QListWidgetItem(list_widget)
+            list_item.setSizeHint(widget.sizeHint())
+
+            # Set the custom widget as the item's widget
+            list_widget.setItemWidget(list_item, widget)
+            # self.mainLayout.addWidget(list_widget)
+            self.labels.clear()
+            self.percents.clear()
+            for item in selectedWalls:
+                widget = QWidget()
+                layout = QHBoxLayout(widget)
+
+                # Add labels
+                label = QLabel(item["label"])
+                percent = QDoubleSpinBox()
+                percent.setRange(0, 100)
+                percent.setValue(item["percent"])
+                layout.addWidget(label)
+                layout.addWidget(percent)
+                list_item = QListWidgetItem(list_widget)
+                list_item.setSizeHint(widget.sizeHint())
+
+                # Set the custom widget as the item's widget
+                list_widget.setItemWidget(list_item, widget)
+                self.mainLayout.addWidget(list_widget)
+                self.labels.append(item["label"])
+                self.percents.append(percent)
+            self.selectedWalls = selectedWalls
+            apply = QPushButton("Apply")
+            apply.clicked.connect(self.apply)
+            self.mainLayout.addWidget(apply)
+
         self.setLayout(self.mainLayout)
 
         return self.selectedWalls
 
-    def accept_control(self):
-        self.accept()
+    def next(self):
+        # self.accept()
+        self.selectedWalls.clear()
         for item in self.scene.selectedItems():
             for sh in self.shearWalls:
-                if list(sh.keys())[0] == item:
-                    self.selectedWalls.append(list(sh.values())[0])
+                mainItem = list(sh.keys())[0]
+                mainItemValue = list(sh.values())[0]
+                if mainItem == item and mainItemValue["story"] == self.Story:
+                    self.selectedWalls.append(mainItemValue)
+                    break
+
+        list_widget = QListWidget(self)
+        widget = QWidget()
+        titleLayout = QHBoxLayout(widget)
+        # Get the last widget in the layout and delete it
+        self.delete_widget()
+        self.delete_widget()
+        if self.selectedWalls:
+            # Add labels
+            label = QLabel("Label")
+            story = QLabel("Percentage")
+            titles = [label, story]
+        else:
+            label = QLabel(f"No selected walls!")
+            titles = [label]
+        for i in titles:
+            i.setStyleSheet("""
+                font-family: 'Arial';
+                font-size:  14pt;
+                font-weight: bold;
+            """)
+
+            titleLayout.addWidget(i)
+        # Create a QListWidgetItem to hold the custom widget
+        list_item = QListWidgetItem(list_widget)
+        list_item.setSizeHint(widget.sizeHint())
+
+        # Set the custom widget as the item's widget
+        list_widget.setItemWidget(list_item, widget)
+        self.mainLayout.addWidget(list_widget)
+        self.labels.clear()
+        self.percents.clear()
+        for item in self.selectedWalls:
+            widget = QWidget()
+            layout = QHBoxLayout(widget)
+
+            # Add labels
+            label = QLabel(item["label"])
+            percent = QDoubleSpinBox()
+            percent.setRange(0, 100)
+            layout.addWidget(label)
+            layout.addWidget(percent)
+            list_item = QListWidgetItem(list_widget)
+            list_item.setSizeHint(widget.sizeHint())
+
+            # Set the custom widget as the item's widget
+            list_widget.setItemWidget(list_item, widget)
+            self.mainLayout.addWidget(list_widget)
+            self.labels.append(item["label"])
+            self.percents.append(percent)
+
+        apply = QPushButton("Apply")
+        apply.clicked.connect(self.apply)
+        self.mainLayout.addWidget(apply)
+
+        self.setLayout(self.mainLayout)
+
+    def apply(self):
+        for i in range(len(self.labels)):
+            self.selectedWalls[i]["percent"] = self.percents[i].value()
+
+        print(self.selectedWalls)
+        self.accept()
+
+    def delete_widget(self):
+        last_item = self.mainLayout.itemAt(self.mainLayout.count() - 1)
+        if last_item:
+            last_widget = last_item.widget()
+            print(last_widget)
+            if last_widget and (isinstance(last_widget, QListWidget) or isinstance(last_widget, QPushButton)):
+                self.mainLayout.removeWidget(last_widget)
+                last_widget.deleteLater()
 
     def wheelEvent(self, event):
         zoomInFactor = 1.25
