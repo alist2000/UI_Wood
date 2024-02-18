@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget, QPushButton, QDialog, QTabWidget, QListWi
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QColor
 
-from UI_Wood.stableVersion5.styles import TabWidgetStyle, tableStyle
+from UI_Wood.stableVersion5.styles import TabWidgetStyle, ButtonCheck
 from UI_Wood.stableVersion5.Sync.Transfer import Transfer
 from UI_Wood.stableVersion5.Sync.data import Data
 from UI_Wood.stableVersion5.post_new import magnification_factor
@@ -214,16 +214,18 @@ class ShearWallSelection:
         # Add a button
         if itemName == "shearWall":
             if transferredShearWall.get("transfer_to"):
-                button = QPushButton("Check")
+                self.selectedWalls = transferredShearWall["transfer_to"]
+                self.button = QPushButton("Check")
+                self.button.setStyleSheet(ButtonCheck)
 
             else:
-                button = QPushButton("Select")
-                button.clicked.connect(self.run)
+                self.button = QPushButton("Select")
+            self.button.clicked.connect(self.run)
 
             # button.clicked.connect(
             #     lambda row=transferredShearWall["transfer_to_story"]: print(f"Button clicked in row {row}"))
             # button.clicked.connect(self.test)
-            layout.addWidget(button)
+            layout.addWidget(self.button)
         self.widget = widget
 
         # coordinate = [i["coordinate_main"] for i in shearWalls]
@@ -245,7 +247,6 @@ class ShearWallSelection:
             self.shearWallsTarget = self.shearWalls[storyIndex]
 
     def run(self):
-        print("fuck")
         self.dialog = None
         self.dialog = DrawShearWall(self.GridClass)
         self.dialog.setTitle("Transfer Page")
@@ -262,10 +263,21 @@ class ShearWallSelection:
         self.dialog.finalize_rectangle_copy(start, end, self.transferredShearWall, self.transferredShearWall["label"],
                                             True)
 
-        self.selectedWalls = self.dialog.ShowTransfer()
-
+        self.selectedWalls = self.dialog.ShowTransfer(self.selectedWalls)
+        self.transferredShearWall["transfer_to"] = []
         # self.dialog.show()
         self.result = self.dialog.exec()
+        if self.result == QDialog.Accepted:
+            print("accepted")
+            if self.selectedWalls:
+                self.button.setText("Check")
+                self.button.setStyleSheet(ButtonCheck)
+            else:
+                self.button.setText("Select")
+                self.button.setStyleSheet(TabWidgetStyle)
+
+            for wall in self.selectedWalls:
+                self.transferredShearWall["transfer_to"].append({"label": wall["label"], "percent": wall["percent"]})
 
         print("selected walls: ", self.selectedWalls)
         print("Run clicked.")
