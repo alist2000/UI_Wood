@@ -84,6 +84,33 @@ TabWidgetStyle = """
                   cursor: not-allowed; /* Changes the cursor to indicate that the button cannot be interacted with */
                 }
         """
+ButtonCheck = """
+            QPushButton {
+                background-color: #A8DF8E; 
+                border: none;
+                color: black;
+                text-align: center;
+                display: inline-block;
+                font-size:   14px;
+                margin:   4px   2px;
+                cursor: pointer;
+                padding:   1.6px   16px;
+                text-decoration: none;
+                border-radius:  4px;
+                box-shadow:  0  4px  8px  0 rgba(0,  0,  0,  0.2),  0  6px  20px  0 rgba(0,  0,  0,  0.19);
+            }
+
+            QPushButton:hover {
+                background-color: #D0E7D2;
+                transform: translateY(-2px);
+            }
+
+            QPushButton:pressed {
+                background-color: #B0D9B1;
+                border-style: outset;
+                transform: translateY(2px);
+            }
+        """
 
 menuStyle = """
             QMenuBar {
