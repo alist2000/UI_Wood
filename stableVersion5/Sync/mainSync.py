@@ -10,7 +10,7 @@ from UI_Wood.stableVersion5.Sync.beamSync import BeamSync
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
     DataBaseSeismic
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
-from UI_Wood.stableVersion5.Sync.Transfer import Transfer
+from UI_Wood.stableVersion5.Sync.Transfer import Transfer, DeleteTransferred
 from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL, DropTables
 from UI_Wood.stableVersion5.output.studWallSql import studWallSQL
 
@@ -189,7 +189,16 @@ class ControlTab:
 
             # CONTROL STACK
             TransferInstance.StackControl(shearWallTop, shearWall, storySW, "shearWall")
+            TransferInstance.StackControl(studWallTop, studWall, storySW, "studWall")
             print("This list should be transferred: ", TransferInstance.transferListShearWall)
+            # Control load root on shear walls and edit labels.
+            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
+                                               shearWall_input_db)
+            # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
+            TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop)
+
+            # Transfer Gravity loads from Transferred studWalls to beams.
+            TransferInstance.TransferOtherLoads(studWallTop, beam, heightTop, "studWall")
 
             # BEAM DESIGN
             c = time.time()
@@ -211,8 +220,7 @@ class ControlTab:
 
             # SHEAR WALL DESIGN
             c = time.time()
-            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
-                                               shearWall_input_db)
+
             TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
             shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
             TransferInstance.get_data_after_run(shearWall, storySW)
@@ -257,6 +265,9 @@ class ControlTab:
 
         b = time.time()
         print("Total analysis takes ", (b - a) / 60, "Minutes")
+        DeleteTransferred(self.beams)
+        DeleteTransferred(self.shearWalls)
+        DeleteTransferred(self.studWalls)
 
     @staticmethod
     def reverse_dict(Dict):
