@@ -1,3 +1,5 @@
+import copy
+
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.back.load_control import range_intersection
 from UI_Wood.stableVersion5.output.beam_output import ControlDistributetLoad, ControlLineLoad, CombineDistributes
@@ -136,8 +138,12 @@ class LoadFromAbove:
     def pointLoadOnSW(self, swBottom):
         swBottom = swBottom
         reactionLoadsBottom = swBottom["load"]["reaction"]
-        reactionLoadsTop = self.swTop["load"]["reaction"]
-        reactionLoadsBottom.extend(reactionLoadsTop)
+        reactionLoadsTop = copy.deepcopy(self.swTop["load"]["reaction"])
+        editedReactionLoadsTop = []
+        for load in reactionLoadsTop:
+            load["Transferred"] = True
+            editedReactionLoadsTop.append(load)
+        reactionLoadsBottom.extend(editedReactionLoadsTop)
         swBottom["load"]["reaction"] = reactionLoadsBottom
         return swBottom
 
@@ -146,16 +152,24 @@ class LoadFromAbove:
 
         # Load Map
         loadMapBottom = swBottom["load"]["joist_load"]["load_map"]
-        loadMapTop = self.swTop["load"]["joist_load"]["load_map"]
+        loadMapTop = copy.deepcopy(self.swTop["load"]["joist_load"]["load_map"])
+        editedLoadMapTop = []
+        for load in loadMapTop:
+            load["Transferred"] = True
+            editedLoadMapTop.append(load)
 
-        loadMapBottom.extend(loadMapTop)
+        loadMapBottom.extend(editedLoadMapTop)
         swBottom["load"]["joist_load"]["load_map"] = loadMapBottom
 
         # Line Load
         lineLoadBottom = swBottom["load"]["line"]
-        lineLoadTop = self.swTop["load"]["line"]
+        lineLoadTop = copy.deepcopy(self.swTop["load"]["line"])
+        editedLineLoadTop = []
+        for load in lineLoadTop:
+            load["Transferred"] = True
+            editedLineLoadTop.append(load)
 
-        lineLoadBottom.extend(lineLoadTop)
+        lineLoadBottom.extend(editedLineLoadTop)
         swBottom["load"]["line"] = lineLoadBottom
 
         # SELF WEIGHT
@@ -165,7 +179,7 @@ class LoadFromAbove:
             deadLoad = 0.01  # ksf
         swBottom["load"]["line"].append({"distance": 0, "length": swBottom["length"],
                                          "magnitude": deadLoad * self.aboveHeight,
-                                         "type": "Dead"})
+                                         "type": "Dead", "Transferred": True})
 
         return swBottom
 
