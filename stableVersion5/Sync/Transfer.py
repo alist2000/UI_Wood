@@ -1,3 +1,4 @@
+import copy
 import math
 import sqlite3
 from UI_Wood.stableVersion5.path import PathHandler, shearWallInputPath1, shearWallOutputPath1
@@ -87,10 +88,14 @@ class Transfer:
             conn.commit()
             conn.close()
 
-    def TransferOtherLoads(self, top, beams):
+    def TransferOtherLoads(self, top, beams, aboveHeight, itemName="shearWall"):
         if top:
+            if itemName == "shearWall":
+                transferList = self.transferListShearWall
+            else:
+                transferList = self.transferListStudWall
             for shearWall in top:
-                if shearWall in self.transferListShearWall:
+                if shearWall in transferList:
                     coordinateTop = shearWall["coordinate"]
                     direction = shearWall["direction"]
                     if direction == "N-S":
@@ -101,21 +106,69 @@ class Transfer:
                         constantIndex = 1
                         constantCoord = coordinateTop[0][constantIndex]
                         swRange = (coordinateTop[0][0], coordinateTop[1][0])
-
+                    swStart = min(swRange)
+                    swEnd = max(swRange)
                     for beam in beams:
                         coordinateBeam = beam["coordinate"]
                         beamDirection = beam["direction"]
                         if beamDirection == "N-S":
-                            constantCoordBeam = coordinateBeam[0][constantIndex]
-                            beamRange = (coordinateTop[0][1], coordinateTop[1][1])
+                            constantIndexBeam = 0
+                            constantCoordBeam = coordinateBeam[0][constantIndexBeam]
+                            beamRange = (coordinateBeam[0][1], coordinateBeam[1][1])
 
                         else:
-                            constantCoordBeam = coordinateBeam[0][constantIndex]
-                            beamRange = (coordinateTop[0][0], coordinateTop[1][0])
-
+                            constantIndexBeam = 1
+                            constantCoordBeam = coordinateBeam[0][constantIndexBeam]
+                            beamRange = (coordinateBeam[0][0], coordinateBeam[1][0])
+                        beamStart = min(beamRange)
+                        beamEnd = max(beamRange)
+                        if beamStart == coordinateBeam[0][constantIndexBeam - 1]:
+                            distanceValue = abs(beamStart - swStart)
+                        else:
+                            distanceValue = abs(beamEnd - swEnd)
                         if direction == beamDirection and constantCoordBeam == constantCoord:
                             intersection = range_intersection(swRange, beamRange)
-                            if intersection:
+                            print("beam Range", beamRange)
+                            print("shearWall Range", swRange)
+                            if intersection and beamStart <= swStart and beamEnd >= swEnd:
+                                # Load Map
+                                loadMapBottom = beam["load"]["joist_load"]["load_map"]
+                                loadMapTop = copy.deepcopy(shearWall["load"]["joist_load"]["load_map"])
+                                editedLoadMapTop = []
+                                for load in loadMapTop:
+                                    load["Transferred"] = True
+                                    editedLoadMapTop.append(load)
+
+                                loadMapBottom.extend(loadMapTop)
+                                beam["load"]["joist_load"]["load_map"] = loadMapBottom
+
+                                # Line Load
+                                lineLoadBottom = beam["load"]["line"]
+                                lineLoadTop = copy.deepcopy(shearWall["load"]["line"])
+                                editedLineLoadTop = []
+                                for load in lineLoadTop:
+                                    load["distance"] = load["distance"] + distanceValue
+                                    load["Transferred"] = True
+                                    editedLineLoadTop.append(load)
+
+                                lineLoadBottom.extend(editedLineLoadTop)
+                                beam["load"]["line"] = lineLoadBottom
+
+                                # SELF WEIGHT
+                                if shearWall["interior_exterior"] == "exterior":
+                                    deadLoad = 0.02  # ksf
+                                else:
+                                    deadLoad = 0.01  # ksf
+
+                                beam["load"]["joist_load"]["load_map"].append(
+                                    {'from': shearWall["label"], 'label': 'Self Weight',
+                                     'load': [{'type': 'Dead', 'magnitude': deadLoad * aboveHeight}], 'start': swStart,
+                                     'end': swEnd, "Transferred": True})
+                                # beam["load"]["joist_load"]["load_map"].append(
+                                #     {"distance": distanceValue, "length": shearWall["length"],
+                                #      "magnitude": deadLoad * aboveHeight,
+                                #      "type": "Dead", "Transferred": True})
+
                                 print("SW set on this beam: ", beam)
                             break
 
@@ -138,3 +191,31 @@ class Transfer:
 
 def distance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+class DeleteTransferred:
+    def __init__(self, item):
+        self.item = item
+        self.delete()
+
+    def delete(self):
+        for story in self.item:
+            for item in story:
+                pointLoad = item["load"]["point"]
+                lineLoad = item["load"]["line"]
+                loadMap = item["load"]["joist_load"]["load_map"]
+                newPointLoad = []
+                newLineLoad = []
+                newLoadMap = []
+                for point in pointLoad:
+                    if not point.get("Transferred"):
+                        newPointLoad.append(point)
+                for line in lineLoad:
+                    if not line.get("Transferred"):
+                        newLineLoad.append(line)
+                for load in loadMap:
+                    if not load.get("Transferred"):
+                        newLoadMap.append(load)
+                item["load"]["point"] = newPointLoad
+                item["load"]["line"] = newLineLoad
+                item["load"]["joist_load"]["load_map"] = newLoadMap
