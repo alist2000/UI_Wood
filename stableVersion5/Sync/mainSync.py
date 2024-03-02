@@ -8,7 +8,7 @@ from UI_Wood.stableVersion5.Sync.postSync import PostSync
 from UI_Wood.stableVersion5.Sync.joistSync import joistAnalysisSync
 from UI_Wood.stableVersion5.Sync.beamSync import BeamSync
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
-    DataBaseSeismic
+    DataBaseSeismic, EditLabels
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion5.Sync.Transfer import Transfer, DeleteTransferred
 from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL, DropTables
@@ -44,6 +44,38 @@ class mainSync(Data):
         midLineDict = {}
         lineLabels = None
         boundaryLineLabels = None
+        shearWallsValues = []
+        shearWallsKeys = []
+        studWallsValues = []
+        studWallsKeys = []
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWall = self.grid[currentTab].shearWall_instance.shearWall_rect_prop
+            studWall = self.grid[currentTab].studWall_instance.studWall_rect_prop
+            shearWallsValues.append(list(shearWall.values()))
+            shearWallsKeys.append(list(shearWall.keys()))
+            studWallsValues.append(list(studWall.values()))
+            studWallsKeys.append(list(studWall.keys()))
+
+        shearWallsEdited = EditLabels(shearWallsValues)
+        studWallsEdited = EditLabels(studWallsValues, "studWall")
+        shearWallsEdited.reverse()
+        studWallsEdited.reverse()
+        shearWallsKeys.reverse()
+        studWallsKeys.reverse()
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWallDict = {}
+            studWallDict = {}
+            for i in range(len(shearWallsEdited[currentTab])):
+                try:
+                    shearWallDict[shearWallsKeys[currentTab][i]] = shearWallsEdited[currentTab][i]
+                except:
+                    pass
+                try:
+                    studWallDict[studWallsKeys[currentTab][i]] = studWallsEdited[currentTab][i]
+                except:
+                    pass
+            self.grid[currentTab].shearWall_instance.shearWall_rect_prop = shearWallDict
+            self.grid[currentTab].studWall_instance.studWall_rect_prop = studWallDict
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
             midLineData, lineLabels, boundaryLineLabels = self.grid[currentTab].run_control()
             if currentTab == self.tabWidgetCount - 1:
@@ -140,7 +172,7 @@ class ControlTab:
             self.joists.append(joist)
             self.shearWalls.append(shearWall)
             self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [0, height_from_top[j]], storySW,
-                                               shearWall_input_db, False)
+                                               shearWall_input_db, True, False)
             shearWallTop = shearWall
             j += 1
 
