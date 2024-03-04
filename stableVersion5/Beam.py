@@ -97,7 +97,8 @@ class beamDrawing(QGraphicsRectItem):
                                                                       "coordinate": [
                                                                           start_point, final_end_point],
                                                                       "load": {"point": [], "line": [], "reaction": []},
-                                                                      "floor": True}
+                                                                      "floor": True,
+                                                                      "material": "All"}
                             self.add_length(self.beam_rect_prop[self.current_rect])
 
                             print(self.beam_rect_prop)
@@ -299,13 +300,19 @@ class beamDrawing(QGraphicsRectItem):
             floor = properties["floor"]
         except:
             floor = True
+        try:
+            material = properties["material"]
+        except:
+            material = "All"
+
         self.beam_rect_prop[self.current_rect] = {"label": f"B{self.beam_number}",
                                                   "coordinate": [
                                                       start, final_end_point],
                                                   "load": {"point": properties["load"]["point"],
                                                            "line": properties["load"]["line"],
                                                            "reaction": []},
-                                                  "floor": floor}
+                                                  "floor": floor,
+                                                  "material": material}
         self.add_length(self.beam_rect_prop[self.current_rect])
 
         print(self.beam_rect_prop)

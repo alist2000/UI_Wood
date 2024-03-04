@@ -7,12 +7,13 @@ from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL
 
 
 class EditLabel:
-    def __init__(self, shearWalls_rev, aboveHeight, itemName="shearWall"):
+    def __init__(self, shearWalls_rev, aboveHeight, transferLoad, itemName="shearWall"):
         # self.shearWalls = shearWalls
         self.itemName = itemName
         self.aboveHeight = aboveHeight
         # shearWalls_rev = list(reversed(shearWalls))
         self.shearWalls_rev = shearWalls_rev
+        self.transferLoad = transferLoad
         if all(self.shearWalls_rev):
             self.edit_label()
 
@@ -56,7 +57,7 @@ class EditLabel:
             labelName = "ST"
         # labelName = self.shearWalls_rev[0][0]["label"][:2]
         for i, shearWallTab in enumerate(self.shearWalls_rev):
-            label = [float(shearWall["label"][2:]) for shearWall in shearWallTab]
+            label = [int(shearWall["label"][2:]) for shearWall in shearWallTab]
             if label:
                 labelStory.append(max(label))
             else:
@@ -69,29 +70,35 @@ class EditLabel:
                 labelMain = shearWall["label"]
                 base_coordinate = shearWall["coordinate"]
                 label_list.append(labelMain)
-                LoadControlInstance = LoadFromAbove(shearWall, self.aboveHeight)
+                if self.transferLoad:
+                    LoadControlInstance = LoadFromAbove(shearWall, self.aboveHeight)
                 transferred = False
                 if i < max_story:
+                    maxLabel = labelStory[i + 1]
                     for num, shearWallBottom in enumerate(self.shearWalls_rev[i + 1]):
-                        maxLabel = labelStory[i + 1]
                         coordinate = shearWallBottom["coordinate"]
                         if coordinate == base_coordinate:
-                            shearWallBottom["label"] = labelMain
-                            shearWallBottom = LoadControlInstance.pointLoadOnSW(shearWallBottom)
-                            shearWallBottom = LoadControlInstance.distLoadOnSW(shearWallBottom)
+                            # if not self.transferLoad:
+                            #     shearWallBottom["label"] = labelMain
+                            if self.transferLoad:
+                                shearWallBottom = LoadControlInstance.pointLoadOnSW(shearWallBottom)
+                                shearWallBottom = LoadControlInstance.distLoadOnSW(shearWallBottom)
                             # Self wall weight  also should be transfer from above.
                             # Transfer shear should be done here
 
-                            # control repeated label
-                            for num1, shearWallBottom1 in enumerate(self.shearWalls_rev[i + 1]):
-                                if num1 != num and shearWallBottom1["label"] == labelMain:
-                                    maxLabel += 1
-                                    shearWallBottom1["label"] = labelName + str(maxLabel)
-
-                                # label_not_repeat_index.add(num)
-
-                            transferred = True
-                            break
+                            # # control repeated label
+                            # if not self.transferLoad:
+                            #     for num1, shearWallBottom1 in enumerate(self.shearWalls_rev[i + 1]):
+                            #         if num1 != num and shearWallBottom1["label"] == labelMain:
+                            #             maxLabel += 1
+                            #             labelStory[i + 1] = maxLabel
+                            #             shearWallBottom1["label"] = labelName + str(maxLabel)
+                            #             break
+                            #
+                            #     # label_not_repeat_index.add(num)
+                            #
+                            #     transferred = True
+                            # break
 
                     if not transferred:  # control and check for transfer manually.
                         pass

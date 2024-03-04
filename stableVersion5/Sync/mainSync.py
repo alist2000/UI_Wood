@@ -246,16 +246,16 @@ class ControlTab:
 
             # JOIST DESIGN
             c = time.time()
-            joistSync.AnalyseDesign(joist, story)
+            # joistSync.AnalyseDesign(joist, story)
             d = time.time()
             print(f"Joist analysis story {story} takes ", (d - c) / 60, "Minutes")
 
             # SHEAR WALL DESIGN
             c = time.time()
 
-            TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
-            shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
-            TransferInstance.get_data_after_run(shearWall, storySW)
+            # TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
+            # shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
+            # TransferInstance.get_data_after_run(shearWall, storySW)
 
             # self.studWallSync = StudWallSync(self.studWalls, height_from_top)
             # loadMapaArea, loadMapMag = LoadMapAreaNew({storySW: midLineDict[str(storySW)]})

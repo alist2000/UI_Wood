@@ -15,6 +15,7 @@ class BeamProperties(QDialog):
         self.rectItem = rectItem
         self.rect_prop = rect_prop
         self.beamDepth = None
+        self.material = None
 
         # IMAGE
         self.scene = scene
@@ -44,6 +45,8 @@ class BeamProperties(QDialog):
     # dialog.show()
 
     def accept_control(self):
+        self.beam_depth_control()
+        self.material_control()
         self.lineLoad.print_values()
         self.pointLoad.print_values()
         self.accept()
@@ -101,26 +104,37 @@ class BeamProperties(QDialog):
         tab = QWidget()
         self.tab_widget.addTab(tab, f"Assignments")
         label1 = QLabel("Beam Depth")
+        label2 = QLabel("Material")
         self.beamDepth = beamDepth = QComboBox()
+        self.material = material = QComboBox()
         beamDepth.addItems(["10 in", "12 in"])
+        material.addItems(["All", "Sawn Lumber", "PSL 2.0E"])
         floor = self.rect_prop[self.rectItem]["floor"]
+        mat = self.rect_prop[self.rectItem]["material"]
         if floor:
             floorText = "12 in"
         else:
             floorText = "10 in"
 
         self.beamDepth.setCurrentText(floorText)
+        self.material.setCurrentText(mat)
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
-        self.beamDepth.currentTextChanged.connect(self.beam_depth_control)
+        # self.beamDepth.currentTextChanged.connect(self.beam_depth_control)
+        # self.material.currentTextChanged.connect(self.material_control)
 
         # LAYOUT
         h_layout1 = QHBoxLayout()
+        h_layout2 = QHBoxLayout()
         h_layout1.addWidget(label1)
         h_layout1.addWidget(beamDepth)
 
+        h_layout2.addWidget(label2)
+        h_layout2.addWidget(material)
+
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout1)
+        v_layout.addLayout(h_layout2)
 
         tab.setLayout(v_layout)
         # return self.direction
@@ -134,6 +148,10 @@ class BeamProperties(QDialog):
         else:
             floor = True
         self.rect_prop[self.rectItem]["floor"] = floor
+
+    def material_control(self):
+        mat = self.material.currentText()
+        self.rect_prop[self.rectItem]["material"] = mat
 
     @staticmethod
     def length(start, end):
