@@ -6,9 +6,10 @@ from UI_Wood.stableVersion5.output.shearWall_output import ShearWall_output, Edi
 
 
 class ShearWallSync:
-    def __init__(self, shearWall, height, story, db, edit_label=True):
+    def __init__(self, shearWall, height, story, db, edit_label=True, transferLoad=True):
         if edit_label:
-            EditLabel(shearWall, height[0])
+            EditLabel(shearWall, height[0], transferLoad)
+
         self.shearWallOutPut = ShearWall_output(shearWall[-1], height[-1], story, db)
         self.shearWallTab = self.shearWallOutPut.shearWallProperties_everyTab
 
@@ -181,3 +182,40 @@ def NoShearWallLines(shearWallLines, names_set):
 
 class ShearWallStoryCount:
     storyFinal = 1
+
+
+def EditLabels(shearWalls, itemName="shearWall"):
+    max_story = len(shearWalls) - 1
+    full_label_repeat_index = {}
+    full_label = {}
+    labelStory = []
+    if itemName == "shearWall":
+        labelName = "SW"
+    else:
+        labelName = "ST"
+    for i, shearWallTab in enumerate(shearWalls):
+        label = [int(shearWall["label"][2:]) for shearWall in shearWallTab]
+        if label:
+            labelStory.append(max(label))
+        else:
+            labelStory.append(0)
+
+    for i, shearWallTab in enumerate(shearWalls):
+        label_list = []
+        for shearWall in shearWallTab:
+            labelMain = shearWall["label"]
+            base_coordinate = shearWall["coordinate"]
+            label_list.append(labelMain)
+            if i < max_story:
+                maxLabel = labelStory[i + 1]
+                for num, shearWallBottom in enumerate(shearWalls[i + 1]):
+                    coordinate = shearWallBottom["coordinate"]
+                    if coordinate == base_coordinate:
+                        shearWallBottom["label"] = labelMain
+                        for num1, shearWallBottom1 in enumerate(shearWalls[i + 1]):
+                            if num1 != num and shearWallBottom1["label"] == labelMain:
+                                maxLabel += 1
+                                labelStory[i + 1] = maxLabel
+                                shearWallBottom1["label"] = labelName + str(maxLabel)
+                                break
+    return shearWalls
