@@ -184,9 +184,22 @@ class LoadFromAbove:
             deadLoad = 0.02  # ksf
         else:
             deadLoad = 0.01  # ksf
-        swBottom["load"]["line"].append({"distance": 0, "length": swBottom["length"],
-                                         "magnitude": deadLoad * self.aboveHeight,
-                                         "type": "Dead", "Transferred": True})
+
+        coordinateTop = swBottom["coordinate"]
+        direction = swBottom["direction"]
+        if direction == "N-S":
+            swRange = (coordinateTop[0][1], coordinateTop[1][1])
+        else:
+            swRange = (coordinateTop[0][0], coordinateTop[1][0])
+        swStart = min(swRange)
+        swEnd = max(swRange)
+        # swBottom["load"]["line"].append({"distance": 0, "length": swBottom["length"],
+        #                                  "magnitude": deadLoad * self.aboveHeight,
+        #                                  "type": "Dead", "Transferred": True})
+        swBottom["load"]["joist_load"]["load_map"].append(
+            {'from': self.swTop["label"], 'label': 'Self Weight',
+             'load': [{'type': 'Dead', 'magnitude': deadLoad * self.aboveHeight}], 'start': swStart,
+             'end': swEnd, "Transferred": True})
 
         return swBottom
 
