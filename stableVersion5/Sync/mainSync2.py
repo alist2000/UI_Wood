@@ -1,4 +1,4 @@
-from WOOD_DESIGN.mainshearwall import MainShearwall
+from WOOD_DESIGN.mainshearwall import MainShearWall_version5
 from WOOD_DESIGN.reports import Sqlreports
 from UI_Wood.stableVersion5.Sync.data import Data
 from UI_Wood.stableVersion5.Sync.Image import saveImage
@@ -7,7 +7,7 @@ from UI_Wood.stableVersion5.Sync.postSync2 import PostSync2
 from UI_Wood.stableVersion5.Sync.joistSync import joistAnalysisSync
 from UI_Wood.stableVersion5.Sync.beamSync import beamAnalysisSync, BeamSync
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeismicParameter, ControlMidLine, \
-    NoShearWallLines, MidlineEdit, ShearWallStoryCount
+    NoShearWallLines, MidlineEdit, ShearWallStoryCount, EditLabels, DataBaseSeismic
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.report.ReportGenerator import ReportGeneratorTab
@@ -15,12 +15,16 @@ from UI_Wood.stableVersion5.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion5.output.joist_output import Joist_output
 from UI_Wood.stableVersion5.Sync.shearWallSync2 import ShearWallSync2
 from UI_Wood.stableVersion5.Sync.studWallSync2 import StudWallSync2
+from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL, DropTables
+from UI_Wood.stableVersion5.Sync.Transfer import Transfer, DeleteTransferred
+
 from UI_Wood.stableVersion5.run.beam import BeamStoryBy
 from UI_Wood.stableVersion5.run.post import PostStoryBy
 from UI_Wood.stableVersion5.run.joist import JoistStoryBy
 
 from PySide6.QtWidgets import QDialog
 import time
+import os
 
 
 class mainSync2(Data):
@@ -249,7 +253,51 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_ShearWall(self):
+        # create report directory
+        try:
+            os.makedirs('../../Output')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('../../Output/Seismic')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images/beam')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images/post')  # Windows
+        except:
+            pass
+        self.reportGenerator.setEnabled(True)
+        midLineDict = {}
+        lineLabels = None
+        boundaryLineLabels = None
+        shearWallsValues = []
+        shearWallsKeys = []
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWall = self.grid[currentTab].shearWall_instance.shearWall_rect_prop
+            studWall = self.grid[currentTab].studWall_instance.studWall_rect_prop
+            shearWallsValues.append(list(shearWall.values()))
+            shearWallsKeys.append(list(shearWall.keys()))
 
+        shearWallsEdited = EditLabels(shearWallsValues)
+        shearWallsEdited.reverse()
+        shearWallsKeys.reverse()
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWallDict = {}
+            studWallDict = {}
+            for i in range(len(shearWallsEdited[currentTab])):
+                try:
+                    shearWallDict[shearWallsKeys[currentTab][i]] = shearWallsEdited[currentTab][i]
+                except:
+                    pass
+            self.grid[currentTab].shearWall_instance.shearWall_rect_prop = shearWallDict
         # self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
@@ -270,47 +318,142 @@ class mainSync2(Data):
         if self.shearWallRun:
             dataInstance = ShearWallSync2(self.GridDrawClass)
         else:
+            DropTables("../../../Output/ShearWall_output.db")
+
+            generalProp = ControlGeneralProp(self.general_properties)
+            height_from_top = list(reversed(generalProp.height))
+            # seismic parameters database
+            seismic_parameters_database = DataBaseSeismic()
+            seismic_parameters_database.SeismicParams(self.seismic_parameters)
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
+
+            # TRANSFER
+            TransferInstance = Transfer()
+
+            shearWall_input_db = shearWallSQL()
+            shearWall_input_db.createTable()
+            shearWallTop = None
+            j = 0
+            storyNames = []
+            for story, Tab in tabReversed.items():
+                if j == 0:
+                    storySW = "Roof"
+                else:
+                    storySW = str(story + 1)
+                storyNames.append(storySW)
+                shearWall = Tab["shearWall"]
+                joist = Tab["joist"]
+                self.joists.append(joist)
+                self.shearWalls.append(shearWall)
+                self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [0, height_from_top[j]], storySW,
+                                                   shearWall_input_db, True, False)
+                shearWallTop = shearWall
+                j += 1
+
+            # SHEAR WALL DESIGN
+            c = time.time()
+
+            loadMapaArea, loadMapMag = LoadMapAreaNew(midLineDict)
+
+            self.joistArea = JoistSumArea(self.joists)
+
+            # self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
+
+            seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyNames, loadMapaArea,
+                                                      loadMapMag,
+                                                      self.joistArea, seismic_parameters_database)
+            shearWallDesign = MainShearWall_version5(seismicInstance.seismicPara, midLineDict
+                                                     )
+            shearWallExist = shearWallDesign.to_elfp()
+            if shearWallExist:
+                shearWallDesign.to_diaphragms()
+                shearWallDesign.diaphragm_design()
+
+            j = 0
             self.shearWalls = []
             self.joists = []
 
-            for i, Tab in self.tab.items():
+            DropTables("../../../Output/ShearWall_Input.db")
+
+            shearWall_input_db = shearWallSQL()
+            shearWall_input_db.createTable()
+            shearWallTop = None
+            studWallTop = None
+            heightTop = None
+            for story, Tab in tabReversed.items():
+                # post = {i: Tab["post"]}
                 shearWall = Tab["shearWall"]
-                joist = Tab["joist"]
+                beam = Tab["beam"]
 
-                self.joists.append(joist)
+                if j == 0:
+                    storySW = "Roof"
+                else:
+                    storySW = story + 1
 
+                # CONTROL STACK
+                TransferInstance.StackControl(shearWallTop, shearWall, storySW, "shearWall")
+                print("This list should be transferred: ", TransferInstance.transferListShearWall)
+                # Control load root on shear walls and edit labels.
+                self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
+                                                   shearWall_input_db)
+                # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
+                TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop)
+
+                TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
+                shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
+                TransferInstance.get_data_after_run(shearWall, storySW)
+                self.beams.append(beam)
                 self.shearWalls.append(shearWall)
+                shearWallTop = shearWall
+                heightTop = height_from_top[j]
 
-            # Design should be started from Roof.
-            # self.shearWalls.reverse()
+                j += 1
 
-            generalProp = ControlGeneralProp(self.general_properties)
-            joistOutput = Joist_output(self.joists)
-
-            # SHEAR WALL
-            # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
-            JoistArea = JoistSumArea(self.joists)
-            storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
-            shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
-            self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
-
-            shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
-            noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
-            midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
-            midLineDictEdited = midLineInstance.newMidline
-            # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
-            LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
-            seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
-                                                      JoistArea)
-            ControlMidLine(midLineDictEdited)
-
-            print(seismicInstance.seismicPara)
-            print(midLineDictEdited)
-            a = time.time()
-            MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
-            b = time.time()
-            print("Shear wall run takes ", (b - a) / 60, " Minutes")
+            DeleteTransferred(self.beams)
+            DeleteTransferred(self.shearWalls)
+            DeleteTransferred(self.studWalls)
             self.shearWallRun = True
+            # self.shearWalls = []
+            # self.joists = []
+            #
+            # for i, Tab in self.tab.items():
+            #     shearWall = Tab["shearWall"]
+            #     joist = Tab["joist"]
+            #
+            #     self.joists.append(joist)
+            #
+            #     self.shearWalls.append(shearWall)
+            #
+            # # Design should be started from Roof.
+            # # self.shearWalls.reverse()
+            #
+            # generalProp = ControlGeneralProp(self.general_properties)
+            # joistOutput = Joist_output(self.joists)
+            #
+            # # SHEAR WALL
+            # # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
+            # JoistArea = JoistSumArea(self.joists)
+            # storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
+            # shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
+            # self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
+            #
+            # shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
+            # noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
+            # midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
+            # midLineDictEdited = midLineInstance.newMidline
+            # # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
+            # LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
+            # seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
+            #                                           JoistArea)
+            # ControlMidLine(midLineDictEdited)
+            #
+            # print(seismicInstance.seismicPara)
+            # print(midLineDictEdited)
+            # a = time.time()
+            # MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
+            # b = time.time()
+            # print("Shear wall run takes ", (b - a) / 60, " Minutes")
+            # self.shearWallRun = True
             dataInstance = ShearWallSync2(self.GridDrawClass)
 
         print(
@@ -322,6 +465,58 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_StudWall(self):
+        # create report directory
+        try:
+            os.makedirs('../../Output')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('../../Output/Seismic')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images/beam')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images/post')  # Windows
+        except:
+            pass
+        self.reportGenerator.setEnabled(True)
+        midLineDict = {}
+        lineLabels = None
+        boundaryLineLabels = None
+        shearWallsValues = []
+        shearWallsKeys = []
+        studWallsValues = []
+        studWallsKeys = []
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWall = self.grid[currentTab].shearWall_instance.shearWall_rect_prop
+            studWall = self.grid[currentTab].studWall_instance.studWall_rect_prop
+            shearWallsValues.append(list(shearWall.values()))
+            shearWallsKeys.append(list(shearWall.keys()))
+            studWallsValues.append(list(studWall.values()))
+            studWallsKeys.append(list(studWall.keys()))
+
+        shearWallsEdited = EditLabels(shearWallsValues)
+        studWallsEdited = EditLabels(studWallsValues, "studWall")
+        shearWallsEdited.reverse()
+        studWallsEdited.reverse()
+        shearWallsKeys.reverse()
+        studWallsKeys.reverse()
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWallDict = {}
+            studWallDict = {}
+            for i in range(len(shearWallsEdited[currentTab])):
+                try:
+                    studWallDict[studWallsKeys[currentTab][i]] = studWallsEdited[currentTab][i]
+                except:
+                    pass
+            self.grid[currentTab].studWall_instance.studWall_rect_prop = studWallDict
         self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None

@@ -1,11 +1,12 @@
 import sqlite3
 from UI_Wood.stableVersion5.run.shearWall import ShearWallStoryBy
 from PySide6.QtWidgets import QDialog
-
+from UI_Wood.stableVersion5.path import PathHandler
 
 class ShearWallSync2:
     def __init__(self, GridClass):
         ShearWallOutput = "D://git/Wood/Output/ShearWall_output.db"
+        ShearWallOutput = PathHandler("../../Output/ShearWall_output.db")
         outputDB = sqlite3.connect(ShearWallOutput)
         self.cursorOutput = outputDB.cursor()
         data = self.exportWalls()
