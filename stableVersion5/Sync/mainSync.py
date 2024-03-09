@@ -19,6 +19,7 @@ from UI_Wood.stableVersion5.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion5.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallStoryCount
 import time
+import os
 
 
 class mainSync(Data):
@@ -40,6 +41,27 @@ class mainSync(Data):
         print("REPORT GENERATOR BUTTON CLICKED")
 
     def Run_and_Analysis(self):
+        # create report directory
+        try:
+            os.makedirs('../../Output')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('../../Output/Seismic')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images/beam')  # Windows
+        except:
+            pass
+        try:
+            os.makedirs('images/post')  # Windows
+        except:
+            pass
         self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
@@ -253,9 +275,9 @@ class ControlTab:
             # SHEAR WALL DESIGN
             c = time.time()
 
-            # TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
-            # shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
-            # TransferInstance.get_data_after_run(shearWall, storySW)
+            TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
+            shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
+            TransferInstance.get_data_after_run(shearWall, storySW)
 
             # self.studWallSync = StudWallSync(self.studWalls, height_from_top)
             # loadMapaArea, loadMapMag = LoadMapAreaNew({storySW: midLineDict[str(storySW)]})
