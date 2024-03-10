@@ -10,12 +10,13 @@ from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeis
     NoShearWallLines, MidlineEdit, ShearWallStoryCount, EditLabels, DataBaseSeismic
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion5.post_new import magnification_factor
-from UI_Wood.stableVersion5.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion5.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion5.output.joist_output import Joist_output
 from UI_Wood.stableVersion5.Sync.shearWallSync2 import ShearWallSync2
 from UI_Wood.stableVersion5.Sync.studWallSync2 import StudWallSync2
 from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL, DropTables
+from UI_Wood.stableVersion5.output.studWallSql import studWallSQL
+
 from UI_Wood.stableVersion5.Sync.Transfer import Transfer, DeleteTransferred
 
 from UI_Wood.stableVersion5.run.beam import BeamStoryBy
@@ -413,47 +414,7 @@ class mainSync2(Data):
             DeleteTransferred(self.shearWalls)
             DeleteTransferred(self.studWalls)
             self.shearWallRun = True
-            # self.shearWalls = []
-            # self.joists = []
-            #
-            # for i, Tab in self.tab.items():
-            #     shearWall = Tab["shearWall"]
-            #     joist = Tab["joist"]
-            #
-            #     self.joists.append(joist)
-            #
-            #     self.shearWalls.append(shearWall)
-            #
-            # # Design should be started from Roof.
-            # # self.shearWalls.reverse()
-            #
-            # generalProp = ControlGeneralProp(self.general_properties)
-            # joistOutput = Joist_output(self.joists)
-            #
-            # # SHEAR WALL
-            # # self.loadMapArea, self.loadMapMag = LoadMapArea(self.loadMaps)
-            # JoistArea = JoistSumArea(self.joists)
-            # storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
-            # shearWallSync = ShearWallSync(self.shearWalls, generalProp.height, self.db)
-            # self.studWallSync = StudWallSync(self.studWalls, generalProp.height)
-            #
-            # shearWallExistLine = shearWallSync.shearWallOutPut.shearWallExistLine
-            # noShearWallLines = NoShearWallLines(shearWallExistLine, set(lineLabels))
-            # midLineInstance = MidlineEdit(lineLabels, midLineDict, noShearWallLines)
-            # midLineDictEdited = midLineInstance.newMidline
-            # # boundaryLineNoShearWall = midLineInstance.boundaryLineNoShearWall
-            # LoadMapaArea, LoadMapMag = LoadMapAreaNew(midLineDictEdited)
-            # seismicInstance = ControlSeismicParameter(self.seismic_parameters, storyName, LoadMapaArea, LoadMapMag,
-            #                                           JoistArea)
-            # ControlMidLine(midLineDictEdited)
-            #
-            # print(seismicInstance.seismicPara)
-            # print(midLineDictEdited)
-            # a = time.time()
-            # MainShearwall(seismicInstance.seismicPara, midLineDictEdited)
-            # b = time.time()
-            # print("Shear wall run takes ", (b - a) / 60, " Minutes")
-            # self.shearWallRun = True
+
             dataInstance = ShearWallSync2(self.GridDrawClass)
 
         print(
@@ -534,15 +495,60 @@ class mainSync2(Data):
 
         self.saveFunc()
 
-        self.studWalls = []
+        if self.studWallRun:
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
+            j = 0
+            for story, Tab in tabReversed.items():
+                if j == 0:
+                    storySW = "Roof"
+                else:
+                    storySW = story + 1
+                dataInstance = StudWallSync2(self.GridDrawClass, storySW)
+                j += 1
+        else:
+            DropTables("../../../Output/stud_report.db")
 
-        for i, Tab in self.tab.items():
-            studWall = Tab["studWall"]
+            generalProp = ControlGeneralProp(self.general_properties)
+            height_from_top = list(reversed(generalProp.height))
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
 
-            self.studWalls.append(studWall)
-        generalProp = ControlGeneralProp(self.general_properties)
-        studWallSync = StudWallSync(self.studWalls, generalProp.height)
-        dataInstance = StudWallSync2(self.GridDrawClass)
+            # TRANSFER
+            TransferInstance = Transfer()
+            j = 0
+
+            DropTables("../../../Output/StudWall_Input.db")
+
+            # stud wall database input
+            studWall_input_db = studWallSQL()
+            studWall_input_db.createTable()
+            studWall_input_db.createTable("Exterior")
+            studWall_input_db.createTable("Interior4")
+            studWall_input_db.createTable("Interior6")
+            self.studWalls = []
+            heightTop = None
+            studWallTop = None
+            for story, Tab in tabReversed.items():
+                studWall = Tab["studWall"]
+                if j == 0:
+                    storySW = "Roof"
+                else:
+                    storySW = story + 1
+
+                # CONTROL STACK
+                TransferInstance.StackControl(studWallTop, studWall, storySW, "studWall")
+                # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
+                self.studWallSync = StudWallSync([studWallTop, studWall], [heightTop, height_from_top[j]], storySW,
+                                                 studWall_input_db)
+                self.studWalls.append(studWall)
+                studWallTop = studWall
+                heightTop = height_from_top[j]
+                dataInstance = StudWallSync2(self.GridDrawClass, storySW)
+
+                j += 1
+
+            DeleteTransferred(self.studWalls)
+            self.studWallRun = True
+        # dataInstance = StudWallSync2(self.GridDrawClass)
 
         self.studWallRun = True
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
