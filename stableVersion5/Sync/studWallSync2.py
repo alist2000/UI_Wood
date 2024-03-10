@@ -4,13 +4,13 @@ from PySide6.QtWidgets import QDialog
 
 
 class StudWallSync2:
-    def __init__(self, GridClass):
+    def __init__(self, GridClass, storyName):
         StudWallOutput = "D://git/Wood/Output/stud_report.db"
         outputDB = sqlite3.connect(StudWallOutput)
         self.cursorOutput = outputDB.cursor()
-        data = self.exportWalls()
+        data = self.exportWalls(storyName)
         for story, studWalls in enumerate(list(data.values())):
-            storyName = list(data.keys())[story]
+            # storyName = list(data.keys())[story]
             studWallStoryDesigned = StudWallStoryBy(studWalls, GridClass, storyName)
             if story == len(studWalls) - 1:
                 self.report = True
@@ -19,11 +19,11 @@ class StudWallSync2:
             else:
                 break
 
-    def exportWalls(self):
+    def exportWalls(self, story):
         studWallTable2 = "STUD_REPORT_FILE"
         row = self.cursorOutput.execute(
             f"SELECT story, label, Coordinate_start, Coordinate_end, size, dc, dcr_b,"
-            f" d_comb FROM {studWallTable2}")
+            f" d_comb  FROM {studWallTable2} WHERE story = '{story}'" )
         data = row.fetchall()
 
         stories = set()
