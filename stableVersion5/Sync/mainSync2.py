@@ -317,7 +317,15 @@ class mainSync2(Data):
 
         self.saveFunc()
         if self.shearWallRun:
-            dataInstance = ShearWallSync2(self.GridDrawClass)
+            tabReversed = self.reverse_dict(self.tab)  # top to bottom
+            j = 0
+            for story, Tab in tabReversed.items():
+                if j == 0:
+                    storySW = "Roof"
+                else:
+                    storySW = story + 1
+                dataInstance = ShearWallSync2(self.GridDrawClass, storySW)
+                j += 1
         else:
             DropTables("../../../Output/ShearWall_output.db")
 
@@ -407,6 +415,7 @@ class mainSync2(Data):
                 self.shearWalls.append(shearWall)
                 shearWallTop = shearWall
                 heightTop = height_from_top[j]
+                dataInstance = ShearWallSync2(self.GridDrawClass, storySW)
 
                 j += 1
 
@@ -415,7 +424,6 @@ class mainSync2(Data):
             DeleteTransferred(self.studWalls)
             self.shearWallRun = True
 
-            dataInstance = ShearWallSync2(self.GridDrawClass)
 
         print(
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")

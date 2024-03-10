@@ -3,15 +3,16 @@ from UI_Wood.stableVersion5.run.shearWall import ShearWallStoryBy
 from PySide6.QtWidgets import QDialog
 from UI_Wood.stableVersion5.path import PathHandler
 
+
 class ShearWallSync2:
-    def __init__(self, GridClass):
+    def __init__(self, GridClass, storyName):
         ShearWallOutput = "D://git/Wood/Output/ShearWall_output.db"
         ShearWallOutput = PathHandler("../../Output/ShearWall_output.db")
         outputDB = sqlite3.connect(ShearWallOutput)
         self.cursorOutput = outputDB.cursor()
-        data = self.exportWalls()
+        data = self.exportWalls(storyName)
         for story, shearWalls in enumerate(list(data.values())):
-            storyName = list(data.keys())[story]
+            # storyName = list(data.keys())[story]
             shearWallStoryDesigned = ShearWallStoryBy(shearWalls, GridClass, storyName)
             if story == len(shearWalls) - 1:
                 self.report = True
@@ -20,11 +21,11 @@ class ShearWallSync2:
             else:
                 break
 
-    def exportWalls(self):
+    def exportWalls(self, story):
         shearWallTable2 = "shearwalldesign"
         row = self.cursorOutput.execute(
             f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end,Shearwall_Type, Shear_DCR, tension_dcr_left,"
-            f" comp_dcr_left, tension_dcr_right, comp_dcr_right, deflection_dcr_ FROM {shearWallTable2}")
+            f" comp_dcr_left, tension_dcr_right, comp_dcr_right, deflection_dcr_ FROM {shearWallTable2} WHERE Story = '{story}'")
         data = row.fetchall()
 
         stories = set()
