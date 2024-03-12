@@ -3,12 +3,14 @@ import math
 import sqlite3
 from UI_Wood.stableVersion5.path import PathHandler, shearWallInputPath1, shearWallOutputPath1
 from UI_Wood.stableVersion5.back.load_control import range_intersection
+from UI_Wood.stableVersion5.post_new import magnification_factor
 
 
 class Transfer:
     def __init__(self):
         self.transferListShearWall = []
         self.transferListStudWall = []
+        self.transferListPost = []
 
     def StackControl(self, top, bottom, story, name="studWall"):
         if top:
@@ -24,6 +26,8 @@ class Transfer:
                     item["transfer_to_story"] = story
                     if name == "studWall":
                         self.transferListStudWall.append(item)
+                    elif name == "post":
+                        self.transferListPost.append(item)
                     else:
                         self.transferListShearWall.append(item)
 
@@ -206,6 +210,47 @@ class Transfer:
 
                                 print("SW set on this beam: ", beam)
                             break
+
+    def TransferPointLoads(self, top, beams):
+        if top:
+            transferList = self.transferListPost
+            for post in top:
+                if post in transferList:
+                    coordinateTop = post["coordinate"]
+                    for beam in beams:
+                        coordinateBeam = beam["coordinate"]
+                        beamDirection = beam["direction"]
+                        if beamDirection == "N-S":
+                            constantIndexBeam = 0
+                            constantCoordBeam = coordinateBeam[0][constantIndexBeam]
+                            beamRange = (coordinateBeam[0][1], coordinateBeam[1][1])
+                            beamStartMain = coordinateBeam[0][1]
+
+                        else:
+                            constantIndexBeam = 1
+                            constantCoordBeam = coordinateBeam[0][constantIndexBeam]
+                            beamRange = (coordinateBeam[0][0], coordinateBeam[1][0])
+                            beamStartMain = coordinateBeam[0][0]
+
+                        beamStart = min(beamRange)
+                        beamEnd = max(beamRange)
+                        dist = coordinateTop[constantIndexBeam] - constantCoordBeam
+                        if dist <= magnification_factor / 12 and beamStart <= coordinateTop[
+                            constantIndexBeam - 1] <= beamEnd:  # distance till 1 inch is acceptable
+                            print("this post is transferred", post["label"], "on this beam", beam["label"])
+                            pointLoads = post["load"]["point"]
+                            reactionLoads = post["load"]["reaction"]
+                            for loadType in [pointLoads, reactionLoads]:
+                                for load in loadType:
+                                    beam['load']['point'].append(
+                                        {"distance": abs(beamStartMain - coordinateTop[constantIndexBeam - 1]),
+                                         "magnitude": load["magnitude"],
+                                         "type": load["type"],
+                                         "Transferred": True}
+                                    )
+                            # beam["load"]["point"].extend(
+                            #
+                            # )
 
     @staticmethod
     def get_data_after_run(shearWalls, story):

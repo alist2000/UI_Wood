@@ -245,6 +245,7 @@ class ControlTab:
             # CONTROL STACK
             TransferInstance.StackControl(shearWallTop, shearWall, storySW, "shearWall")
             TransferInstance.StackControl(studWallTop, studWall, storySW, "studWall")
+            TransferInstance.StackControl(postTop, post, storySW, "post")
             print("This list should be transferred: ", TransferInstance.transferListShearWall)
 
             # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
@@ -252,6 +253,9 @@ class ControlTab:
 
             # Transfer Gravity loads from Transferred studWalls to beams.
             TransferInstance.TransferOtherLoads(studWallTop, beam, heightTop, "studWall")
+
+            # Transfer Gravity loads from Transferred posts to beam.
+            TransferInstance.TransferPointLoads(postTop, beam)
 
             # BEAM DESIGN
             c = time.time()
@@ -276,9 +280,9 @@ class ControlTab:
             # Control load root on shear walls and edit labels.
             self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
                                                shearWall_input_db)
-            TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
-            shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
-            TransferInstance.get_data_after_run(shearWall, storySW)
+            # TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
+            # shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
+            # TransferInstance.get_data_after_run(shearWall, storySW)
 
             # self.studWallSync = StudWallSync(self.studWalls, height_from_top)
             # loadMapaArea, loadMapMag = LoadMapAreaNew({storySW: midLineDict[str(storySW)]})
