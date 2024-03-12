@@ -88,7 +88,7 @@ class Transfer:
             conn.commit()
             conn.close()
 
-    def TransferOtherLoads(self, top, beams, aboveHeight, itemName="shearWall"):
+    def TransferOtherLoads(self, top, beams, aboveHeight, itemName="shearWall", story=None):
         if top:
             if itemName == "shearWall":
                 transferList = self.transferListShearWall
@@ -115,11 +115,14 @@ class Transfer:
                             constantIndexBeam = 0
                             constantCoordBeam = coordinateBeam[0][constantIndexBeam]
                             beamRange = (coordinateBeam[0][1], coordinateBeam[1][1])
+                            beamStartMain = coordinateBeam[0][1]
 
                         else:
                             constantIndexBeam = 1
                             constantCoordBeam = coordinateBeam[0][constantIndexBeam]
                             beamRange = (coordinateBeam[0][0], coordinateBeam[1][0])
+                            beamStartMain = coordinateBeam[0][0]
+
                         beamStart = min(beamRange)
                         beamEnd = max(beamRange)
                         if beamStart == coordinateBeam[0][constantIndexBeam - 1]:
@@ -164,6 +167,38 @@ class Transfer:
                                     {'from': shearWall["label"], 'label': 'Self Weight',
                                      'load': [{'type': 'Dead', 'magnitude': deadLoad * aboveHeight}], 'start': swStart,
                                      'end': swEnd, "Transferred": True})
+
+                                if itemName == "shearWall" and story:
+                                    dataBasePath = PathHandler(shearWallOutputPath1)
+                                    conn = sqlite3.connect(dataBasePath)
+                                    cursor = conn.cursor()
+                                    r = cursor.execute(
+                                        "SELECT tesion_demand_left, comp_demand_left, tesion_demand_right, comp_demand_right FROM shearwalldesign WHERE Wall_Label = ? AND Story = ?",
+                                        (
+                                            shearWall["label"][2:], story)
+                                    )
+                                    pointLoads = r.fetchall()
+
+                                    distance1 = abs(beamStartMain - swStart)
+                                    distance2 = abs(beamStartMain - swEnd)
+
+                                    # omega factor = 2.5
+                                    pointset = [
+                                        {"distance": distance1, "magnitude": -pointLoads[0][0] * 2.5, "type": "Seismic",
+                                         "Transferred": True, "set": 1},
+                                        {"distance": distance2, "magnitude": pointLoads[0][3] * 2.5, "type": "Seismic",
+                                         "Transferred": True, "set": 1},
+                                        {"distance": distance1, "magnitude": -pointLoads[0][1] * 2.5, "type": "Seismic",
+                                         "Transferred": True, "set": 2},
+                                        {"distance": distance2, "magnitude": pointLoads[0][2] * 2.5, "type": "Seismic",
+                                         "Transferred": True, "set": 2}
+                                    ]
+                                    print(pointset)
+                                    beam["Transferred"] = True
+                                    beam["load"]["point"].extend(pointset)
+
+                                    print("Point loads from top shear wall printed")
+
                                 # beam["load"]["joist_load"]["load_map"].append(
                                 #     {"distance": distanceValue, "length": shearWall["length"],
                                 #      "magnitude": deadLoad * aboveHeight,
