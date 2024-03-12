@@ -228,6 +228,7 @@ class ControlTab:
         shearWallTop = None
         studWallTop = None
         heightTop = None
+        storySWTop = None
         for story, Tab in tabReversed.items():
             # post = {i: Tab["post"]}
             post = Tab["post"]
@@ -245,11 +246,9 @@ class ControlTab:
             TransferInstance.StackControl(shearWallTop, shearWall, storySW, "shearWall")
             TransferInstance.StackControl(studWallTop, studWall, storySW, "studWall")
             print("This list should be transferred: ", TransferInstance.transferListShearWall)
-            # Control load root on shear walls and edit labels.
-            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
-                                               shearWall_input_db)
+
             # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
-            TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop)
+            TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop, "shearWall", storySWTop)
 
             # Transfer Gravity loads from Transferred studWalls to beams.
             TransferInstance.TransferOtherLoads(studWallTop, beam, heightTop, "studWall")
@@ -274,7 +273,9 @@ class ControlTab:
 
             # SHEAR WALL DESIGN
             c = time.time()
-
+            # Control load root on shear walls and edit labels.
+            self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
+                                               shearWall_input_db)
             TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
             shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
             TransferInstance.get_data_after_run(shearWall, storySW)
@@ -311,6 +312,7 @@ class ControlTab:
             shearWallTop = shearWall
             studWallTop = studWall
             heightTop = height_from_top[j]
+            storySWTop = storySW
 
             j += 1
 
