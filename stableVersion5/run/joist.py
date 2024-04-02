@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 from UI_Wood.stableVersion5.image import image_control
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
 from UI_Wood.stableVersion5.post_new import magnification_factor
+from UI_Wood.stableVersion5.path import PathHandler
 
 
 class DrawJoist(QDialog):
@@ -43,11 +44,11 @@ class DrawJoist(QDialog):
 
         rect_item = joistRectangle(rect_x, rect_y, rect_w, rect_h, properties)
         if properties["direction"] == "E-W":
-            imagePath = "images/e_w.png"
+            imagePath = PathHandler("images/e_w.png")
             x_size = x1
             y_size = y2
         else:
-            imagePath = "images/n_s.png"
+            imagePath = PathHandler("images/n_s.png")
             x_size = x2
             y_size = y1
 

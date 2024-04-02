@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.1")
 from post_new import magnification_factor
 from sympy import Point, Polygon, Segment, Line
 

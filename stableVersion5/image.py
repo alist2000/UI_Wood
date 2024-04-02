@@ -1,5 +1,6 @@
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtWidgets import QGraphicsPixmapItem
+from UI_Wood.stableVersion5.path import PathHandler
 
 
 class image_control:
@@ -7,7 +8,7 @@ class image_control:
         if path:
             self.path = path
         else:
-            self.path = "images/n_s.png"
+            self.path = PathHandler("images/n_s.png")
 
         self.x = x
         self.y = y

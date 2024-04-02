@@ -1,4 +1,3 @@
-from joist_prop import JoistLoad
 from PySide6.QtWidgets import QMainWindow, QApplication, QToolBar, QStatusBar, QVBoxLayout, QWidget, QDialog, QLabel, \
     QSpinBox, QDialogButtonBox, QListWidget, QListWidgetItem, QPushButton, QTextEdit, QTableWidgetItem
 from PySide6.QtGui import QPixmap, QIcon
@@ -7,8 +6,7 @@ from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
     QTableWidget, QAbstractItemView, QCheckBox
 
-from PySide6.QtCore import Qt, QRectF
-from PySide6.QtGui import QPen, QColor
+from path import PathHandler
 
 import uuid
 
@@ -66,7 +64,7 @@ class set_uniform_load(QDialog):
             # Add a new row to the list widget if OK was clicked
             item = QListWidgetItem(self.load_data["name"])
             if not deadSuperExist:
-                item.setIcon(QIcon("D:/git/Wood/UI_Wood/stableVersion5/images/warning.png"))
+                item.setIcon(QIcon(PathHandler("images/warning.png")))
                 item.setToolTip(
                     "<html><body<h1 >Warning!</h1>"
                     "Super Dead is not defined.<ul><li>Please enter 'super dead' loads for all load sets, Or the seismic analysis will not be carried out.</li><li>In set dead loads are defined"
@@ -125,7 +123,7 @@ class set_uniform_load(QDialog):
                 # Add a new row to the list widget if OK was clicked
                 item = QListWidgetItem(dialog.uniform_load.load_data["name"])
                 if not deadSuperExist:
-                    item.setIcon(QIcon("D:/git/Wood/UI_Wood/stableVersion5/images/warning.png"))
+                    item.setIcon(QIcon(PathHandler("images/warning.png")))
                     item.setToolTip(
                         "<html><body><h1>Warning!</h1>Super Dead is not defined.<li>Please enter 'super dead' loads for all load sets, Or the seismic analysis will not be carried out.</li><li>In set dead loads are defined"
                         "but super dead loads are left empty, They will be assumed 10 psf greater than dead loads.</li></body></html>")

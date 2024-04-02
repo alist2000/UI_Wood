@@ -4,8 +4,7 @@ from PySide6.QtCore import Qt, QPointF, QTimer
 from PySide6.QtGui import QPen, QBrush, QColor, QKeyEvent
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox
-
-from post_new import magnification_factor
+from path import PathHandler
 from image import image_control
 from DeActivate import deActive
 from joist_prop import JoistProperties
@@ -53,9 +52,9 @@ class joistDrawing(QGraphicsRectItem):
 
             rect_item = joistRectangle(rect_x, rect_y, rect_w, rect_h, self.rect_prop)
             if properties["direction"] == "E-W":
-                imagePath = "images/e_w.png"
+                imagePath = PathHandler("images/e_w.png")
             else:
-                imagePath = "images/n_s.png"
+                imagePath = PathHandler("images/n_s.png")
 
             image = image_control(rect_x, rect_y, rect_w, rect_h, rect_item, imagePath)
             rect_item.image = image

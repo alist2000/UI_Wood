@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 
-sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.back.load_control import distance
 

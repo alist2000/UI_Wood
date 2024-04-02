@@ -1,10 +1,9 @@
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\11.5")
-from back.beam_control import beam_control_joist
-from back.load_control import range_intersection
+from UI_Wood.stableVersion5.back.beam_control import beam_control_joist
+from UI_Wood.stableVersion5.back.load_control import range_intersection
 
-from post_new import magnification_factor
+from UI_Wood.stableVersion5.post_new import magnification_factor
 
 
 class BeamOnShearWall:

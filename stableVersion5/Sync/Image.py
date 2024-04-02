@@ -1,5 +1,6 @@
 from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QPen, QPainter, QBrush, QPixmap
+from UI_Wood.stableVersion5.path import PathHandler
 
 
 def saveImage(grid, currentTab):
@@ -35,4 +36,4 @@ def saveImage(grid, currentTab):
     painter.end()
 
     # Save the QPixmap as an image file
-    pixmap.save(f"images/output/Story{currentTab + 1}.png")
+    pixmap.save(PathHandler(f"images/output/Story{currentTab + 1}.png"))

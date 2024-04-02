@@ -1,14 +1,13 @@
 import copy
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion5")
-
 from UI_Wood.stableVersion5.output.beam_output import beam_output
 from WOOD_DESIGN.mainbeamnewupdated import MainBeam
 from UI_Wood.stableVersion5.Sync.reaction import Control_reaction, Reaction_On
 from UI_Wood.stableVersion5.output.beamSql import beamSQL, WriteBeamInputSQL
 from UI_Wood.stableVersion5.run.beam import BeamStoryBy
 from UI_Wood.stableVersion5.section import SelectBeam
+from UI_Wood.stableVersion5.path import PathHandler
 from PySide6.QtWidgets import QDialog
 
 
@@ -119,9 +118,11 @@ class BeamSync:
                     selectedBeamInstance = SelectBeam(sections, m_dcr, v_dcr, deflection_dcr)
                     selectedBeam = selectedBeamInstance.final_check()
                     figures[selectedBeam][0].write_image(
-                        f"images/beam/Beam_external_story{story + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png")
+                        PathHandler(
+                            f"images/beam/Beam_external_story{story + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
                     figures[selectedBeam][1].write_image(
-                        f"images/beam/Beam_internal_story{story + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png")
+                        PathHandler(
+                            f"images/beam/Beam_internal_story{story + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
                     self.output_db.cursor1.execute(
                         'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                         queries[selectedBeam])
@@ -143,9 +144,9 @@ class BeamSync:
                     if beam_analysis.query[0] != "No Section Was Adequate":
                         figs = beam_analysis.plots
                         figs[0].write_image(
-                            f"images/beam/Beam_external_story{story + 1}_label_{beam_['label']}.png")
+                            PathHandler(f"images/beam/Beam_external_story{story + 1}_label_{beam_['label']}.png"))
                         figs[1].write_image(
-                            f"images/beam/Beam_internal_story{story + 1}_label_{beam_['label']}.png")
+                            PathHandler(f"images/beam/Beam_internal_story{story + 1}_label_{beam_['label']}.png"))
                         # WriteBeamInputSQL(beam_, str(story + 1), beamId, inputDB)
 
                         beam_analysis.query.insert(0, str(self.beamId))
@@ -244,9 +245,11 @@ class BeamSync:
                 beamDesigned.append(beamOutput.beamProperties[selectedBeam]['label'])
 
                 figures[selectedBeam][0].write_image(
-                    f"images/beam/Beam_external_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png")
+                    PathHandler(
+                        f"images/beam/Beam_external_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
                 figures[selectedBeam][1].write_image(
-                    f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png")
+                    PathHandler(
+                        f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
                 db.cursor1.execute(
                     'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                     queries[selectedBeam])
@@ -280,9 +283,9 @@ class BeamSync:
                     if beam_analysis.query[0] != "No Section Was Adequate" and beam_analysis.query[0] != 'NOT FOUND':
                         figs = beam_analysis.plots
                         figs[0].write_image(
-                            f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
+                            PathHandler(f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png"))
                         figs[1].write_image(
-                            f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png")
+                            PathHandler(f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png"))
                         beam_analysis.query.insert(0, str(beamId))
                         beam_analysis.query.insert(1, str(tabNumber + 1))
                         beam_analysis.query.insert(2, beam_["label"])
@@ -401,9 +404,11 @@ class beamAnalysisSync:
                             if beam_analysis.query[0] != "No Section Was Adequate":
                                 figs = beam_analysis.plots
                                 figs[0].write_image(
-                                    f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
+                                    PathHandler(
+                                        f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png"))
                                 figs[1].write_image(
-                                    f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png")
+                                    PathHandler(
+                                        f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png"))
                                 # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
 
                                 beam_analysis.query.insert(0, str(beamId))
@@ -522,9 +527,9 @@ class beamAnalysisSync:
                     if beam_analysis.query[0] != "No Section Was Adequate" and beam_analysis.query[0] != 'NOT FOUND':
                         figs = beam_analysis.plots
                         figs[0].write_image(
-                            f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png")
+                            PathHandler(f"images/beam/Beam_external_story{tabNumber + 1}_label_{beam_['label']}.png"))
                         figs[1].write_image(
-                            f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png")
+                            PathHandler(f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beam_['label']}.png"))
                         beam_analysis.query.insert(0, str(beamId))
                         beam_analysis.query.insert(1, str(tabNumber + 1))
                         beam_analysis.query.insert(2, beam_["label"])

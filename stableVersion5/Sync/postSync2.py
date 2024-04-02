@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append(r"D:\git\Wood\UI_Wood\stableVersion5")
 from UI_Wood.stableVersion5.output.post_output import post_output
 from UI_Wood.stableVersion5.Sync.beamSync import roundAll
 from WOOD_DESIGN.mainpost import MainPost

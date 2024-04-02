@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append(r"D:\Learning\Qt\code\practice\UI_Wood\08.")
 from post_new import magnification_factor
 from back.load_control import load_joist_on_beam, range_intersection
 

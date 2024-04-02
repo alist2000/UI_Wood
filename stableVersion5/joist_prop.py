@@ -7,6 +7,7 @@ from PySide6.QtGui import QPen, QColor, QBrush
 
 from area_centroid_calculator import calculate_centroid_and_area
 from post_new import magnification_factor
+from UI_Wood.stableVersion5.path import PathHandler
 
 
 class JoistProperties(QDialog):
@@ -68,9 +69,9 @@ class JoistProperties(QDialog):
     def accept_control(self):
         self.final_direction = self.default
         if self.final_direction == "N-S":
-            picture_path = "images/n_s.png"
+            picture_path = PathHandler("images/n_s.png")
         else:
-            picture_path = "images/e_w.png"
+            picture_path = PathHandler("images/e_w.png")
         self.image.change_image(picture_path, self.scene)
         self.rect_prop[self.rectItem]["direction"] = self.final_direction
         self.accept()
