@@ -1,7 +1,7 @@
 from UI_Wood.stableVersion5.post_new import magnification_factor
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPen
+from PySide6.QtGui import QPen, QBrush
 from PySide6.QtWidgets import QGraphicsLineItem
 
 
@@ -240,3 +240,23 @@ class SelectableLineItem(QGraphicsLineItem):
             self.setSelected(False)
             self.setPen(QPen(Qt.black, 1, Qt.SolidLine))  # Set pen on the SelectableLineItem object
         super().mouseReleaseEvent(event)
+
+
+class PointDrawing:
+    def __init__(self, scene):
+        self.scene = scene
+
+    def Draw(self, points, color):
+        for x, y in points:
+            # Create a point (a QGraphicsEllipseItem)
+            point_item = self.scene.addEllipse(x - 2, y - 2, 4, 4, QPen(color), QBrush(color))
+            # Adjust the position if necessary
+            # point_item.setPos(x, y)
+
+    @staticmethod
+    def FindPoints(x_grid, y_grid):
+        y_positions = [i["position"] for i in x_grid]
+        x_positions = [i["position"] for i in y_grid]
+        y_positions.sort()
+        x_positions.sort()
+        return [(x_positions[0], y_positions[0]), (x_positions[1], y_positions[0])]
