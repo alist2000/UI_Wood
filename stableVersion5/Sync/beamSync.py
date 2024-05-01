@@ -240,26 +240,27 @@ class BeamSync:
                                 sections.append(newQuery[7])
                                 beamAnalysed.append(beam_analysis)
 
-                selectedBeamInstance = SelectBeam(sections, m_dcr, v_dcr, deflection_dcr)
-                selectedBeam = selectedBeamInstance.final_check()
-                beamDesigned.append(beamOutput.beamProperties[selectedBeam]['label'])
+                if sections:
+                    selectedBeamInstance = SelectBeam(sections, m_dcr, v_dcr, deflection_dcr)
+                    selectedBeam = selectedBeamInstance.final_check()
+                    beamDesigned.append(beamOutput.beamProperties[selectedBeam]['label'])
 
-                figures[selectedBeam][0].write_image(
-                    PathHandler(
-                        f"images/beam/Beam_external_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
-                figures[selectedBeam][1].write_image(
-                    PathHandler(
-                        f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
-                db.cursor1.execute(
-                    'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                    queries[selectedBeam])
-                db.conn1.commit()
-                BeamStory.append(beamOutput.beamProperties[selectedBeam])
+                    figures[selectedBeam][0].write_image(
+                        PathHandler(
+                            f"images/beam/Beam_external_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
+                    figures[selectedBeam][1].write_image(
+                        PathHandler(
+                            f"images/beam/Beam_internal_story{tabNumber + 1}_label_{beamOutput.beamProperties[selectedBeam]['label']}.png"))
+                    db.cursor1.execute(
+                        'INSERT INTO BEAM (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                        queries[selectedBeam])
+                    db.conn1.commit()
+                    BeamStory.append(beamOutput.beamProperties[selectedBeam])
 
-                Control_reaction(beamAnalysed[selectedBeam].output.post_output, BeamPackage[selectedBeam],
-                                 reaction_list)
-                # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
-                beamId += 1
+                    Control_reaction(beamAnalysed[selectedBeam].output.post_output, BeamPackage[selectedBeam],
+                                     reaction_list)
+                    # WriteBeamInputSQL(beam_, str(tabNumber + 1), beamId, inputDB)
+                    beamId += 1
 
         # if len(Posts) == 1 and len(ShearWalls) == 1:
         #     # we will be here in two situation:
@@ -276,6 +277,8 @@ class BeamSync:
                 label = beam_["label"]
 
                 if label not in beam_support and label not in beamDesigned:
+                    print("ANALYSED BEAM: ", label)
+
                     # BEAM SHOULD ANALYZE FIRST
                     beam_analysis = MainBeam(beam_)
 
