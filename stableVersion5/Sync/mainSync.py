@@ -280,9 +280,9 @@ class ControlTab:
             # Control load root on shear walls and edit labels.
             self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [heightTop, height_from_top[j]], storySW,
                                                shearWall_input_db)
-            # TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
-            # shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
-            # TransferInstance.get_data_after_run(shearWall, storySW)
+            TransferInstance.TransferShear(shearWallTop, shearWall, storySW)
+            shearWallDesign.to_master_shearwall(storySW, len(tabReversed))
+            TransferInstance.get_data_after_run(shearWall, storySW)
 
             # self.studWallSync = StudWallSync(self.studWalls, height_from_top)
             # loadMapaArea, loadMapMag = LoadMapAreaNew({storySW: midLineDict[str(storySW)]})
