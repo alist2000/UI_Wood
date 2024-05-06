@@ -9,7 +9,7 @@ from UI_Wood.stableVersion5.layout.AreaDraw import AreaDraw
 
 
 class secondTabWidgetLayout(QMainWindow):
-    def __init__(self, inputs, ReportData):
+    def __init__(self, inputs):
         super().__init__()
         self.slider = None
         self.tabWidget = QTabWidget()
@@ -26,13 +26,14 @@ class secondTabWidgetLayout(QMainWindow):
         self.setCentralWidget(self.tabWidget)
         # self.show()
 
-        self.PostList, self.BeamList, self.JoistList, self.ShearWallList, self.StudWallList = ReportData.LayoutOutput()
-
-        self.create_tab()
+        # self.PostList, self.BeamList, self.JoistList, self.ShearWallList, self.StudWallList = ReportData.LayoutOutput()
+        #
+        # self.create_tab()
 
         print(inputs)
 
-    def create_tab(self):
+    def create_tab(self, PostList, BeamList, JoistList, ShearWallList, StudWallList, opacity, imagePath, reportTypes):
+
         for i in range(self.level_number):
             tab = QWidget()
             self.tabWidget.addTab(tab, f"Story {i + 1}")
@@ -57,28 +58,30 @@ class secondTabWidgetLayout(QMainWindow):
             v_main_layout.addLayout(h_layout, 25)
 
             try:
-                postLabels, postCoordinate = self.PostList[str(story)]["label"], self.PostList[str(story)]["coordinate"]
+                postLabels, postCoordinate = PostList[str(story)]["label"], PostList[str(story)]["coordinate"]
                 # STORY NUMBER
                 label = StoryLabel(i, -110)
                 grid.scene.addItem(label)
                 # Post Image
-                PointDraw(self.PostList[str(story)], grid.scene, i)
+                PointDraw(PostList[str(story)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i],
+                          reportTypes)
             except KeyError:
                 pass
             try:
 
-                beamLabels, beamCoordinate = self.BeamList[str(story)]["label"], self.BeamList[str(story)]["coordinate"]
+                beamLabels, beamCoordinate = BeamList[str(story)]["label"], BeamList[str(story)]["coordinate"]
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                LineDraw(self.BeamList[str(story)], grid.scene, i, "beam")
+                LineDraw(BeamList[str(story)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i],
+                         reportTypes, "beam")
             except KeyError:
                 pass
 
             try:
-                shearWallLabels, shearWallCoordinate = self.ShearWallList[str(storyWall)]["label"], \
-                                                       self.ShearWallList[str(storyWall)]["coordinate"]
+                shearWallLabels, shearWallCoordinate = ShearWallList[str(storyWall)]["label"], \
+                                                       ShearWallList[str(storyWall)]["coordinate"]
                 editedLabel = []
                 for label in shearWallLabels:
                     new = "SW" + label
@@ -87,13 +90,15 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                LineDraw(self.ShearWallList[str(storyWall)], grid.scene, i, "shearWall")
+                LineDraw(ShearWallList[str(storyWall)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i],
+                         imagePath[i], reportTypes,
+                         "shearWall")
             except KeyError:
                 pass
 
             try:
-                studWallLabels, studWallCoordinate = self.StudWallList[str(storyWall)]["label"], \
-                                                     self.StudWallList[str(storyWall)]["coordinate"]
+                studWallLabels, studWallCoordinate = StudWallList[str(storyWall)]["label"], \
+                                                     StudWallList[str(storyWall)]["coordinate"]
                 editedLabel = []
                 for label in studWallLabels:
                     new = "ST" + label
@@ -102,19 +107,22 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                LineDraw(self.StudWallList[str(storyWall)], grid.scene, i, "studWall")
+                LineDraw(StudWallList[str(storyWall)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i],
+                         imagePath[i], reportTypes,
+                         "studWall")
             except KeyError:
                 pass
 
             try:
-                joistLabels, joistCoordinate, joistOrientations = self.JoistList[str(story)]["label"], \
-                                                                  self.JoistList[str(story)]["coordinate"], \
-                                                                  self.JoistList[str(story)]["direction"]
+                joistLabels, joistCoordinate, joistOrientations = JoistList[str(story)]["label"], \
+                                                                  JoistList[str(story)]["coordinate"], \
+                                                                  JoistList[str(story)]["direction"]
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                AreaDraw(self.JoistList[str(story)], grid.scene, i)
+                AreaDraw(JoistList[str(story)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i],
+                         reportTypes)
             except KeyError:
                 pass
 

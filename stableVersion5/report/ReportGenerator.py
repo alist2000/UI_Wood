@@ -1,3 +1,5 @@
+import copy
+
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QCheckBox, QWidget, QTabWidget, QVBoxLayout, QPushButton, \
     QLabel, QSpacerItem, QSizePolicy
 from PySide6.QtCore import Qt
@@ -11,9 +13,10 @@ from Report_Lab.version3.main import Main
 
 
 class ReportGeneratorTab(QWidget):
-    def __init__(self, storyCount, general_information):
+    def __init__(self, storyCount, general_information, second_tab):
         super(ReportGeneratorTab, self).__init__()
         self.general_information = general_information
+        self.second_tab = second_tab
         self.result = {}
         self.setWindowTitle("Report Generation")
 
@@ -99,7 +102,29 @@ class ReportGeneratorTab(QWidget):
         self.result["joist"] = joistList
         self.result["shearWall"] = shearWallList
         self.result["studWall"] = studWallList
-
+        print(self.mainTable.JoistsLayout)
+        if self.mainTable.PostsLayout:
+            selected_posts = self.selected_items(self.mainTable.PostsLayout, postList)
+        else:
+            selected_posts = {}
+        if self.mainTable.BeamsLayout:
+            selected_beams = self.selected_items(self.mainTable.BeamsLayout, beamList)
+        else:
+            selected_beams = self.mainTable.BeamsLayout
+        if self.mainTable.JoistsLayout:
+            selected_joists = self.selected_items(self.mainTable.JoistsLayout, joistList)
+        else:
+            selected_joists = self.mainTable.JoistsLayout
+        if self.mainTable.ShearWallsLayout:
+            selected_shearWalls = self.selected_items(self.mainTable.ShearWallsLayout, shearWallList, "shearWall")
+        else:
+            selected_shearWalls = self.mainTable.ShearWallsLayout
+        if self.mainTable.StudWallsLayout:
+            selected_studWalls = self.selected_items(self.mainTable.StudWallsLayout, studWallList, "studWall")
+        else:
+            selected_studWalls = self.mainTable.StudWallsLayout
+        self.second_tab.create_tab(selected_posts, selected_beams, selected_joists, selected_shearWalls,
+                                   selected_studWalls, self.mainTable.opacity, self.mainTable.imagePath, reportTypes)
         Main(reportTypes, self.result, self.general_information)
 
         print("REPORTS GENERATED")
@@ -111,6 +136,46 @@ class ReportGeneratorTab(QWidget):
         ShearWalls = self.mainTable.ShearWallsLayout
         StudWalls = self.mainTable.StudWallsLayout
         return Posts, Beams, Joists, ShearWalls, StudWalls
+
+    @staticmethod
+    def selected_items(all_items, selected_items, name="beam"):
+        selected_indexes = []
+        for i in range(len(selected_items)):
+            story = i + 1
+            try:
+                all_items_story = all_items[str(story)]
+            except:
+                all_items_story = all_items["Roof"]
+            all_label = all_items_story["label"]
+            selected_index_story = []
+
+            for index_number, item in enumerate(selected_items[i]):
+                if name == "shearWall" or name == "studWall":
+                    item = str(item[2:])
+                if item in all_label:
+                    selected_index_story.append(all_label.index(item))
+            selected_indexes.append(selected_index_story)
+
+        # make an empty copy from all_items to keep format
+        all_items_copy = copy.deepcopy(all_items)
+        for storyItem in all_items_copy.values():
+            for key, value in storyItem.items():
+                storyItem[key] = []
+
+        for story, items in all_items.items():
+            if story == "Roof":
+                i = -1
+            else:
+                i = int(story) - 1
+            try:
+                selected_indexes_story = selected_indexes[i]
+                for key, value in items.items():
+                    for number, item in enumerate(value):
+                        if number in selected_indexes_story:
+                            all_items_copy[story][key].append(item)
+            except:
+                pass
+        return all_items_copy
 
 
 def dataExtract(Dict):
@@ -168,6 +233,8 @@ class ReportMainTable:
         self.labelAllShearWall = []
         self.labelAllStudWall = []
         self.comboBoxes = []
+        self.opacity = []
+        self.imagePath = []
 
         for story in range(storyCount):
             # Create tab pages
@@ -213,11 +280,10 @@ class ReportMainTable:
             layout1.addLayout(mainLayout, 20)
             layout1.addItem(spacer)
 
-            # self.checkAll.stateChanged.connect(self.checkAllFunc)
-            print("hoy hoy hoy")
-
             # Set layout for tab 1
             tab1.setLayout(layout1)
+            self.opacity.append(40)
+            self.imagePath.append("images/output/image2.png")
 
             # Add tabs to the tab widget
             tab_widget.addTab(tab1, f"Story {story + 1}")
@@ -333,16 +399,16 @@ class ReportMainTable:
         elif itemName == "shearWall":
 
             # Fetch all the rows
-            cursorOutput.execute(f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end, Shearwall_Type, Shear_DCR, tension_dcr_left, comp_dcr_left, tension_dcr_right, comp_dcr_right, deflection_dcr_ FROM {tableOutput}")
+            cursorOutput.execute(
+                f"SELECT Story, Wall_Label, Coordinate_start, Coordinate_end, Shearwall_Type, Shear_DCR, tension_dcr_left, comp_dcr_left, tension_dcr_right, comp_dcr_right, deflection_dcr_ FROM {tableOutput}")
             rows = cursorOutput.fetchall()
 
         else:
 
             # Fetch all the rows
-            cursorOutput.execute(f"SELECT STORY, LABEL, Coordinate_start, Coordinate_end, SIZE, dc, dcr_b, d_comb FROM {tableOutput}")
+            cursorOutput.execute(
+                f"SELECT STORY, LABEL, Coordinate_start, Coordinate_end, SIZE, dc, dcr_b, d_comb FROM {tableOutput}")
             rows = cursorOutput.fetchall()
-
-
 
         # Close the connection
         conn.close()
