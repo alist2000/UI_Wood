@@ -1,16 +1,21 @@
-from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
+from UI_Wood.stableVersion5.path import PathHandler
 from UI_Wood.stableVersion5.post_new import magnification_factor, CustomRectItem
 from UI_Wood.stableVersion5.mouse import SelectableLineItem
 
 from PySide6.QtGui import QPainter, QPixmap, QFont, QPen, QBrush, QColor
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel
+from UI_Wood.Image_Overlay.main import CombineImage
+from UI_Wood.stableVersion5.layout.grid import color_range, color
+from UI_Wood.stableVersion5.line import PointDrawing
 
 
 class PointDraw:
-    def __init__(self, properties, scene, story):
+    def __init__(self, properties, scene, story, x_grid, y_grid, opacity, imagePath, reportTypes):
         self.story = story
         self.scene = scene
+        self.opacity = opacity
+        self.imagePath = imagePath
         coordinates = properties["coordinate"]
         labels = properties["label"]
         self.post_dimension = 3 * magnification_factor  # Set post dimension
@@ -64,49 +69,53 @@ class PointDraw:
             # Label.setWidget(LabelText)
             PostLabel(x, y, scene, labels[i])
             # return rect_item
+
+        pointDrawing = PointDrawing(scene)
+        points = pointDrawing.FindPoints(x_grid, y_grid)
+        pointDrawing.Draw(points, color)
         self.saveImage()
+        if "Detail" in reportTypes:
+            for i, coordinate in enumerate(coordinates):
+                size = properties["size"][i]
+                axial_dcr = properties["axial_dcr"][i]
+                x, y = coordinate
+                rect_width = rect_height = self.post_dimension
+                rect_item = CustomRectItem(None, "not normal")
+                rect_item.setRect(x - rect_width / 2, y - rect_height / 2, rect_width, rect_height)
+                mainText = QGraphicsProxyWidget()
+                dcr = QLabel(f"Axial DCR: {axial_dcr}")
+                font = QFont()
+                font.setPointSize(20)
+                dcr.setFont(font)
+                mainText.setWidget(dcr)
+                # text = QGraphicsTextItem("Hello, PySide6!")
 
-        for i, coordinate in enumerate(coordinates):
-            size = properties["size"][i]
-            axial_dcr = properties["axial_dcr"][i]
-            x, y = coordinate
-            rect_width = rect_height = self.post_dimension
-            rect_item = CustomRectItem(None, "not normal")
-            rect_item.setRect(x - rect_width / 2, y - rect_height / 2, rect_width, rect_height)
-            mainText = QGraphicsProxyWidget()
-            dcr = QLabel(f"Axial DCR: {axial_dcr}")
-            font = QFont()
-            font.setPointSize(20)
-            dcr.setFont(font)
-            mainText.setWidget(dcr)
-            # text = QGraphicsTextItem("Hello, PySide6!")
+                # Set the color of the text to red
+                mainText.setPos(x - rect_width, y + 0.6 * rect_width)
+                if axial_dcr > 1:
+                    dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
+                    self.scene.addItem(mainText)
+                else:
+                    dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-            # Set the color of the text to red
-            mainText.setPos(x - rect_width, y + 0.6 * rect_width)
-            if axial_dcr > 1:
-                dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : red; }")
-                self.scene.addItem(mainText)
-            else:
-                dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
+                # LabelText = QLabel(label)
+                self.scene.addItem(rect_item)
 
-            # LabelText = QLabel(label)
-            self.scene.addItem(rect_item)
-
-            # Label = QGraphicsProxyWidget()
-            # LabelText = QLabel(labels[i])
-            # font = QFont()
-            # font.setPointSize(25)
-            # LabelText.setFont(font)
-            # LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
-            # Label.setWidget(LabelText)
-            #
-            # # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
-            # Label.setPos(x - 1.1 * rect_width, y - 1.1 * rect_width)
-            #
-            # self.scene.addItem(Label)
-            scene.addItem(rect_item)
-            self.saveImageElement(labels[i])
-            self.scene.removeItem(rect_item)
+                # Label = QGraphicsProxyWidget()
+                # LabelText = QLabel(labels[i])
+                # font = QFont()
+                # font.setPointSize(25)
+                # LabelText.setFont(font)
+                # LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
+                # Label.setWidget(LabelText)
+                #
+                # # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
+                # Label.setPos(x - 1.1 * rect_width, y - 1.1 * rect_width)
+                #
+                # self.scene.addItem(Label)
+                scene.addItem(rect_item)
+                self.saveImageElement(labels[i])
+                self.scene.removeItem(rect_item)
 
         for item in scene.items():
             if item and (
@@ -147,7 +156,20 @@ class PointDraw:
         painter.end()
 
         # Save the QPixmap as an image file
-        pixmap.save(f"images/output/Posts_story{self.story + 1}.png")
+
+        pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}_first.png"))
+        # Opacity_percent = 40  # Example opacity percentage provided by the user
+        Opacity_percent = 40  # Example opacity percentage provided by the user
+        Output_path = f"images/output/Posts_story{self.story + 1}.png"
+        Image1_path = f"images/output/Posts_story{self.story + 1}_first.png"
+        # Image2_path = "images/output/image2.png"
+        Image2_path = self.imagePath
+        comb = CombineImage(Image1_path, Image2_path)
+        output = comb.overlay(Output_path, Opacity_percent, color_range)
+        if not output:
+            pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}.png"))
+
+        print(output)
 
     def saveImageElement(self, label):
         # Create a QPixmap to hold the image of the scene

@@ -7,12 +7,18 @@ from UI_Wood.stableVersion5.post_new import magnification_factor
 from PySide6.QtGui import QPainter, QPixmap, QBrush, QPen, QColor, QFont
 from PySide6.QtCore import QRectF, Qt, QPointF, QLineF, QPoint, QSize, QRect
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, QHBoxLayout
+from UI_Wood.stableVersion5.path import PathHandler
+from UI_Wood.stableVersion5.layout.grid import color_range, color
+from UI_Wood.stableVersion5.line import PointDrawing
+from UI_Wood.Image_Overlay.main import CombineImage
 
 
 class AreaDraw:
-    def __init__(self, properties, scene, story):
+    def __init__(self, properties, scene, story, x_grid, y_grid, opacity, imagePath, reportTypes):
         self.story = story
         self.scene = scene
+        self.opacity = opacity
+        self.imagePath = imagePath
         self.labels = properties["label"]
         self.orientations = properties["direction"]
         coordinates = properties["coordinate"]
@@ -26,15 +32,18 @@ class AreaDraw:
             joistProp = [coordinate, size, bending_dcr, shear_dcr, deflection_dcr]
             joistDraw(self, joistProp, i)
 
+        pointDrawing = PointDrawing(scene)
+        points = pointDrawing.FindPoints(x_grid, y_grid)
+        pointDrawing.Draw(points, color)
         self.saveImage()
-
-        for i, coordinate in enumerate(coordinates):
-            bending_dcr = properties["bending_dcr"][i]
-            shear_dcr = properties["shear_dcr"][i]
-            deflection_dcr = properties["deflection_dcr"][i]
-            size = properties["size"][i]
-            joistProp = [coordinate, size, bending_dcr, shear_dcr, deflection_dcr]
-            joistDraw(self, joistProp, i, "not normal")
+        if "Detail" in reportTypes:
+            for i, coordinate in enumerate(coordinates):
+                bending_dcr = properties["bending_dcr"][i]
+                shear_dcr = properties["shear_dcr"][i]
+                deflection_dcr = properties["deflection_dcr"][i]
+                size = properties["size"][i]
+                joistProp = [coordinate, size, bending_dcr, shear_dcr, deflection_dcr]
+                joistDraw(self, joistProp, i, "not normal")
 
         for item in scene.items():
             if item and (
@@ -75,7 +84,15 @@ class AreaDraw:
         painter.end()
 
         # Save the QPixmap as an image file
-        pixmap.save(f"images/output/Joists_story{self.story + 1}.png")
+        pixmap.save(PathHandler(f"images/output/Joists_story{self.story + 1}_first.png"))
+        Opacity_percent = self.opacity  # Example opacity percentage provided by the user
+        Output_path = f"images/output/Joists_story{self.story + 1}.png"
+        Image1_path = f"images/output/Joists_story{self.story + 1}_first.png"
+        Image2_path = self.imagePath
+        comb = CombineImage(Image1_path, Image2_path)
+        output = comb.overlay(Output_path, Opacity_percent, color_range)
+        if not output:
+            pixmap.save(PathHandler(f"images/output/Joists_story{self.story + 1}.png"))
 
     def saveImageElement(self, label):
         # Create a QPixmap to hold the image of the scene
@@ -110,7 +127,7 @@ class AreaDraw:
         painter.end()
 
         # Save the QPixmap as an image file
-        pixmap.save(f"images/output/Joists_label_{label}_story{self.story + 1}.png")
+        pixmap.save(PathHandler(f"images/output/Joists_label_{label}_story{self.story + 1}.png"))
 
 
 class joistDraw:
@@ -125,11 +142,11 @@ class joistDraw:
         rect_x, rect_y, rect_w, rect_h = min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1)
 
         if superClass.orientations[i] == "N-S":
-            path = "images/n_s.png"
+            path = PathHandler("images/n_s.png")
             x_size = x2
             y_size = y1
         else:
-            path = "images/e_w.png"
+            path = PathHandler("images/e_w.png")
             x_size = x1
             y_size = y2
         self.rect_item = joistRectangle(rect_x, rect_y, rect_w, rect_h, None)

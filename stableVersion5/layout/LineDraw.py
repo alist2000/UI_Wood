@@ -8,12 +8,18 @@ from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, 
     QGraphicsRectItem, QHBoxLayout, QGraphicsPolygonItem, QGraphicsItemGroup
 from PySide6.QtGui import QPen, QBrush, QColor, QPainterPath
 import math
+from UI_Wood.stableVersion5.path import PathHandler
+from UI_Wood.stableVersion5.layout.grid import color_range, color
+from UI_Wood.stableVersion5.line import PointDrawing
+from UI_Wood.Image_Overlay.main import CombineImage
 
 
 class LineDraw:
-    def __init__(self, properties, scene, story, lineType):
+    def __init__(self, properties, scene, story, x_grid, y_grid, opacity, imagePath, reportTypes, lineType):
         self.story = story
         self.scene = scene
+        self.opacity = opacity
+        self.imagePath = imagePath
         self.labels = properties["label"]
         coordinates = properties["coordinate"]
         self.lineType = lineType.capitalize()
@@ -49,35 +55,38 @@ class LineDraw:
                 # self.studWallDraw(coordinate, i)
                 studWallDraw(self, studProp, i)
 
+        pointDrawing = PointDrawing(scene)
+        points = pointDrawing.FindPoints(x_grid, y_grid)
+        pointDrawing.Draw(points, color)
         self.saveImage()
+        if "Detail" in reportTypes:
+            for i, coordinate in enumerate(coordinates):
+                if lineType == "beam":
+                    bending_dcr = properties["bending_dcr"][i]
+                    shear_dcr = properties["shear_dcr"][i]
+                    deflection_dcr = properties["deflection_dcr"][i]
+                    size = properties["size"][i]
+                    beamProp = [coordinate, size, bending_dcr, shear_dcr, deflection_dcr]
+                    # self.beamDraw(beamProp, i, "not normal")
+                    beamDraw(self, beamProp, i, "not normal")
+                elif lineType == "shearWall":
+                    size = properties["size"][i]
+                    dcr_shear = properties["dcr_shear"][i]
+                    dcr_tension = properties["dcr_tension"][i]
+                    dcr_compression = properties["dcr_compression"][i]
+                    deflection_dcr = properties["deflection_dcr"][i]
+                    shearWallProp = [coordinate, size, dcr_shear, dcr_tension, dcr_compression, deflection_dcr]
+                    shearWallDraw(self, shearWallProp, i, "not normal")
 
-        for i, coordinate in enumerate(coordinates):
-            if lineType == "beam":
-                bending_dcr = properties["bending_dcr"][i]
-                shear_dcr = properties["shear_dcr"][i]
-                deflection_dcr = properties["deflection_dcr"][i]
-                size = properties["size"][i]
-                beamProp = [coordinate, size, bending_dcr, shear_dcr, deflection_dcr]
-                # self.beamDraw(beamProp, i, "not normal")
-                beamDraw(self, beamProp, i, "not normal")
-            elif lineType == "shearWall":
-                size = properties["size"][i]
-                dcr_shear = properties["dcr_shear"][i]
-                dcr_tension = properties["dcr_tension"][i]
-                dcr_compression = properties["dcr_compression"][i]
-                deflection_dcr = properties["deflection_dcr"][i]
-                shearWallProp = [coordinate, size, dcr_shear, dcr_tension, dcr_compression, deflection_dcr]
-                shearWallDraw(self, shearWallProp, i, "not normal")
-
-                # self.shearWallDraw(shearWallProp, i, "not normal")
-            else:  # studWall
-                dcr_comp = properties["dcr_comp"][i]
-                dcr_bend = properties["dcr_bend"][i]
-                dcr_comb = properties["dcr_comb"][i]
-                size = properties["size"][i]
-                studProp = [coordinate, dcr_comp, dcr_bend, dcr_comb, size]
-                # self.studWallDraw(studProp, i, "not normal")
-                studWallDraw(self, studProp, i, "not normal")
+                    # self.shearWallDraw(shearWallProp, i, "not normal")
+                else:  # studWall
+                    dcr_comp = properties["dcr_comp"][i]
+                    dcr_bend = properties["dcr_bend"][i]
+                    dcr_comb = properties["dcr_comb"][i]
+                    size = properties["size"][i]
+                    studProp = [coordinate, dcr_comp, dcr_bend, dcr_comb, size]
+                    # self.studWallDraw(studProp, i, "not normal")
+                    studWallDraw(self, studProp, i, "not normal")
 
         for item in scene.items():
             if item and (
@@ -118,7 +127,15 @@ class LineDraw:
         painter.end()
 
         # Save the QPixmap as an image file
-        pixmap.save(f"images/output/{self.lineType}s_story{self.story + 1}.png")
+        pixmap.save(PathHandler(f"images/output/{self.lineType}s_story{self.story + 1}_first.png"))
+        Opacity_percent = self.opacity  # Example opacity percentage provided by the user
+        Output_path = f"images/output/{self.lineType}s_story{self.story + 1}.png"
+        Image1_path = f"images/output/{self.lineType}s_story{self.story + 1}_first.png"
+        Image2_path = self.imagePath
+        comb = CombineImage(Image1_path, Image2_path)
+        output = comb.overlay(Output_path, Opacity_percent, color_range)
+        if not output:
+            pixmap.save(PathHandler(f"images/output/{self.lineType}s_story{self.story + 1}.png"))
 
     def saveImageElement(self, label):
         # Create a QPixmap to hold the image of the scene
@@ -153,7 +170,7 @@ class LineDraw:
         painter.end()
 
         # Save the QPixmap as an image file
-        pixmap.save(f"images/output/{self.lineType}s_label_{label}_story{self.story + 1}.png")
+        pixmap.save(PathHandler(f"images/output/{self.lineType}s_label_{label}_story{self.story + 1}.png"))
 
 
 class BeamLabel:
