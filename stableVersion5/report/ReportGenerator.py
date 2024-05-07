@@ -1,7 +1,7 @@
 import copy
 
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QCheckBox, QWidget, QTabWidget, QVBoxLayout, QPushButton, \
-    QLabel, QSpacerItem, QSizePolicy
+    QLabel, QSpacerItem, QSizePolicy, QDoubleSpinBox
 from PySide6.QtCore import Qt
 from functools import partial
 
@@ -10,6 +10,8 @@ from UI_Wood.stableVersion5.replicate import CheckableComboBox
 from UI_Wood.stableVersion5.post_new import magnification_factor
 
 from Report_Lab.version3.main import Main
+from UI_Wood.stableVersion5.styles import TabWidgetStyle, ButtonCheck
+from UI_Wood.stableVersion5.report.backgroudImage import ImageSelector
 
 
 class ReportGeneratorTab(QWidget):
@@ -18,6 +20,7 @@ class ReportGeneratorTab(QWidget):
         self.general_information = general_information
         self.second_tab = second_tab
         self.result = {}
+        self.setStyleSheet(TabWidgetStyle)
         self.setWindowTitle("Report Generation")
 
         layout = QHBoxLayout()
@@ -69,6 +72,7 @@ class ReportGeneratorTab(QWidget):
 
     # SLOT
     def Generate(self):
+        self.generate.setStyleSheet(ButtonCheck)
         posts = self.mainTable.labelAllPost
         postList = []
         for post in posts:
@@ -93,6 +97,15 @@ class ReportGeneratorTab(QWidget):
         studWallList = []
         for studWall in studWalls:
             studWallList.append(studWall.currentData())
+
+        opacity = self.mainTable.opacity
+        opacityList = []
+        for opa in opacity:
+            opacityList.append(opa.value())
+        imagePath = self.mainTable.imagePath
+        imagePathList = []
+        for image in imagePath:
+            imagePathList.append(image.imagePath)
 
         # report type
         reportTypes = [i.text() for i in [self.option1, self.option2, self.option3] if i.isChecked()]
@@ -124,7 +137,7 @@ class ReportGeneratorTab(QWidget):
         else:
             selected_studWalls = self.mainTable.StudWallsLayout
         self.second_tab.create_tab(selected_posts, selected_beams, selected_joists, selected_shearWalls,
-                                   selected_studWalls, self.mainTable.opacity, self.mainTable.imagePath, reportTypes)
+                                   selected_studWalls, opacityList, imagePathList, reportTypes)
         Main(reportTypes, self.result, self.general_information)
 
         print("REPORTS GENERATED")
@@ -277,13 +290,27 @@ class ReportMainTable:
             self.labelAllShearWall.append(shearWallLabels)
             self.labelAllStudWall.append(studWallLabels)
 
+            # background image
+            backLayout = QHBoxLayout()
+            backLabel = QLabel("Background Image")
+            backLayout.addWidget(backLabel)
+            imageSelector = ImageSelector()
+            backLayout.addWidget(imageSelector)
+            opacityLabel = QLabel("Opacity")
+            opacity = QDoubleSpinBox()
+            opacity.setRange(1, 100)
+            opacity.setValue(40)
+            backLayout.addWidget(opacityLabel)
+            backLayout.addWidget(opacity)
+
             layout1.addLayout(mainLayout, 20)
             layout1.addItem(spacer)
+            layout1.addLayout(backLayout)
 
             # Set layout for tab 1
             tab1.setLayout(layout1)
-            self.opacity.append(40)
-            self.imagePath.append("images/output/image2.png")
+            self.opacity.append(opacity)
+            self.imagePath.append(imageSelector)
 
             # Add tabs to the tab widget
             tab_widget.addTab(tab1, f"Story {story + 1}")
