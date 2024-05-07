@@ -8,14 +8,20 @@ from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, 
 from UI_Wood.Image_Overlay.main import CombineImage
 from UI_Wood.stableVersion5.layout.grid import color_range, color
 from UI_Wood.stableVersion5.line import PointDrawing
+from UI_Wood.stableVersion5.layout.Draw import Draw
 
 
-class PointDraw:
-    def __init__(self, properties, scene, story, x_grid, y_grid, opacity, imagePath, reportTypes):
-        self.story = story
-        self.scene = scene
-        self.opacity = opacity
-        self.imagePath = imagePath
+class PointDraw(Draw):
+    def __init__(self, inputDraw):
+        self.story = inputDraw.story
+        self.scene = inputDraw.scene
+        scene = inputDraw.scene
+        self.opacity = inputDraw.opacity
+        self.imagePath = inputDraw.imagePath
+        properties = inputDraw.properties
+        x_grid = inputDraw.x_grid
+        y_grid = inputDraw.y_grid
+        reportTypes = inputDraw.reportTypes
         coordinates = properties["coordinate"]
         labels = properties["label"]
         self.post_dimension = 3 * magnification_factor  # Set post dimension
@@ -58,17 +64,7 @@ class PointDraw:
                 rect_item.setBrush(QBrush(QColor.fromRgb(150, 194, 145, 100), Qt.SolidPattern))
                 dcr.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : green; }")
 
-            # LabelText = QLabel(label)
-            # Label = QGraphicsProxyWidget()
-            # LabelText = QLabel(labels[i])
-            # font = QFont()
-            # font.setPointSize(30)
-            # LabelText.setFont(font)
-            # # sizeMain.setFont(font)
-            # LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
-            # Label.setWidget(LabelText)
             PostLabel(x, y, scene, labels[i])
-            # return rect_item
 
         pointDrawing = PointDrawing(scene)
         points = pointDrawing.FindPoints(x_grid, y_grid)
@@ -101,18 +97,6 @@ class PointDraw:
                 # LabelText = QLabel(label)
                 self.scene.addItem(rect_item)
 
-                # Label = QGraphicsProxyWidget()
-                # LabelText = QLabel(labels[i])
-                # font = QFont()
-                # font.setPointSize(25)
-                # LabelText.setFont(font)
-                # LabelText.setStyleSheet("QLabel { background-color :rgba(255, 255, 255, 0); color : black; }")
-                # Label.setWidget(LabelText)
-                #
-                # # BeamLabel((x1 + x2) / 2, (y1 + y2) / 2, self.scene, properties["label"], direction)
-                # Label.setPos(x - 1.1 * rect_width, y - 1.1 * rect_width)
-                #
-                # self.scene.addItem(Label)
                 scene.addItem(rect_item)
                 self.saveImageElement(labels[i])
                 self.scene.removeItem(rect_item)
@@ -209,13 +193,6 @@ class PointDraw:
 
 class PostLabel:
     def __init__(self, x, y, scene, label):
-        # Create a line shape
-        # line = QGraphicsLineItem()
-        # line1 = QGraphicsLineItem()
-        # line.setLine(QLineF(QPointF(x, y), QPointF(x + 10, y - 50)))
-        # line1.setLine(QLineF(QPointF(x + 10, y - 50), QPointF(x + 30, y - 50)))
-        # scene.addItem(line)
-        # scene.addItem(line1)
         Label = QGraphicsProxyWidget()
         LabelText = QLabel(label)
         font = QFont()
@@ -229,8 +206,3 @@ class PostLabel:
 
         scene.addItem(Label)
         # BeamLabel(x + 30, y - 50, scene, label, "E-W", 12, 6, 30)
-
-
-class postDraw:
-    def __init__(self):
-        pass

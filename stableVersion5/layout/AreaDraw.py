@@ -11,14 +11,20 @@ from UI_Wood.stableVersion5.path import PathHandler
 from UI_Wood.stableVersion5.layout.grid import color_range, color
 from UI_Wood.stableVersion5.line import PointDrawing
 from UI_Wood.Image_Overlay.main import CombineImage
+from UI_Wood.stableVersion5.layout.Draw import Draw
 
 
-class AreaDraw:
-    def __init__(self, properties, scene, story, x_grid, y_grid, opacity, imagePath, reportTypes):
-        self.story = story
-        self.scene = scene
-        self.opacity = opacity
-        self.imagePath = imagePath
+class AreaDraw(Draw):
+    def __init__(self, inputDraw):
+        self.story = inputDraw.story
+        self.scene = inputDraw.scene
+        scene = inputDraw.scene
+        self.opacity = inputDraw.opacity
+        self.imagePath = inputDraw.imagePath
+        properties = inputDraw.properties
+        x_grid = inputDraw.x_grid
+        y_grid = inputDraw.y_grid
+        reportTypes = inputDraw.reportTypes
         self.labels = properties["label"]
         self.orientations = properties["direction"]
         coordinates = properties["coordinate"]
