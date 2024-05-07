@@ -13,7 +13,7 @@ from UI_Wood.stableVersion5.layout.grid import color_range, color
 from UI_Wood.stableVersion5.line import PointDrawing
 from UI_Wood.Image_Overlay.main import CombineImage
 from UI_Wood.stableVersion5.layout.Draw import Draw
-
+import os
 
 class LineDraw(Draw):
     def __init__(self, inputDraw):
@@ -135,14 +135,18 @@ class LineDraw(Draw):
         painter.end()
 
         # Save the QPixmap as an image file
-        pixmap.save(PathHandler(f"images/output/{self.lineType}s_story{self.story + 1}_first.png"))
-        Opacity_percent = self.opacity  # Example opacity percentage provided by the user
-        Output_path = f"images/output/{self.lineType}s_story{self.story + 1}.png"
-        Image1_path = f"images/output/{self.lineType}s_story{self.story + 1}_first.png"
-        Image2_path = self.imagePath
-        comb = CombineImage(Image1_path, Image2_path)
-        output = comb.overlay(Output_path, Opacity_percent, color_range)
-        if not output:
+        # Validate image path
+        if self.imagePath and os.path.isfile(self.imagePath):
+            pixmap.save(PathHandler(f"images/output/{self.lineType}s_story{self.story + 1}_first.png"))
+            Opacity_percent = self.opacity  # Example opacity percentage provided by the user
+            Output_path = f"images/output/{self.lineType}s_story{self.story + 1}.png"
+            Image1_path = f"images/output/{self.lineType}s_story{self.story + 1}_first.png"
+            Image2_path = self.imagePath
+            comb = CombineImage(Image1_path, Image2_path)
+            output = comb.overlay(Output_path, Opacity_percent, color_range)
+            if not output:
+                pixmap.save(PathHandler(f"images/output/{self.lineType}s_story{self.story + 1}.png"))
+        else:
             pixmap.save(PathHandler(f"images/output/{self.lineType}s_story{self.story + 1}.png"))
 
     def saveImageElement(self, label):

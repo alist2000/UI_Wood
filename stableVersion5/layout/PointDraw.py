@@ -1,14 +1,15 @@
-from UI_Wood.stableVersion5.path import PathHandler
-from UI_Wood.stableVersion5.post_new import magnification_factor, CustomRectItem
-from UI_Wood.stableVersion5.mouse import SelectableLineItem
-
+from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QPainter, QPixmap, QFont, QPen, QBrush, QColor
-from PySide6.QtCore import QRectF, Qt, QPointF, QLineF
-from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel
+from PySide6.QtWidgets import QGraphicsProxyWidget, QLabel
+
 from UI_Wood.Image_Overlay.main import CombineImage
+from UI_Wood.stableVersion5.layout.Draw import Draw
 from UI_Wood.stableVersion5.layout.grid import color_range, color
 from UI_Wood.stableVersion5.line import PointDrawing
-from UI_Wood.stableVersion5.layout.Draw import Draw
+from UI_Wood.stableVersion5.mouse import SelectableLineItem
+from UI_Wood.stableVersion5.path import PathHandler
+from UI_Wood.stableVersion5.post_new import magnification_factor, CustomRectItem
+import os
 
 
 class PointDraw(Draw):
@@ -140,20 +141,21 @@ class PointDraw(Draw):
         painter.end()
 
         # Save the QPixmap as an image file
-
-        pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}_first.png"))
-        # Opacity_percent = 40  # Example opacity percentage provided by the user
-        Opacity_percent = 40  # Example opacity percentage provided by the user
-        Output_path = f"images/output/Posts_story{self.story + 1}.png"
-        Image1_path = f"images/output/Posts_story{self.story + 1}_first.png"
-        # Image2_path = "images/output/image2.png"
-        Image2_path = self.imagePath
-        comb = CombineImage(Image1_path, Image2_path)
-        output = comb.overlay(Output_path, Opacity_percent, color_range)
-        if not output:
+        # Validate image path
+        if self.imagePath and os.path.isfile(self.imagePath):
+            pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}_first.png"))
+            # Opacity_percent = 40  # Example opacity percentage provided by the user
+            Opacity_percent = 40  # Example opacity percentage provided by the user
+            Output_path = f"images/output/Posts_story{self.story + 1}.png"
+            Image1_path = f"images/output/Posts_story{self.story + 1}_first.png"
+            # Image2_path = "images/output/image2.png"
+            Image2_path = self.imagePath
+            comb = CombineImage(Image1_path, Image2_path)
+            output = comb.overlay(Output_path, Opacity_percent, color_range)
+            if not output:
+                pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}.png"))
+        else:
             pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}.png"))
-
-        print(output)
 
     def saveImageElement(self, label):
         # Create a QPixmap to hold the image of the scene
