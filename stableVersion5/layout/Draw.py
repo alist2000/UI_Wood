@@ -8,9 +8,9 @@ class Draw(ABC):
 
 
 class InputDraw:
-    def __init__(self, scene, story, x_grid, y_grid, opacity, imagePath, reportTypes):
+    def __init__(self, story, x_grid, y_grid, opacity, imagePath, reportTypes):
         self.properties = None
-        self.scene = scene
+        self.scene = None
         self.story = story
         self.x_grid = x_grid
         self.y_grid = y_grid
@@ -18,6 +18,9 @@ class InputDraw:
         self.imagePath = imagePath
         self.reportTypes = reportTypes
         self.lineType = None
+
+    def get_scene(self, scene):
+        self.scene = scene
 
     def get_prob(self, properties):
         self.properties = properties

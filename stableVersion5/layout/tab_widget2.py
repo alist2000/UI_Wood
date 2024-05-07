@@ -44,7 +44,7 @@ class secondTabWidgetLayout(QMainWindow):
             grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
 
             # constant input data
-            inputDraw = InputDraw(grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i], reportTypes)
+            inputDraw = InputDraw(i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i], reportTypes)
 
             self.grid.append(grid)
             v_main_layout = QVBoxLayout()
@@ -62,6 +62,7 @@ class secondTabWidgetLayout(QMainWindow):
                 postLabels, postCoordinate = PostList[str(story)]["label"], PostList[str(story)]["coordinate"]
                 # STORY NUMBER
                 label = StoryLabel(i, -110)
+                inputDraw.get_scene(grid.scene)
                 grid.scene.addItem(label)
                 inputDraw.get_prob(PostList[str(story)])
                 # Post Image
@@ -74,6 +75,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
+                inputDraw.get_scene(grid.scene)
                 grid.scene.addItem(label)
                 inputDraw.get_prob(BeamList[str(story)])
                 inputDraw.get_line_type("beam")
@@ -91,6 +93,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
+                inputDraw.get_scene(grid.scene)
                 grid.scene.addItem(label)
                 inputDraw.get_prob(ShearWallList[str(storyWall)])
                 inputDraw.get_line_type("shearWall")
@@ -108,6 +111,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
+                inputDraw.get_scene(grid.scene)
                 grid.scene.addItem(label)
                 inputDraw.get_prob(StudWallList[str(storyWall)])
                 inputDraw.get_line_type("studWall")
@@ -123,6 +127,7 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
+                inputDraw.get_scene(grid.scene)
                 grid.scene.addItem(label)
                 inputDraw.get_prob(JoistList[str(story)])
                 AreaDraw(inputDraw)
