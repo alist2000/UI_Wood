@@ -145,7 +145,7 @@ class PointDraw(Draw):
         if self.imagePath and os.path.isfile(self.imagePath):
             pixmap.save(PathHandler(f"images/output/Posts_story{self.story + 1}_first.png"))
             # Opacity_percent = 40  # Example opacity percentage provided by the user
-            Opacity_percent = 40  # Example opacity percentage provided by the user
+            Opacity_percent = self.opacity  # Example opacity percentage provided by the user
             Output_path = f"images/output/Posts_story{self.story + 1}.png"
             Image1_path = f"images/output/Posts_story{self.story + 1}_first.png"
             # Image2_path = "images/output/image2.png"
