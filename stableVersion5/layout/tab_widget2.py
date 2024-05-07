@@ -1,11 +1,10 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QMainWindow, QLabel, QGraphicsProxyWidget
-from PySide6.QtGui import QImage, QPainter, QPixmap
-from PySide6.QtCore import QRectF, Qt
 
 from UI_Wood.stableVersion5.layout.grid import GridWidget
 from UI_Wood.stableVersion5.layout.PointDraw import PointDraw
 from UI_Wood.stableVersion5.layout.LineDraw import LineDraw
 from UI_Wood.stableVersion5.layout.AreaDraw import AreaDraw
+from UI_Wood.stableVersion5.layout.Draw import InputDraw
 
 
 class secondTabWidgetLayout(QMainWindow):
@@ -33,7 +32,6 @@ class secondTabWidgetLayout(QMainWindow):
         print(inputs)
 
     def create_tab(self, PostList, BeamList, JoistList, ShearWallList, StudWallList, opacity, imagePath, reportTypes):
-
         for i in range(self.level_number):
             tab = QWidget()
             self.tabWidget.addTab(tab, f"Story {i + 1}")
@@ -44,6 +42,9 @@ class secondTabWidgetLayout(QMainWindow):
 
             # OPACITY SLIDER
             grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
+
+            # constant input data
+            inputDraw = InputDraw(grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i], reportTypes)
 
             self.grid.append(grid)
             v_main_layout = QVBoxLayout()
@@ -62,9 +63,9 @@ class secondTabWidgetLayout(QMainWindow):
                 # STORY NUMBER
                 label = StoryLabel(i, -110)
                 grid.scene.addItem(label)
+                inputDraw.get_prob(PostList[str(story)])
                 # Post Image
-                PointDraw(PostList[str(story)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i],
-                          reportTypes)
+                PointDraw(inputDraw)
             except KeyError:
                 pass
             try:
@@ -74,8 +75,9 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                LineDraw(BeamList[str(story)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i],
-                         reportTypes, "beam")
+                inputDraw.get_prob(BeamList[str(story)])
+                inputDraw.get_line_type("beam")
+                LineDraw(inputDraw)
             except KeyError:
                 pass
 
@@ -90,9 +92,9 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                LineDraw(ShearWallList[str(storyWall)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i],
-                         imagePath[i], reportTypes,
-                         "shearWall")
+                inputDraw.get_prob(ShearWallList[str(storyWall)])
+                inputDraw.get_line_type("shearWall")
+                LineDraw(inputDraw)
             except KeyError:
                 pass
 
@@ -107,9 +109,10 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                LineDraw(StudWallList[str(storyWall)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i],
-                         imagePath[i], reportTypes,
-                         "studWall")
+                inputDraw.get_prob(StudWallList[str(storyWall)])
+                inputDraw.get_line_type("studWall")
+                LineDraw(inputDraw)
+
             except KeyError:
                 pass
 
@@ -121,8 +124,8 @@ class secondTabWidgetLayout(QMainWindow):
                 label = StoryLabel(i, -50)
                 grid = GridWidget(self.x_grid, self.y_grid, self.grid_base)
                 grid.scene.addItem(label)
-                AreaDraw(JoistList[str(story)], grid.scene, i, grid.x_grid, grid.y_grid, opacity[i], imagePath[i],
-                         reportTypes)
+                inputDraw.get_prob(JoistList[str(story)])
+                AreaDraw(inputDraw)
             except KeyError:
                 pass
 
