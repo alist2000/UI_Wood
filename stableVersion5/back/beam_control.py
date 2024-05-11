@@ -431,7 +431,7 @@ class beam_control_joist:
 
                         beamProp["joist"].append(
                             {"label": joistProp["label"], "intersection_range": intersection_range,
-                             "tributary_depth": tributary_depth})
+                             "tributary_depth": tributary_depth, "tributary_area": ((intersection_range[1] - intersection_range[0]) / magnification_factor) * (tributary_depth[1] - tributary_depth[0]) / magnification_factor})
 
                         load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
                                            tributary_depth, beamProp["direction"], beamProp["load"]["joist_load"])
