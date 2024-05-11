@@ -16,6 +16,7 @@ class BeamProperties(QDialog):
         self.rect_prop = rect_prop
         self.beamDepth = None
         self.material = None
+        self.Kll = None
 
         # IMAGE
         self.scene = scene
@@ -47,6 +48,8 @@ class BeamProperties(QDialog):
     def accept_control(self):
         self.beam_depth_control()
         self.material_control()
+        self.live_load_factor_control()
+
         self.lineLoad.print_values()
         self.pointLoad.print_values()
         self.accept()
@@ -105,12 +108,16 @@ class BeamProperties(QDialog):
         self.tab_widget.addTab(tab, f"Assignments")
         label1 = QLabel("Beam Depth")
         label2 = QLabel("Material")
+        label3 = QLabel("Live Load Element Factor")
         self.beamDepth = beamDepth = QComboBox()
         self.material = material = QComboBox()
+        self.Kll = Kll = QComboBox()
         beamDepth.addItems(["10 in", "12 in"])
         material.addItems(["All", "Sawn Lumber", "PSL 2.0E"])
+        Kll.addItems(["1", "2"])
         floor = self.rect_prop[self.rectItem]["floor"]
         mat = self.rect_prop[self.rectItem]["material"]
+        kll = self.rect_prop[self.rectItem]["kll"]
         if floor:
             floorText = "12 in"
         else:
@@ -118,6 +125,7 @@ class BeamProperties(QDialog):
 
         self.beamDepth.setCurrentText(floorText)
         self.material.setCurrentText(mat)
+        self.Kll.setCurrentText(kll)
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
         # self.beamDepth.currentTextChanged.connect(self.beam_depth_control)
@@ -126,15 +134,20 @@ class BeamProperties(QDialog):
         # LAYOUT
         h_layout1 = QHBoxLayout()
         h_layout2 = QHBoxLayout()
+        h_layout3 = QHBoxLayout()
         h_layout1.addWidget(label1)
         h_layout1.addWidget(beamDepth)
 
         h_layout2.addWidget(label2)
         h_layout2.addWidget(material)
 
+        h_layout3.addWidget(label3)
+        h_layout3.addWidget(Kll)
+
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout1)
         v_layout.addLayout(h_layout2)
+        v_layout.addLayout(h_layout3)
 
         tab.setLayout(v_layout)
         # return self.direction
@@ -152,6 +165,10 @@ class BeamProperties(QDialog):
     def material_control(self):
         mat = self.material.currentText()
         self.rect_prop[self.rectItem]["material"] = mat
+
+    def live_load_factor_control(self):
+        kll = self.Kll.currentText()
+        self.rect_prop[self.rectItem]["kll"] = kll
 
     @staticmethod
     def length(start, end):
