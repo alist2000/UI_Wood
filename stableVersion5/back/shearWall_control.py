@@ -43,7 +43,7 @@ class shearWall_control:  # stud wall also, item = studWall
             ShearWallLine(self.shearWall, grid)
             BeamOnShearWall(self.beam, self.shearWall)
             ShearWallPostIntersection(self.shearWall)
-        beam_control_joist(self.shearWall, self.joist)
+        beam_control_joist(self.shearWall, self.joist, "shearWall")
 
 
 # WORK ON START END AND COORDINATE OF INTERSECTION AND AREA AND SOMETHING LIKE THIS

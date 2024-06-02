@@ -391,7 +391,7 @@ class beam_line_creator:
 
 
 class beam_control_joist:
-    def __init__(self, beam, joist):
+    def __init__(self, beam, joist, element="beam"):
         self.beam = beam
         self.joist = joist
         for beamProp in self.beam.values():
@@ -399,6 +399,22 @@ class beam_control_joist:
                 self.control_intersection(beamProp)
             else:
                 self.control_intersection_straight(beamProp)
+            if element == "beam":
+                At = 0
+                for joist in beamProp["joist"]:
+                    At += joist["tributary_area"]
+                beamProp["tributary_area"] = At
+                liveReduction = LiveReduction(At, int(beamProp["kll"]))
+                for loads in beamProp["load"]["joist_load"]["load_map"]:
+                    print(loads)
+                    if not loads.get("Reducible"):
+                        for load in loads["load"]:
+                            if load["type"] == "Live":
+                                reduced_live = liveReduction.live(load["magnitude"])
+                                load["magnitude"] = reduced_live
+                            elif load["type"] == "Live Roof":
+                                reduced_live = liveReduction.live_roof(load["magnitude"])
+                                load["magnitude"] = reduced_live
 
     def control_intersection_straight(self, beamProp):
         beamProp["joist"] = []
@@ -431,7 +447,12 @@ class beam_control_joist:
 
                         beamProp["joist"].append(
                             {"label": joistProp["label"], "intersection_range": intersection_range,
-                             "tributary_depth": tributary_depth, "tributary_area": ((intersection_range[1] - intersection_range[0]) / magnification_factor) * (tributary_depth[1] - tributary_depth[0]) / magnification_factor})
+                             "tributary_depth": tributary_depth, "tributary_area": abs(((intersection_range[1] -
+                                                                                         intersection_range[
+                                                                                             0]) / magnification_factor) * (
+                                                                                               tributary_depth[1] -
+                                                                                               tributary_depth[
+                                                                                                   0]) / magnification_factor)})
 
                         load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
                                            tributary_depth, beamProp["direction"], beamProp["load"]["joist_load"])
@@ -504,100 +525,25 @@ class beam_control_joist:
                         joistRange = (c, joistProp["coordinate"][2][0])
 
                 tributary_depth = tributary(joistProp["direction"], beamProp["direction"], joistRange, c)
-                # if joistProp["direction"] == "N-S":
-                #     tributary_index = 1
-                # else:
-                #     tributary_index = 0
-                # if beamProp["direction"] == "N-S":
-                #     tributary_index = 0
-                # elif beamProp["direction"] == "E-W":
-                #     tributary_index = 1
-                # else:
-                #     tributary_index = tributary_index
-                #
-                # joistStart = joistProp["coordinate"][0][tributary_index]
-                # joistEnd = joistProp["coordinate"][2][tributary_index]
-                # midBeam = (beamProp["coordinate"][0][tributary_index] + beamProp["coordinate"][1][
-                #     tributary_index]) / 2
-                # tributary1 = joistStart - midBeam
-                # tributary2 = joistEnd - midBeam
-                # if beamProp["direction"] == "Inclined":
-                #     if abs(tributary2) > abs(tributary1):
-                #
-                #         tributary_depth_number = tributary2
-                #     else:
-                #         tributary_depth_number = tributary1
-                #
-                #     range_other_direction = (
-                #         min(tributary_depth_number, midBeam), max(tributary_depth_number, midBeam))
-                #     tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
-                #                                 range_other_direction, midBeam)
                 beamPoint1 = beamProp["coordinate"][0]
                 beamPoint2 = beamProp["coordinate"][1]
                 if beamPoint1[0] <= beamPoint2[0]:
                     startBeam = beamPoint1
                 else:
                     startBeam = beamPoint2
+                intersection_length = distance(intersection_range[1], intersection_range[0])
                 beamProp["joist"].append(
                     {"label": joistProp["label"], "intersection_range": intersection_range,
-                     "tributary_depth": tributary_depth})
+                     "tributary_depth": tributary_depth,
+                     # "tributary_area": (intersection_length / magnification_factor) * (
+                     #         tributary_depth[1] - tributary_depth[0]) / magnification_factor
+                     "tributary_area": abs((tributary_depth[1] -
+                                            tributary_depth[
+                                                0]) / magnification_factor) * (
+                                           intersection_length) / magnification_factor})
                 load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
                                    tributary_depth, beamProp["direction"],
                                    beamProp["load"]["joist_load"], joistProp["direction"], startBeam)
-                # else:
-                #     if tributary1:
-                #         range_other_direction = (min(joistStart, midBeam), max(joistStart, midBeam))
-                #         tributary1_depth = tributary(joistProp["direction"], beamProp["direction"],
-                #                                      range_other_direction, midBeam)
-                #         beamProp["joist"].append(
-                #             {"label": joistProp["label"], "intersection_range": intersection_range,
-                #              "tributary_depth": tributary1_depth})
-                #         load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
-                #                            tributary1_depth, beamProp["direction"],
-                #                            beamProp["load"]["joist_load"])
-                #
-                #     if tributary2:
-                #         range_other_direction = (min(joistEnd, midBeam), max(joistEnd, midBeam))
-                #
-                #         tributary2_depth = tributary(joistProp["direction"], beamProp["direction"],
-                #                                      range_other_direction, midBeam)
-                #         # tributary2_depth = (min(joistEnd, midBeam), (joistEnd + midBeam) / 2)
-                #         beamProp["joist"].append(
-                #             {"label": joistProp["label"], "intersection_range": intersection_range,
-                #              "tributary_depth": tributary2_depth})
-                #         load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
-                #                            tributary2_depth, beamProp["direction"],
-                #                            beamProp["load"]["joist_load"])
-            # else:
-            #     lines = joistProp["line"]["properties"]
-            #     for i in range(len(lines)):
-            #         slope_joist = lines[i]["slope"]
-            #         c_joist = lines[i]["c"]
-            #         range_joist_line = lines[i]["range"]
-            #         startPointTolerate = abs(c_joist - c_beam)
-            #         if startPointTolerate < 15:
-            #             startStatus = True
-            #         else:
-            #             startStatus = False
-            #         if slope_joist == slope_beam and startStatus:
-            #             intersection_range = range_intersection(range_joist_line, range_beam)
-            #             if intersection_range:
-            #                 # for tributary calculation
-            #                 try:
-            #                     range_other_direction = lines[i + 1]["range"]
-            #                 except:
-            #                     range_other_direction = lines[i - 1]["range"]
-            #
-            #                 tributary_depth = tributary(joistProp["direction"], beamProp["direction"],
-            #                                             range_other_direction, beamProp["line"]["properties"]["c"])
-            #
-            #                 beamProp["joist"].append(
-            #                     {"label": joistProp["label"], "intersection_range": intersection_range,
-            #                      "tributary_depth": tributary_depth})
-            #
-            #                 load_joist_on_beam(joistProp["label"], joistProp["load"], intersection_range,
-            #                                    tributary_depth, beamProp["direction"],
-            #                                    beamProp["load"]["joist_load"])
 
 
 def tributary(direction_joist, direction_beam, main_range, c):
@@ -632,3 +578,39 @@ class beam_control:
 
 def distance(point1, point2):
     return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+
+# Not finished yet. If load was not reducible you should just pass
+class LiveReduction:
+    def __init__(self, At, Kll):
+        self.At = At
+        self.Kll = Kll
+
+    def live(self, live):
+        Af = self.At * self.Kll
+        if Af >= 400:
+            reduced_live = live * (0.25 + (15 / (Af ** 0.5)))
+
+            # WHAT IS SUPPORTING BY A FLOOR MEAN?
+            # L shall not be less than 0.50Lo for members supporting one
+            # floor, and L shall not be less than 0.40Lo for members supporting
+            # two or more floors.
+
+            if reduced_live < 0.5 * live:
+                reduced_live = 0.5 * live  # supporting by one floor
+        else:
+            reduced_live = live
+
+        return reduced_live
+
+    def live_roof(self, live):
+        # Assumption: slope = 1
+        R2 = 1
+        if self.At <= 200:  # square foot
+            R1 = 1
+        elif 600 > self.At > 200:  # square foot
+            R1 = 1.2 - 0.001 * self.At
+        else:
+            R1 = 0.6
+
+        reduced_live = R1 * R2 * live
+        return reduced_live
