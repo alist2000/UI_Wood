@@ -38,6 +38,7 @@ class Save(Subject):
             'general_properties': self.mainPage.mainPage.inputs,
             "seismic_parameters": {},
             "load_set": "",
+            "load_set_reduce": "",
             'tab': {}
         }
 
@@ -69,6 +70,7 @@ class Save(Subject):
 
         # Save Load Sets
         self.data["load_set"] = self.mainPage.dialogPage2.all_set_load
+        self.data["load_set_reduce"] = self.mainPage.dialogPage2.all_set_load2
 
         self.manage()
 

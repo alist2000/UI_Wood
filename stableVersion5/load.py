@@ -106,6 +106,11 @@ class set_toolBar:
         self.toolBar = toolBar
         self.seismic_parameters = inputs["seismic_parameters"]
         self.load_set = inputs["load_set"]
+        try:
+            self.load_set_reduce = inputs["load_set_reduce"]
+        except KeyError:
+            self.load_set_reduce = self.load_set
+            print(self.load_set_reduce)
         self.set_seismic_parameters()
         self.set_load_sets()
 
@@ -124,8 +129,11 @@ class set_toolBar:
 
     def set_load_sets(self):
         for Id, properties in self.load_set.items():
-            load_data = {"name": list(properties.keys())[0], "properties": list(properties.values())[0]}
+            print(self.load_set_reduce)
+            load_data = {"name": list(properties.keys())[0], "properties": list(properties.values())[0],
+                         "Reducible": False}
             self.toolBar.dialogPage2.all_set_load[Id] = {load_data["name"]: load_data["properties"]}
+            self.toolBar.dialogPage2.all_set_load2[Id] = {load_data["name"]: False}
             item = QListWidgetItem(load_data["name"])
             self.toolBar.dialogPage2.listWidget.addItem(item)
 
