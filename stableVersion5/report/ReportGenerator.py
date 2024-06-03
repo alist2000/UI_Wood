@@ -8,6 +8,8 @@ from functools import partial
 import sqlite3
 from UI_Wood.stableVersion5.replicate import CheckableComboBox
 from UI_Wood.stableVersion5.post_new import magnification_factor
+from UI_Wood.stableVersion5.path import PathHandler, postInputPath1, beamInputPath1, beamReportPath1, \
+    shearWallInputPath1, shearWallOutputPath1, studWallInputPath1, studWallOutputPath1, joistInputPath1
 
 from Report_Lab.version3.main import Main
 from UI_Wood.stableVersion5.styles import TabWidgetStyle, ButtonCheck
@@ -205,19 +207,25 @@ def dataExtract(Dict):
 
 class ReportMainTable:
     def __init__(self, tab_widget, storyCount):
-        output1 = "D://git/Wood/Output/beam_report.db"
-        postPath = "D://git/Wood/Output/post_Input.db"
+        # output1 = "D://git/Wood/Output/beam_report.db"
+        output1 = PathHandler(beamReportPath1)
+        # postPath = "D://git/Wood/Output/post_Input.db"
+        postPath = PathHandler(postInputPath1)
         postTable = "postTable"
         postTableOutput = "POST"
-        beamPath = "D://git/Wood/Output/beam_Input.db"
+        # beamPath = "D://git/Wood/Output/beam_Input.db"
+        beamPath = PathHandler(beamInputPath1)
         beamTable = "beamTable"
         beamTableOutput = "BEAM"
-        joistPath = "D://git/Wood/Output/joist_Input.db"
+        # joistPath = "D://git/Wood/Output/joist_Input.db"
+        joistPath = PathHandler(joistInputPath1)
         joistTable = "joistTable"
         joistTableOutput = "JOIST"
-        ShearWallPath = "D://git/Wood/Output/ShearWall_output.db"
+        # ShearWallPath = "D://git/Wood/Output/ShearWall_output.db"
+        ShearWallPath = PathHandler(shearWallOutputPath1)
         shearWallTable = "shearwalldesign"
-        StudWallPath = "D://git/Wood/Output/stud_report.db"
+        # StudWallPath = "D://git/Wood/Output/stud_report.db"
+        StudWallPath = PathHandler(studWallOutputPath1)
         studWallTable = "STUD_REPORT_FILE"
         paths = [postPath, beamPath, joistPath, ShearWallPath, StudWallPath]
         path2 = [output1, output1, output1, ShearWallPath, StudWallPath]
