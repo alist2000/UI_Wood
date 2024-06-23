@@ -1,7 +1,7 @@
 import copy
 import math
 import sqlite3
-from UI_Wood.stableVersion5.path import PathHandler, shearWallInputPath1, shearWallOutputPath1
+from UI_Wood.stableVersion5.path import PathHandler, shearWallInputPath, shearWallOutputPath
 from UI_Wood.stableVersion5.back.load_control import range_intersection
 from UI_Wood.stableVersion5.post_new import magnification_factor
 
@@ -82,7 +82,7 @@ class Transfer:
 
         for itemBottom in bottom:
             label = itemBottom["label"]
-            dataBasePath = PathHandler(shearWallInputPath1)
+            dataBasePath = PathHandler(shearWallInputPath)
             conn = sqlite3.connect(dataBasePath)
             cursor = conn.cursor()
             cursor.execute(
@@ -173,7 +173,7 @@ class Transfer:
                                      'end': swEnd, "Transferred": True})
 
                                 if itemName == "shearWall" and story:
-                                    dataBasePath = PathHandler(shearWallOutputPath1)
+                                    dataBasePath = PathHandler(shearWallOutputPath)
                                     conn = sqlite3.connect(dataBasePath)
                                     cursor = conn.cursor()
                                     r = cursor.execute(
@@ -254,7 +254,7 @@ class Transfer:
 
     @staticmethod
     def get_data_after_run(shearWalls, story):
-        dataBasePath = PathHandler(shearWallOutputPath1)
+        dataBasePath = PathHandler(shearWallOutputPath)
         conn = sqlite3.connect(dataBasePath)
         cursor = conn.cursor()
         for shearWall in shearWalls:

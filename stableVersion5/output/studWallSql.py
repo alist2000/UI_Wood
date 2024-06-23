@@ -1,10 +1,11 @@
 import sqlite3
+from UI_Wood.stableVersion5.path import studWallInputPath
 
 
 class studWallSQL:
     def __init__(self):
         # Connect to SQLite database
-        self.conn = sqlite3.connect('../../Output/StudWall_Input.db')
+        self.conn = sqlite3.connect(studWallInputPath)
         # Create a cursor object
         self.cursor = self.conn.cursor()
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")

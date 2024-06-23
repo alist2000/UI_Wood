@@ -1,11 +1,12 @@
 import sqlite3
 import os
+from UI_Wood.stableVersion5.path import shearWallInputPath, midlinePath, seismicParamsPath
 
 
 class shearWallSQL:
     def __init__(self):
         # Connect to SQLite database
-        self.conn = sqlite3.connect('../../Output/ShearWall_Input.db')
+        self.conn = sqlite3.connect(shearWallInputPath)
         # Create a cursor object
         self.cursor = self.conn.cursor()
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -56,7 +57,7 @@ class shearWallSQL:
 class SeismicParamsSQL:
     def __init__(self):
         # Connect to SQLite database
-        self.conn = sqlite3.connect('../../Output/Seismic/SeismicParameters.db')
+        self.conn = sqlite3.connect(seismicParamsPath)
         # Create a cursor object
         self.cursor = self.conn.cursor()
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -105,7 +106,7 @@ class SeismicParamsSQL:
 class MidlineSQL:
     def __init__(self):
         # Connect to SQLite database
-        self.conn = sqlite3.connect('../../Output/Seismic/Midline.db')
+        self.conn = sqlite3.connect(midlinePath)
         # Create a cursor object
         self.cursor = self.conn.cursor()
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")

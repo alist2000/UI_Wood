@@ -18,6 +18,7 @@ from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.report.ReportGenerator import ReportGeneratorTab
 from UI_Wood.stableVersion5.layout.tab_widget2 import secondTabWidgetLayout
 from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallStoryCount
+from UI_Wood.stableVersion5.path import shearWallOutputPath, shearWallInputPath, studWallInputPath, studWallOutputPath
 import time
 import os
 
@@ -158,9 +159,9 @@ class ControlTab:
         db.post_table()
 
         # drop all shear wall output table
-        DropTables("../../../Output/ShearWall_output.db")
+        DropTables(shearWallOutputPath)
         # drop all stud wall output table
-        DropTables("../../../Output/stud_report.db")
+        DropTables(studWallOutputPath)
         # shear wall database input
         shearWall_input_db = shearWallSQL()
         shearWall_input_db.createTable()
@@ -223,7 +224,7 @@ class ControlTab:
         self.shearWalls = []
         self.joists = []
 
-        DropTables("../../../Output/ShearWall_Input.db")
+        DropTables(shearWallInputPath)
         shearWall_input_db = shearWallSQL()
         shearWall_input_db.createTable()
         shearWallTop = None

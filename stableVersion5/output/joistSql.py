@@ -1,11 +1,12 @@
 import sqlite3
 from UI_Wood.stableVersion5.post_new import magnification_factor
+from UI_Wood.stableVersion5.path import joistInputPath
 
 
 class joistSQL:
     def __init__(self):
         # Connect to SQLite database
-        self.conn = sqlite3.connect('../../Output/joist_Input.db')
+        self.conn = sqlite3.connect(joistInputPath)
         # Create a cursor object
         self.cursor = self.conn.cursor()
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")

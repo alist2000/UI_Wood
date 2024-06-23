@@ -8,8 +8,8 @@ from functools import partial
 import sqlite3
 from UI_Wood.stableVersion5.replicate import CheckableComboBox
 from UI_Wood.stableVersion5.post_new import magnification_factor
-from UI_Wood.stableVersion5.path import PathHandler, postInputPath1, beamInputPath1, beamReportPath1, \
-    shearWallInputPath1, shearWallOutputPath1, studWallInputPath1, studWallOutputPath1, joistInputPath1
+from UI_Wood.stableVersion5.path import PathHandler, postInputPath, beamInputPath, beamReportPath, \
+    shearWallInputPath, shearWallOutputPath, studWallInputPath, studWallOutputPath, joistInputPath
 
 from Report_Lab.version3.main import Main
 from UI_Wood.stableVersion5.styles import TabWidgetStyle, ButtonCheck
@@ -208,24 +208,24 @@ def dataExtract(Dict):
 class ReportMainTable:
     def __init__(self, tab_widget, storyCount):
         # output1 = "D://git/Wood/Output/beam_report.db"
-        output1 = PathHandler(beamReportPath1)
+        output1 = beamReportPath
         # postPath = "D://git/Wood/Output/post_Input.db"
-        postPath = PathHandler(postInputPath1)
+        postPath = postInputPath
         postTable = "postTable"
         postTableOutput = "POST"
         # beamPath = "D://git/Wood/Output/beam_Input.db"
-        beamPath = PathHandler(beamInputPath1)
+        beamPath = beamInputPath
         beamTable = "beamTable"
         beamTableOutput = "BEAM"
         # joistPath = "D://git/Wood/Output/joist_Input.db"
-        joistPath = PathHandler(joistInputPath1)
+        joistPath = joistInputPath
         joistTable = "joistTable"
         joistTableOutput = "JOIST"
         # ShearWallPath = "D://git/Wood/Output/ShearWall_output.db"
-        ShearWallPath = PathHandler(shearWallOutputPath1)
+        ShearWallPath = shearWallOutputPath
         shearWallTable = "shearwalldesign"
         # StudWallPath = "D://git/Wood/Output/stud_report.db"
-        StudWallPath = PathHandler(studWallOutputPath1)
+        StudWallPath = studWallOutputPath
         studWallTable = "STUD_REPORT_FILE"
         paths = [postPath, beamPath, joistPath, ShearWallPath, StudWallPath]
         path2 = [output1, output1, output1, ShearWallPath, StudWallPath]
@@ -369,6 +369,7 @@ class ReportMainTable:
 
     @staticmethod
     def itemList(path, tableName):
+        print(path)
         # Connect to the SQLite database
         conn = sqlite3.connect(path)
 
