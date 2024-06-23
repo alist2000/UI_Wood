@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 def PathHandler(database_relative_path):
@@ -36,3 +37,36 @@ studWallInputPath = "../output/StudWall_Input.db"
 studWallOutputPath = "../output/stud_report.db"
 midlinePath = "../output/Seismic/Midline.db"
 seismicParamsPath = "../output/Seismic/SeismicParameters.db"
+directories = ["database_output", "database_output/Seismic", "images", "images/beam", "images/post", "images/output",
+               "images/joist", "Final_Report"]
+
+
+def main_path():
+    directory_to_add = [os.path.join(os.getcwd(), 'images'), os.path.join(os.getcwd(), 'output'),
+                        os.path.join(os.getcwd(), 'output_database')]
+    for directory in directory_to_add:
+        if directory not in sys.path:
+            sys.path.append(directory)
+
+    # To add the parent directory of the current script
+    parent_directory = os.path.abspath(os.path.join(os.getcwd(), '..'))
+    if parent_directory not in sys.path:
+        sys.path.append(parent_directory)
+    # To add the grandparent directory
+    grandparent_directory = os.path.abspath(os.path.join(os.getcwd(), '../..'))
+    if grandparent_directory not in sys.path:
+        sys.path.append(grandparent_directory)
+
+
+class HandleDirectories:
+    def __init__(self, directories):
+        self.directories = directories
+
+    def make_all(self):
+        for directory in self.directories:
+            self.make_directory(directory)
+
+    @staticmethod
+    def make_directory(directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)

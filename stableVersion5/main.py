@@ -2,8 +2,12 @@ from PySide6.QtWidgets import QApplication
 from welcome import Welcome
 from tab_widget import tabWidget
 import sys
+from path import main_path, directories, HandleDirectories
 
 if __name__ == "__main__":
+    main_path()
+    dirs = HandleDirectories(directories)
+    dirs.make_all()
     app = QApplication(sys.argv)
     welcomePage = Welcome()
     # Finish the splash screen after the main window is loaded
