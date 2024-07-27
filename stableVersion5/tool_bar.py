@@ -11,7 +11,7 @@ from set_uniform_load import set_uniform_load
 from replicate import Replicate
 from delete import Delete
 from save import Save
-
+from Edit_properties import EditProperties
 
 class ToolBar:
     def __init__(self, mainPage):
@@ -21,6 +21,7 @@ class ToolBar:
         self.dialogPage3 = Replicate(self)
         self.dialogPage4 = Delete(self)
         self.savePage = Save(self)
+        self.EditProperties = EditProperties(self)
 
         self.spin_values = [0.75, 2.75, 0.1, 0.1, 0.1, 8, 6.5]
         self.combo_values = ["I & II", "Y"]
@@ -55,6 +56,11 @@ class ToolBar:
         save_action = QAction('Save', self.mainPage)
         save_action.triggered.connect(self.savePage.save_clicked)
         tool_bar.addAction(save_action)
+
+        # Create Edit option
+        edit_action = QAction('Edit Project', self.mainPage)
+        edit_action.triggered.connect(self.EditProperties.show)
+        tool_bar.addAction(edit_action)
 
         # saveAction.triggered.connect(self.save_tabs)
 
