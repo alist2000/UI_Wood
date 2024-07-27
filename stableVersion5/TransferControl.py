@@ -9,6 +9,7 @@ from UI_Wood.stableVersion5.Sync.Transfer import Transfer
 from UI_Wood.stableVersion5.Sync.data import Data
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.run.shearWall import DrawShearWall
+from UI_Wood.stableVersion5.Sync.shearWallSync import EditLabels
 
 
 class TransferControl(Data):
@@ -22,8 +23,25 @@ class TransferControl(Data):
         self.transferPage = None
 
     def transferClicked(self):
+        shearWallsValues = []
+        shearWallsKeys = []
         for currentTab in range(self.tabWidgetCount - 1, -1, -1):
             self.grid[currentTab].run_control()
+            shearWall = self.grid[currentTab].shearWall_instance.shearWall_rect_prop
+            studWall = self.grid[currentTab].studWall_instance.studWall_rect_prop
+            shearWallsValues.append(list(shearWall.values()))
+            shearWallsKeys.append(list(shearWall.keys()))
+        shearWallsEdited = EditLabels(shearWallsValues)
+        shearWallsEdited.reverse()
+        shearWallsKeys.reverse()
+        for currentTab in range(self.tabWidgetCount - 1, -1, -1):
+            shearWallDict = {}
+            for i in range(len(shearWallsEdited[currentTab])):
+                try:
+                    shearWallDict[shearWallsKeys[currentTab][i]] = shearWallsEdited[currentTab][i]
+                except:
+                    pass
+            self.grid[currentTab].shearWall_instance.shearWall_rect_prop = shearWallDict
 
         self.saveFunc()
 
