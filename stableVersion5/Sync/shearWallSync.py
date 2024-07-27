@@ -218,4 +218,8 @@ def EditLabels(shearWalls, itemName="shearWall"):
                                 labelStory[i + 1] = maxLabel
                                 shearWallBottom1["label"] = labelName + str(maxLabel)
                                 break
+                    elif shearWallBottom["label"] == labelMain and coordinate != base_coordinate:
+                        maxLabel += 1
+                        labelStory[i + 1] = maxLabel
+                        shearWallBottom["label"] = labelName + str(maxLabel)
     return shearWalls
