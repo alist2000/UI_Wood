@@ -155,6 +155,29 @@ class GridLineDefine(QWidget):
             else:
                 self.grid_base = "spacing"
 
+    def update_data(self, grid_data, grid_base):
+        # Clear existing rows
+        while self.tableWidgetXGrid.rowCount() > 1:
+            self.tableWidgetXGrid.removeRow(1)
+
+        # Update grid base
+        self.grid_base = grid_base
+        item = QLabel(grid_base.capitalize())
+        item.setAlignment(Qt.AlignCenter)
+        self.tableWidgetXGrid.setCellWidget(0, 1, item)
+
+        # Add new rows and set values
+        for item in grid_data:
+            self.add_item(item)
+
+        # Update the row labels
+        if self.x_or_y == "x":
+            for i in range(1, self.tableWidgetXGrid.rowCount()):
+                self.tableWidgetXGrid.cellWidget(i, 0).setText(get_string_value(i))
+        else:
+            for i in range(1, self.tableWidgetXGrid.rowCount()):
+                self.tableWidgetXGrid.cellWidget(i, 0).setText(str(i))
+
 
 class StoryDefine(QWidget):
     def __init__(self, coordinateButton, spacingButton, gridData=None):
@@ -288,6 +311,24 @@ class StoryDefine(QWidget):
             else:
                 self.grid_base = "spacing"
 
+    def update_data(self, story_number, story_height, gridBase):
+        # Clear existing rows
+        while self.tableWidgetXGrid.rowCount() > 1:
+            self.tableWidgetXGrid.removeRow(1)
+
+        # Add new rows
+        for i in range(story_number):
+            self.add_item()
+
+        # Set values
+        total_height = 0
+        for i, height in enumerate(story_height, start=1):
+            if gridBase == "coordinate":
+                total_height += height
+                self.tableWidgetXGrid.cellWidget(i, 1).setValue(total_height)
+            else:
+                self.tableWidgetXGrid.cellWidget(i, 1).setValue(height)
+
 
 class StoryCoordinateDefine(QWidget):
     def __init__(self, storyProp=None, gridBase=None):
@@ -327,6 +368,14 @@ class StoryCoordinateDefine(QWidget):
                 else:
                     storyHeight.append(self.storyData.tableWidgetXGrid.cellWidget(i, 1).value())
         return storyNumber, storyHeight
+
+    def update_data(self, story_number, story_height, gridBase):
+        # Update the radio buttons
+        self.coordinateButton.setChecked(gridBase == "coordinate")
+        self.spacingButton.setChecked(gridBase == "spacing")
+
+        # Update the story data
+        self.storyData.update_data(story_number, story_height, gridBase)
 
 
 class GridCoordinateDefine(QWidget):
@@ -412,6 +461,14 @@ class GridCoordinateDefine(QWidget):
                         break
 
         return sortedGrid
+
+    def update_data(self, x_grid, y_grid, grid_base):
+        self.gridBase = grid_base
+        self.coordinateButton.setChecked(grid_base == "coordinate")
+        self.spacingButton.setChecked(grid_base == "spacing")
+
+        self.xGrids.update_data(x_grid, grid_base)
+        self.yGrids.update_data(y_grid, grid_base)
 
 
 class GridPreview(QGraphicsView):
