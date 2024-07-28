@@ -43,27 +43,26 @@ class mainSync(Data):
         print("REPORT GENERATOR BUTTON CLICKED")
 
     def Run_and_Analysis(self):
-        # create report directory
-        try:
-            os.makedirs('../../Output')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('../../Output/Seismic')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images/beam')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images/post')  # Windows
-        except:
-            pass
+        # try:
+        #     os.makedirs('../../Output')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('../../Output/Seismic')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images/beam')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images/post')  # Windows
+        # except:
+        #     pass
         self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None

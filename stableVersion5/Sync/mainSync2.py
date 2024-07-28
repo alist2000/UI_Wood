@@ -11,7 +11,7 @@ from UI_Wood.stableVersion5.Sync.shearWallSync import ShearWallSync, ControlSeis
 from UI_Wood.stableVersion5.Sync.studWallSync import StudWallSync
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.layout.tab_widget2 import secondTabWidgetLayout
-from UI_Wood.stableVersion5.output.joist_output import Joist_output
+from UI_Wood.stableVersion5.path import shearWallOutputPath, shearWallInputPath, studWallInputPath, studWallOutputPath
 from UI_Wood.stableVersion5.Sync.shearWallSync2 import ShearWallSync2
 from UI_Wood.stableVersion5.Sync.studWallSync2 import StudWallSync2
 from UI_Wood.stableVersion5.output.shearWallSql import shearWallSQL, DropTables
@@ -254,27 +254,27 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_ShearWall(self):
-        # create report directory
-        try:
-            os.makedirs('../../Output')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('../../Output/Seismic')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images/beam')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images/post')  # Windows
-        except:
-            pass
+        # # create report directory
+        # try:
+        #     os.makedirs('../../Output')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('../../Output/Seismic')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images/beam')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images/post')  # Windows
+        # except:
+        #     pass
         self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
@@ -327,7 +327,8 @@ class mainSync2(Data):
                 dataInstance = ShearWallSync2(self.GridDrawClass, storySW)
                 j += 1
         else:
-            DropTables("../../../Output/ShearWall_output.db")
+
+            DropTables(shearWallOutputPath)
 
             generalProp = ControlGeneralProp(self.general_properties)
             height_from_top = list(reversed(generalProp.height))
@@ -382,7 +383,7 @@ class mainSync2(Data):
             self.shearWalls = []
             self.joists = []
 
-            DropTables("../../../Output/ShearWall_Input.db")
+            DropTables(shearWallInputPath)
 
             shearWall_input_db = shearWallSQL()
             shearWall_input_db.createTable()
@@ -424,7 +425,6 @@ class mainSync2(Data):
             DeleteTransferred(self.studWalls)
             self.shearWallRun = True
 
-
         print(
             f"beam {self.beamRun}, post {self.postRun}, joist {self.joistRun}, shear wall {self.shearWallRun}, stud wall {self.studWallRun}")
         if self.postRun and self.beamRun and self.joistRun and self.shearWallRun and self.studWallRun:
@@ -434,27 +434,27 @@ class mainSync2(Data):
         self.unlockButton.setEnabled(True)
 
     def Run_and_Analysis_StudWall(self):
-        # create report directory
-        try:
-            os.makedirs('../../Output')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('../../Output/Seismic')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images/beam')  # Windows
-        except:
-            pass
-        try:
-            os.makedirs('images/post')  # Windows
-        except:
-            pass
+        # # create report directory
+        # try:
+        #     os.makedirs('../../Output')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('../../Output/Seismic')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images/beam')  # Windows
+        # except:
+        #     pass
+        # try:
+        #     os.makedirs('images/post')  # Windows
+        # except:
+        #     pass
         self.reportGenerator.setEnabled(True)
         midLineDict = {}
         lineLabels = None
@@ -514,7 +514,7 @@ class mainSync2(Data):
                 dataInstance = StudWallSync2(self.GridDrawClass, storySW)
                 j += 1
         else:
-            DropTables("../../../Output/stud_report.db")
+            DropTables(studWallOutputPath)
 
             generalProp = ControlGeneralProp(self.general_properties)
             height_from_top = list(reversed(generalProp.height))
@@ -524,7 +524,7 @@ class mainSync2(Data):
             TransferInstance = Transfer()
             j = 0
 
-            DropTables("../../../Output/StudWall_Input.db")
+            DropTables(studWallInputPath)
 
             # stud wall database input
             studWall_input_db = studWallSQL()
