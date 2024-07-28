@@ -62,7 +62,10 @@ class drawing:
         self.grid = grids
         for i in range(len(grids)):
             grid = grids[i]
-            tabData = self.tabData[str(i)]
+            try:
+                tabData = self.tabData[str(i)]
+            except:
+                tabData = self.tabData[i]
             self.draw_post(grid, tabData)
             self.draw_beam(grid, tabData)
             self.draw_joist(grid, tabData)

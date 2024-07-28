@@ -1,14 +1,14 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QApplication
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QMessageBox
 from UI_Wood.stableVersion5.styles import TabWidgetStyle
 from report.report import Inputs
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDoubleSpinBox, QLabel, QPushButton, \
     QTextEdit, QAbstractItemView, QTableWidget, \
     QRadioButton, QSpacerItem, QGraphicsView, QGraphicsScene
-
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QComboBox, QApplication
 from InformationSaver import InformationSaver
 from UI_Wood.stableVersion5.grid_define import GridCoordinateDefine, GridPreview, \
     StoryCoordinateDefine
+
 
 
 class EditProperties(QWidget):
@@ -28,7 +28,7 @@ class EditProperties(QWidget):
         self.widget_form = Widget_form(reportInputs)
 
         # Buttons - Tab 2
-        self.widget_buttons = Widget_button(reportInputs)
+        self.widget_buttons = Widget_button(reportInputs, mainPage)
 
         # Add tabs to widget
         tab_widget.addTab(self.widget_form, "General Information")
@@ -99,7 +99,7 @@ def h_layout_control(*args):
 
 
 class Widget_button(QWidget):
-    def __init__(self, reportInputs, parent=None):
+    def __init__(self, reportInputs, mainPage, parent=None):
         super().__init__(parent)
         # final values
         self.level_final = None
@@ -108,6 +108,8 @@ class Widget_button(QWidget):
         self.height_story_final = None
         self.h_spacing_final = None
         self.v_spacing_final = None
+        self.tabWidget = None
+        self.mainPage = mainPage
         self.x_grid, self.y_grid, self.grid_base = None, None, None
         # self.loadInstance = Load(self)
 
@@ -138,7 +140,7 @@ class Widget_button(QWidget):
         self.height_story = []
         self.h_spacing_list = []
         self.v_spacing_list = []
-        run = QPushButton("SUBMIT")
+        run = QPushButton("APPLY")
         # load = QPushButton("LOAD")
         run.clicked.connect(self.run_control)
         # load.clicked.connect(self.loadInstance.load_control)
@@ -152,18 +154,53 @@ class Widget_button(QWidget):
 
     # SLOT FUNCTION
     def run_control(self):
-        self.previewGrid.preview()
-        self.x_grid, self.y_grid, self.grid_base = self.gridInstance.output()
-        self.level_final, self.height_story_final = self.storyInstance.output()
+        from load import set_toolBar, drawing
+        response = self.show_warning_message()
+        if response == QMessageBox.Yes:
+            self.previewGrid.preview()
+            self.x_grid, self.y_grid, self.grid_base = self.gridInstance.output()
+            self.level_final, self.height_story_final = self.storyInstance.output()
 
-        height_story = self.height_story
-        height_story.clear()
-        print("run")
+            height_story = self.height_story
+            height_story.clear()
+            print("run")
 
-        # self.new_window = secondTabWidget(self.result())
+            # REPORT INPUTS
+            self.reportInputs.General_prop(self.result())
+            self.mainPage.savePage.save_data()
+            self.create_main_tab()
+            self.mainPage.savePage.data["general_properties"] = self.result()
+            set_toolBar(self.mainPage.savePage.data, self.tabWidget.toolBar)
+            drawing(self.mainPage.savePage.data, self.tabWidget.grid)
+            # Close the current window and open a new one with updated data
+            # self.parent().close()
+            # Add code here to open a new window with the updated data
+        else:
+            print("Operation cancelled by user")
 
-        # REPORT INPUTS
-        self.reportInputs.General_prop(self.result())
+    def create_main_tab(self):
+        from tab_widget_2 import secondTabWidget
+        from load import UpdateGridData
+        # Set Information Properties
+        self.line_edit_projectTitle = QLineEdit(self.mainPage.savePage.data["general_information"]["project_name"])
+        InformationSaver.line_edit_projectTitle = self.line_edit_projectTitle
+        self.line_edit_company = QLineEdit(self.mainPage.savePage.data["general_information"]["company"])
+        InformationSaver.line_edit_company = self.line_edit_company
+        self.line_edit_designer = QLineEdit(self.mainPage.savePage.data["general_information"]["designer"])
+        InformationSaver.line_edit_designer = self.line_edit_designer
+        self.line_edit_client = QLineEdit(self.mainPage.savePage.data["general_information"]["client"])
+        InformationSaver.line_edit_client = self.line_edit_client
+        self.line_edit_comment = QLineEdit(self.mainPage.savePage.data["general_information"]["comment"])
+        InformationSaver.line_edit_comment = self.line_edit_comment
+        self.unit_combo = QComboBox()
+        self.unit_combo.addItem(self.mainPage.savePage.data["general_information"]["unit_system"])
+        self.unit_combo.setCurrentText(self.mainPage.savePage.data["general_information"]["unit_system"])
+        InformationSaver.unit_combo = self.unit_combo
+
+        # set second tab features.
+        general_properties = self.mainPage.savePage.data["general_properties"]
+        UpdateGridData(general_properties)
+        self.tabWidget = secondTabWidget(general_properties)
 
     def result(self):
         Result = {"level_number": self.level_final, "height_story": self.height_story_final,
@@ -172,10 +209,23 @@ class Widget_button(QWidget):
                   "grid_base": self.grid_base}
         return Result
 
+    def show_warning_message(self):
+        warning_box = QMessageBox()
+        warning_box.setIcon(QMessageBox.Warning)
+        warning_box.setWindowTitle("Warning")
+        warning_box.setText("Important Notice")
+        warning_box.setInformativeText(
+            "By proceeding, This window will close, and a new one will open with the updated data. "
+            "Are you sure you want to continue?")
+        warning_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        warning_box.setDefaultButton(QMessageBox.No)
+        return warning_box.exec_()
 
     def update_data(self, data):
-        self.storyInstance.update_data(data.get("level_number", 1), data.get("height_story", []), data.get("grid_base", "coordinate"))
-        self.gridInstance.update_data(data.get("x_grid", []), data.get("y_grid", []), data.get("grid_base", "coordinate"))
+        self.storyInstance.update_data(data.get("level_number", 1), data.get("height_story", []),
+                                       data.get("grid_base", "coordinate"))
+        self.gridInstance.update_data(data.get("x_grid", []), data.get("y_grid", []),
+                                      data.get("grid_base", "coordinate"))
         self.previewGrid.preview()
 
         # Update the reportInputs
