@@ -128,6 +128,10 @@ class GridLineDefine(QWidget):
                 spinBoxPos.setValue(row_data['position'])
             except:
                 spinBoxPos.setValue(row_data['spacing'])
+            if not row_data['start']:
+                row_data['start'] = 0
+            if not row_data['end']:
+                row_data['end'] = 0
             spinBoxStart.setValue(row_data['start'])
             spinBoxEnd.setValue(row_data['end'])
         nameText.setAlignment(Qt.AlignCenter)
