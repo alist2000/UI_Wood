@@ -32,7 +32,7 @@ class GridWidget(QGraphicsView):
         self.setDragMode(QGraphicsView.RubberBandDrag)
         self.clickable_area_enabled = True
         # self.lastPanPoint = QPoint()
-        self.menu = Image(self, slider)
+        self.menu = Image(self, slider, y_grid)
         self.dragging_pixmap = False
         self.shift_pressed = False
 
