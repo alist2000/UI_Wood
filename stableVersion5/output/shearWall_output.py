@@ -304,7 +304,7 @@ class ShearWall_output:
             self.lineLoad = ControlLineLoad(ShearWallItem["load"]["line"], ShearWallItem, direction_index)
             print("loadset line load", self.lineLoad.loadSet)
             self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
-                                                           decimal_number)
+                                                           decimal_number, self.length)
             start_load, end_load, dead_load, live_load, lr_load, snow_load = self.create_string_for_loads(
                 self.finalDistributedLoad.loadSet)
             db.cursor.execute(

@@ -279,7 +279,7 @@ class ControlLineLoad:
 
 
 class CombineDistributes:
-    def __init__(self, distributeLoad, lineLoad, decimalNumber):
+    def __init__(self, distributeLoad, lineLoad, decimalNumber, length=False):
         """
         The function initializes some variables and creates a load set based on the given distributeLoad and lineLoad
         inputs.
@@ -324,6 +324,9 @@ class CombineDistributes:
                     "end": round(rangeItem[1], decimalNumber),
                     "load": loadList
                 })
+        if length:
+            uniform = UniformAllLoad(self.loadSet, length)
+            self.loadSet = uniform.loadSet
         ControlLoadType(self.loadSet)
 
 
@@ -486,6 +489,51 @@ class ControlLoadType:
                     "magnitude": load_mag
                 })
             item["load"] = load_list
+
+
+class UniformAllLoad:
+    def __init__(self, loadSet, length):
+        self.loadSet = loadSet
+        self.length = length
+        self.uniform_all_load()
+
+    def uniform_all_load(self):
+        """   [{'end': 7.75, 'load': [{'magnitude': 0.516885363028146, 'type': 'Dead'},
+        {'magnitude': 0.5743170700312735, 'type': 'Live Roof'},
+         {'magnitude': 0.5743170700312735, 'type': 'Dead Super'}], 'start': 0.0}]"""
+        loadList = []
+        loadTypes = {}
+        for load in self.loadSet:
+            start = load["start"]
+            end = load["end"]
+            loadLength = abs(end - start)
+            insideLoads = []
+            for loadInside in load["load"]:
+                newLoad = {"type": loadInside["type"], "magnitude": loadInside["magnitude"] * loadLength / self.length}
+                if loadTypes.get(loadInside["type"]):
+                    loadTypes[loadInside["type"]].append(loadInside["magnitude"] * loadLength / self.length)
+                    insideLoads.append(newLoad)
+                else:
+                    loadTypes[loadInside["type"]] = []
+                    loadTypes[loadInside["type"]].append(loadInside["magnitude"] * loadLength / self.length)
+            new_start = 0.0
+            new_end = self.length
+            loadList.append({
+                "start": new_start,
+                "end": new_end,
+                "load": insideLoads
+            })
+        new_start = 0.0
+        new_end = self.length
+        new_load = []
+        for typeLoad, magnitude in loadTypes.items():
+            new_load.append({"type": typeLoad, "magnitude": sum(magnitude)})
+
+        self.loadSet = [{
+            "start": new_start,
+            "end": new_end,
+            "load": new_load
+        }]
 
 
 def create_range(load):
