@@ -445,7 +445,7 @@ class CombinePointLoads:
     def add_load(load, start):
         loads = []
         for loadItem in load:
-            if loadItem["start"] == start:
+            if round(loadItem["start"], 2) == round(start, 2):
                 loads += loadItem["load"]
         return loads
 
