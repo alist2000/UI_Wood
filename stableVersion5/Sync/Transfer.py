@@ -234,7 +234,7 @@ class Transfer:
 
                         beamStart = min(beamRange)
                         beamEnd = max(beamRange)
-                        dist = coordinateTop[constantIndexBeam] - constantCoordBeam
+                        dist = abs(coordinateTop[constantIndexBeam] - constantCoordBeam)
                         if dist <= magnification_factor / 12 and beamStart <= coordinateTop[
                             constantIndexBeam - 1] <= beamEnd:  # distance till 1 inch is acceptable
                             print("this post is transferred", post["label"], "on this beam", beam["label"])
