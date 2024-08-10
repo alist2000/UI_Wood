@@ -73,8 +73,12 @@ class Control_reaction(reaction_types):
                     if supportItem.get("reaction") is None:
                         supportItem["reaction"] = []
                     coordinate = tuple([round(i, 0) for i in supportItem["coordinate"]])
-                    if coordinate == reaction_coordinate:
+                    dist = distance(reaction_coordinate, coordinate)
+                    error = magnification_factor / 12
+                    if dist < error:
                         supportItem["reaction"].append({"magnitude": magnitude, "type": load_type})
+                        break
+
         else:  # Inclined beam
             for i, magnitude in enumerate(load):
                 load_type = self.load_names[i]
