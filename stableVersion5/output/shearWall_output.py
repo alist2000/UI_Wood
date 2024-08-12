@@ -368,7 +368,7 @@ class ShearWall_output:
                     Pe[side] = item["magnitude"]
                 elif loadType == "Live":
                     mag_live = item["magnitude"]
-                else:
+                elif loadType == "Live Roof":
                     mag_live_roof = item["magnitude"]
             # if self.Story < self.roof_level_number:
             if self.Story != "Roof":
