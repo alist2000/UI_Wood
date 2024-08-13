@@ -122,10 +122,10 @@ class shearWallDrawing(QGraphicsRectItem):
                         height = end_point[1] - start_point[1]
                         self.start_pos = QPointF(round(start_point[0]), round(start_point[1]))
                         if self.direction == "E-W":
-                            width = round(width / (magnification_factor / 2)) * (magnification_factor / 2)
+                            # width = round(width / (magnification_factor / 2)) * (magnification_factor / 2)
                             pos = QPoint(width + self.start_pos.x(), self.start_pos.y())
                         else:
-                            height = round(height / (magnification_factor / 2)) * (magnification_factor / 2)
+                            # height = round(height / (magnification_factor / 2)) * (magnification_factor / 2)
                             pos = QPoint(self.start_pos.x(), height + self.start_pos.y())
                         start_point, end_point = control_offset(self.direction, self.start_pos.toTuple(), pos.toTuple(),
                                                                 self.offset)
@@ -221,7 +221,7 @@ class shearWallDrawing(QGraphicsRectItem):
             # snapped_pos = QPoint(snapped_pos[0], snapped_pos[1])
 
             if direction == "E-W":
-                width = round(width / (magnification_factor / 2) * (magnification_factor / 2))
+                # width = round(width / (magnification_factor / 2) * (magnification_factor / 2))
                 # Move horizontally, keep vertical dimension constant
                 self.current_rect.setRect(min(start_pos.x(), snapped_pos.x()),
                                           start_pos.y() - self.shearWall_width / 2, abs(width),
@@ -235,7 +235,7 @@ class shearWallDrawing(QGraphicsRectItem):
                 self.dimension.setRotation(0)
 
             else:
-                height = round(height / (magnification_factor / 2) * (magnification_factor / 2))
+                # height = round(height / (magnification_factor / 2) * (magnification_factor / 2))
 
                 # Move vertically, keep horizontal dimension constant
                 self.current_rect.setRect(start_pos.x() - self.shearWall_width / 2,
@@ -480,6 +480,7 @@ class shearWallDrawing(QGraphicsRectItem):
         y1 = start[1]
         y2 = end[1]
         l = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+        l = round(l / (magnification_factor / 2)) * (magnification_factor / 2)
         return round(l, 1)
 
     # SLOT

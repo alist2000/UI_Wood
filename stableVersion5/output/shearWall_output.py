@@ -300,7 +300,7 @@ class ShearWall_output:
             decimal_number = max(n1, n2)
             # distributed load control
             self.distributedLoad = ControlDistributetLoad(ShearWallItem["load"]["joist_load"]["load_map"],
-                                                          self.start)
+                                                          self.start, self.length)
             self.lineLoad = ControlLineLoad(ShearWallItem["load"]["line"], ShearWallItem, direction_index)
             print("loadset line load", self.lineLoad.loadSet)
             self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
@@ -314,7 +314,7 @@ class ShearWall_output:
                 ' Right_Top_End, Po_Left, Pl_Left, Pe_Left, Po_Right, Pl_Right, Pe_Right, Wall_Orientation, v_abv, pe_abv) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     shearWallId, str(StoryName), str(coordinateStart), str(coordinateEnd), line, label,
-                    round(self.end - self.start, max(n1, n2)),
+                    round(self.length, 1),
                     # height[story],
                     height,
                     str(opening_width), interior_exterior, self_weight, start_load, end_load, dead_load, live_load,
@@ -331,7 +331,7 @@ class ShearWall_output:
                 "coordinate": [self.start, self.end],
                 "story": StoryName,
                 "line_label": line,
-                "length": round(self.end - self.start, max(n1, n2)),
+                "length": round(self.length, 1),
                 # "height": height[story],
                 "height": height,
                 "opening_width": opening_width,
