@@ -101,8 +101,11 @@ class Image(QMainWindow):
                                   for item in self.y_grid if item.get('position') or item.get('coordinate')), None)
 
             if main_distance is None:
-                print("Error: No valid distance found in y_grid")
-                return None
+                main_distance = next((item.get('spacing')
+                                      for item in self.y_grid if item.get('spacing')), None)
+                if main_distance is None:
+                    print("Error: No valid distance found in y_grid")
+                    return None
 
             red_points = self.find_red_points(pil_image)
             if len(red_points) != 2:
