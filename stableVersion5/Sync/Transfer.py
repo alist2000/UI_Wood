@@ -52,7 +52,7 @@ class Transfer:
                             for itemBottom in bottom:
                                 labelBottom = itemBottom["label"]
                                 if labelBottom == label:
-                                    itemBottom["pe_abv"] += shearWall["pe_initial"] * item["percent"] / 100
+                                    # itemBottom["pe_abv"] += shearWall["pe_initial"] * item["percent"] / 100
                                     itemBottom["v_abv"] += shearWall["v_design"] * item["percent"] / 100
                                     break
                             print("Done")
