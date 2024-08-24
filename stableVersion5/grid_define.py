@@ -74,10 +74,12 @@ class GridLineDefine(QWidget):
                 firstCoord = copy.deepcopy(new_value)
                 item = QDoubleSpinBox()
                 item.setAlignment(Qt.AlignCenter)
-                if i == 1:
-                    item.setRange(0, 10000)
-                else:
-                    item.setRange(1, 10000)
+                item.setRange(0, 10000)
+
+                # if i == 1:
+                #     item.setRange(0, 10000)
+                # else:
+                #     item.setRange(1, 10000)
                 item.setDecimals(4)
                 item.setValue(new_value)
                 self.tableWidgetXGrid.setCellWidget(i, 1, item)
