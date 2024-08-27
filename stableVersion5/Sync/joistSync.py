@@ -48,13 +48,37 @@ class joistAnalysisSync:
                     figs[1].write_image(
                         PathHandler(f"images/joist/Joist_internal_story{story + 1}_label_{joist_['label']}.png"))
                     newQuery = roundAll(joist_analysis_selected.query)
-                    self.output_db.cursor1.execute(
-                        'INSERT INTO JOIST (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                        newQuery[:-1])
-                    joist_["bending_dcr"] = newQuery[16]
-                    joist_["shear_dcr"] = newQuery[17]
-                    joist_["deflection_dcr"] = newQuery[18]
-                    joist_["size"] = newQuery[7]
+                    # Define the column names as a string
+                    columns = (
+                        "ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, LOAD_COMB_BENDING, "
+                        "LOAD_COMB_DEFLECTION, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, "
+                        "Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, "
+                        "defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, "
+                        "DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, "
+                        "P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, "
+                        "Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, "
+                        "Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem"
+                    )
+
+                    # Split the column names into a list
+                    columns_list = columns.split(", ")
+
+                    # Calculate the number of columns
+                    num_columns = len(columns_list)
+
+                    # Create the placeholders based on the number of columns
+                    placeholders = ", ".join(["?"] * num_columns)
+
+                    # Create the full SQL statement
+                    sql = f"INSERT INTO JOIST ({columns}) VALUES ({placeholders})"
+
+                    # Execute the SQL statement with the values
+                    self.output_db.cursor1.execute(sql, newQuery[:-1])
+                    self.output_db.conn1.commit()
+                    joist_["bending_dcr"] = newQuery[18]
+                    joist_["shear_dcr"] = newQuery[19]
+                    joist_["deflection_dcr"] = newQuery[20]
+                    joist_["size"] = newQuery[9]
                     JoistStory.append(joist_)
                     self.output_db.conn1.commit()
                     self.joistId += 1
@@ -113,13 +137,37 @@ class joistAnalysisSyncOld:
                                 PathHandler(
                                     f"images/joist/Joist_internal_story{tabNumber + 1}_label_{joist_['label']}.png"))
                             newQuery = roundAll(joist_analysis_selected.query)
-                            db.cursor1.execute(
-                                'INSERT INTO JOIST (ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                                newQuery[:-1])
-                            joist_["bending_dcr"] = newQuery[16]
-                            joist_["shear_dcr"] = newQuery[17]
-                            joist_["deflection_dcr"] = newQuery[18]
-                            joist_["size"] = newQuery[7]
+                            # Define the column names as a string
+                            columns = (
+                                "ID, STORY, LABEL, SPECIES, SPANS, LENGTH, LOAD_COMB, LOAD_COMB_BENDING, "
+                                "LOAD_COMB_DEFLECTION, SIZE, Vmax, Mmax, Fb_actual, Fb_allow, Fv_actual, "
+                                "Fv_allow, Deflection_actual, Deflection_allow, Bending_dcr, Shear_dcr, "
+                                "defl_dcr, DIST_D, DIST_D_range, DIST_L, DIST_L_range, DIST_LR, DIST_LR_range, "
+                                "DIST_E, DIST_E_range, DIST_S, DIST_S_range, P_D, P_D_range, P_L, P_L_range, "
+                                "P_LR, P_LR_range, P_E, P_E_range, P_S, P_S_range, RD, RL, RLr, RE, RS, "
+                                "Mmax_loc, Vmax_loc, d, b, Fb, Ft, Fc, Fv, Fcperp, E, Emin, A, Sx, Sy, Ix, "
+                                "Iy, Cd, Ct, Cfb, Cfc, Cft, Cfu, Ci, Ciperp, Cr, Cb, Cl, Fcperp_cap, Fcperp_dem"
+                            )
+
+                            # Split the column names into a list
+                            columns_list = columns.split(", ")
+
+                            # Calculate the number of columns
+                            num_columns = len(columns_list)
+
+                            # Create the placeholders based on the number of columns
+                            placeholders = ", ".join(["?"] * num_columns)
+
+                            # Create the full SQL statement
+                            sql = f"INSERT INTO JOIST ({columns}) VALUES ({placeholders})"
+
+                            # Execute the SQL statement with the values
+                            db.cursor1.execute(sql, newQuery[:-1])
+                            db.conn1.commit()
+                            joist_["bending_dcr"] = newQuery[18]
+                            joist_["shear_dcr"] = newQuery[19]
+                            joist_["deflection_dcr"] = newQuery[20]
+                            joist_["size"] = newQuery[9]
                             JoistStory.append(joist_)
                             db.conn1.commit()
                             joistId += 1
