@@ -1,8 +1,8 @@
-from back.beam_control import beam_control
-from back.joist_control import joist_support_control
-from back.shearWall_control import shearWall_control
-from back.midline_control import joist_in_midline
-from back.load_control import load_on_joist
+from UI_Wood.stableVersion5.back.beam_control import beam_control
+from UI_Wood.stableVersion5.back.joist_control import joist_support_control
+from UI_Wood.stableVersion5.back.shearWall_control import shearWall_control
+from UI_Wood.stableVersion5.back.midline_control import joist_in_midline
+from UI_Wood.stableVersion5.back.load_control import load_on_joist
 from UI_Wood.stableVersion5.back.midline_control import EditGrid
 
 
