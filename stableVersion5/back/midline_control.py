@@ -1,9 +1,9 @@
 import copy
 
-from back.load_control import range_intersection
+from UI_Wood.stableVersion5.back.load_control import range_intersection
 import sys
 
-from post_new import magnification_factor
+from UI_Wood.stableVersion5.post_new import magnification_factor
 
 
 # midline_dict = [{"line": "grid line", "area": "area", "magnitude": "magnitude"}]
@@ -57,10 +57,25 @@ class joist_in_midline:
 
 class control:
     def __init__(self, joist, grid, gridPerp, direction, midline_dict):
+        grid_edited = []
+        for gridItem in grid:
+            grid_edited.append(GridLine(name=gridItem["label"], position=gridItem["position"], start=gridItem["start"],
+                                        end=gridItem["end"]))
+        gridRange1 = GridLineManager(grid_edited)
+        for i, line in enumerate(gridRange1.grid_lines):
+            perpendicular_ranges = gridRange1.get_perpendicular_ranges(i)
+            print(f"Grid line at position {line.position} (start: {line.start}, end: {line.end}):")
+            for j, range in enumerate(perpendicular_ranges):
+                print(f"  Range {j + 1}: {range}")
+        # for i in range(len(grid)):
+        #     perpendicular_range = gridRange1.get_perpendicular_range(i)
+        #     print(f"Grid line at position {grid[i]['position']}: Perpendicular range = {perpendicular_range}")
 
-        for i in range(len(grid)):
-            gridRange = self.GridRange(grid, i)
-            limitRangeGrid = self.LimitRange(grid, gridPerp, i)
+        for i, line in enumerate(gridRange1.grid_lines):
+            grid_range = gridRange1.get_perpendicular_ranges(i)
+
+            # gridRange = self.GridRange(grid, i)
+            # limitRangeGrid = self.LimitRange(grid, gridPerp, i)
             if direction == "N-S":
                 free_range = 0  # vertical infinite
                 limit_range = 1  # horizontal limited
@@ -68,54 +83,59 @@ class control:
                 free_range = 1  # vertical infinite
                 limit_range = 0  # horizontal limited
             lineProp = []
-            midline_dict.append({grid[i]["label"]: lineProp})
-            for JoistProp in joist.values():
-                joist_range = JoistProp["line"]["properties"][limit_range]["range"]
-                joist_grid_intersection = range_intersection(gridRange, joist_range)
-                if joist_grid_intersection:
+            midline_dict.append({gridRange1.grid_lines[i].name: lineProp})
+            # D = [PerpendicularRange(start=-inf, end=2270.0, left_boundary=2001.6699999999998, right_boundary=2533.3379999999997), PerpendicularRange(start=2270.0, end=3266.668, left_boundary=-inf, right_boundary=2533.3379999999997), PerpendicularRange(start=3266.668, end=inf, left_boundary=2110.836, right_boundary=2533.3379999999997)]
+            for grid_item in grid_range:
+                gridRange = (grid_item.left_boundary, grid_item.right_boundary)
+                limitRangeGrid = (grid_item.start, grid_item.end)
+                for JoistProp in joist.values():
+                    joist_range = JoistProp["line"]["properties"][limit_range]["range"]
+                    joist_grid_intersection = range_intersection(gridRange, joist_range)
+                    if joist_grid_intersection:
 
-                    # WRONG CODE SHOULD DEVELOP LATER
-                    joistLoadTotal = JoistProp["load"]["total_area"]
-                    loadSetEdited = self.ControlDeadSuperExist(joistLoadTotal)
-                    for load in loadSetEdited:
-                        if load["type"] == "Dead Super":
-                            midline = midline_area_calc(load["magnitude"],
-                                                        joist_grid_intersection,
-                                                        JoistProp["line"]["properties"][free_range]["range"],
-                                                        )
-                            lineProp.append(midline.midline_area_dict)
-
-                    # WRONG CODE SHOULD DEVELOP LATER
-                    joistLoadCustom = JoistProp["load"]["custom_area"]
-                    loadSetEdited = self.ControlDeadSuperExist(joistLoadCustom)
-                    for load in loadSetEdited:
-                        load_x_range = (load["x1"], load["x2"])
-                        load_y_range = (load["y1"], load["y2"])
-                        midlineRange = midline_range(direction, load_x_range, load_y_range, gridRange)
-
-                        x_range = midlineRange.x_range
-                        y_range = midlineRange.y_range
-                        if x_range and y_range:
+                        # WRONG CODE SHOULD DEVELOP LATER
+                        joistLoadTotal = JoistProp["load"]["total_area"]
+                        loadSetEdited = self.ControlDeadSuperExist(joistLoadTotal)
+                        for load in loadSetEdited:
                             if load["type"] == "Dead Super":
-                                midline = midline_area_calc(load["magnitude"], x_range, y_range,
+                                midline = midline_area_calc(load["magnitude"],
+                                                            joist_grid_intersection,
+                                                            JoistProp["line"]["properties"][free_range]["range"],
                                                             )
                                 lineProp.append(midline.midline_area_dict)
-                    joistLoadMap = JoistProp["load"]["load_map"]
-                    for load_set in joistLoadMap:
-                        load_x_range = load_set["range_x"]
-                        load_y_range = load_set["range_y"]
-                        midlineRange = midline_range(direction, load_x_range, load_y_range, gridRange, limitRangeGrid)
 
-                        x_range = midlineRange.x_range
-                        y_range = midlineRange.y_range
-                        if x_range and y_range:
-                            loadSetEdited = self.ControlDeadSuperExist(load_set["load"])
-                            for load in loadSetEdited:
+                        # WRONG CODE SHOULD DEVELOP LATER
+                        joistLoadCustom = JoistProp["load"]["custom_area"]
+                        loadSetEdited = self.ControlDeadSuperExist(joistLoadCustom)
+                        for load in loadSetEdited:
+                            load_x_range = (load["x1"], load["x2"])
+                            load_y_range = (load["y1"], load["y2"])
+                            midlineRange = midline_range(direction, load_x_range, load_y_range, gridRange)
 
+                            x_range = midlineRange.x_range
+                            y_range = midlineRange.y_range
+                            if x_range and y_range:
                                 if load["type"] == "Dead Super":
                                     midline = midline_area_calc(load["magnitude"], x_range, y_range,
                                                                 )
                                     lineProp.append(midline.midline_area_dict)
+                        joistLoadMap = JoistProp["load"]["load_map"]
+                        for load_set in joistLoadMap:
+                            load_x_range = load_set["range_x"]
+                            load_y_range = load_set["range_y"]
+                            midlineRange = midline_range(direction, load_x_range, load_y_range, gridRange,
+                                                         limitRangeGrid)
+
+                            x_range = midlineRange.x_range
+                            y_range = midlineRange.y_range
+                            if x_range and y_range:
+                                loadSetEdited = self.ControlDeadSuperExist(load_set["load"])
+                                for load in loadSetEdited:
+
+                                    if load["type"] == "Dead Super":
+                                        midline = midline_area_calc(load["magnitude"], x_range, y_range,
+                                                                    )
+                                        lineProp.append(midline.midline_area_dict)
 
     @staticmethod
     def ControlDeadSuperExist(loads):
@@ -197,26 +217,150 @@ class EditGrid:
         hGridNewLabel = self.h_grid_labels & shearWallLines
         vGridNew = [i for i in vGrid if i["label"] in vGridNewLabel]
         hGridNew = [i for i in hGrid if i["label"] in hGridNewLabel]
-        self.vGridNew = self.controlStartEnd(vGridNew)
-        self.hGridNew = self.controlStartEnd(hGridNew)
+        endDefaultY = max([i["position"] for i in hGridNew])
+
+        endDefaultX = max([i["position"] for i in vGridNew])
+
+        self.vGridNew = self.controlStartEnd(vGridNew, endDefaultY)
+        self.hGridNew = self.controlStartEnd(hGridNew, endDefaultX)
 
     @staticmethod
-    def controlStartEnd(grid):
+    def controlStartEnd(grid, end_default):
         for i, gridList in enumerate(grid):
-            position = gridList["position"]
-            if i < len(grid) - 1:
-                nextGrid = grid[i + 1]
-                positionNext = nextGrid["position"]
-                if positionNext != position:  # there is no second line or void
-                    gridList["end"] = float("inf")
-                    gridList["start"] = -float("inf")
-            else:
-                behindGrid = grid[i - 1]
-                positionBehind = behindGrid["position"]
-                if positionBehind != position:  # there is no second line or void
-                    gridList["end"] = float("inf")
-                    gridList["start"] = -float("inf")
+            start = gridList["start"]
+            if not start:
+                gridList["start"] = -float("inf")
+            end = gridList["end"]
+            if round(end, 2) == round(end_default, 2):
+                gridList["end"] = float("inf")
+
+            # if i < len(grid) - 1:
+            #     nextGrids = grid[i + 1:]
+            # else:
+            #     nextGrids = grid[:i]  # Behind
+            # void = False
+            # for j, OtherGrid in enumerate(grid):
+            #     if i != j:
+            #         positionNext = OtherGrid["position"]
+            #         if round(positionNext, 2) == round(position, 2):  # there is no second line or void
+            #             void = True
+            #             break
+            # if not void:
+            #     gridList["end"] = float("inf")
+            #     gridList["start"] = -float("inf")
+            # else:
+            #     void = True
+            #     behindGrids = grid[:i]
+            #     for behindGrid in behindGrids:
+            #         positionBehind = behindGrid["position"]
+            #         if round(positionBehind, 2) == round(position, 2):  # there is no second line or void
+            #             void = False
+            #             break
+            #     if not void:
+            #         gridList["end"] = float("inf")
+            #         gridList["start"] = -float("inf")
         return grid
 
     def output(self):
         return {"vertical": self.vGridNew, "horizontal": self.hGridNew}
+
+
+from dataclasses import dataclass
+from typing import List, Tuple, Optional
+
+
+@dataclass
+class GridLine:
+    position: float
+    start: float
+    end: float
+    name: str = ""
+
+
+@dataclass
+class PerpendicularRange:
+    start: float
+    end: float
+    left_boundary: float
+    right_boundary: float
+
+
+class GridLineManager:
+    def __init__(self, grid_lines: List[GridLine]):
+        self.grid_lines = sorted(grid_lines, key=lambda x: x.position)
+
+    def get_perpendicular_ranges(self, index: int) -> List[PerpendicularRange]:
+        current_line = self.grid_lines[index]
+        prev_lines = self._find_prev_different_lines(index)
+        next_lines = self._find_next_different_lines(index)
+
+        ranges = []
+        current_start = current_line.start
+
+        while current_start < current_line.end:
+            prev_line = self._find_overlapping_line(prev_lines, current_start)
+            next_line = self._find_overlapping_line(next_lines, current_start)
+
+            left_boundary = self._calculate_midpoint(prev_line, current_line) if prev_line else float("-inf")
+            right_boundary = self._calculate_midpoint(current_line, next_line) if next_line else float("inf")
+
+            range_end = min(
+                current_line.end,
+                next_line.end if next_line else float("inf"),
+                prev_line.end if prev_line else float("inf")
+            )
+
+            ranges.append(PerpendicularRange(current_start, range_end, left_boundary, right_boundary))
+            current_start = range_end
+
+            # Check if we need to create a new range due to gaps in neighboring lines
+            if current_start < current_line.end:
+                next_prev_line = self._find_next_overlapping_line(prev_lines, current_start)
+                next_next_line = self._find_next_overlapping_line(next_lines, current_start)
+
+                if next_prev_line and next_prev_line.start > current_start:
+                    ranges.append(
+                        PerpendicularRange(current_start, next_prev_line.start, float("-inf"), right_boundary))
+                    current_start = next_prev_line.start
+                elif next_next_line and next_next_line.start > current_start:
+                    ranges.append(PerpendicularRange(current_start, next_next_line.start, left_boundary, float("inf")))
+                    current_start = next_next_line.start
+
+        return ranges
+
+    def _find_prev_different_lines(self, index: int) -> List[GridLine]:
+        return [line for line in reversed(self.grid_lines[:index])
+                if line.position != self.grid_lines[index].position]
+
+    def _find_next_different_lines(self, index: int) -> List[GridLine]:
+        return [line for line in self.grid_lines[index + 1:]
+                if line.position != self.grid_lines[index].position]
+
+    @staticmethod
+    def _find_overlapping_line(lines: List[GridLine], point: float) -> Optional[GridLine]:
+        return next((line for line in lines if line.start <= point < line.end), None)
+
+    @staticmethod
+    def _find_next_overlapping_line(lines: List[GridLine], point: float) -> Optional[GridLine]:
+        return next((line for line in lines if line.start > point), None)
+
+    @staticmethod
+    def _calculate_midpoint(line1: GridLine, line2: GridLine) -> float:
+        return (line1.position + line2.position) / 2
+
+
+# Example usage:
+grid_lines = [
+    GridLine(position=1940, start=0, end=3000, name="A"),  # Line D
+    GridLine(position=1880, start=0, end=2270, name="B"),  # Line behind D (partial)
+    GridLine(position=1860, start=3500, end=4000, name="C"),  # Line behind D (partial)
+    GridLine(position=2400, start=0, end=4000, name="D"),  # Line in front of D
+]
+
+manager = GridLineManager(grid_lines)
+for i, line in enumerate(grid_lines):
+    perpendicular_ranges = manager.get_perpendicular_ranges(i)
+    print(f"Grid line at position {line.position} (start: {line.start}, end: {line.end}, name: {line.name}):")
+    for j, range in enumerate(perpendicular_ranges):
+        print(f"  Range {j + 1}: {range}")
+    print()
