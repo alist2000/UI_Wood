@@ -1,8 +1,9 @@
 import copy
 
 from UI_Wood.stableVersion5.back.load_control import range_intersection
-import sys
 
+from dataclasses import dataclass
+from typing import List, Tuple, Optional
 from UI_Wood.stableVersion5.post_new import magnification_factor
 
 
@@ -217,9 +218,14 @@ class EditGrid:
         hGridNewLabel = self.h_grid_labels & shearWallLines
         vGridNew = [i for i in vGrid if i["label"] in vGridNewLabel]
         hGridNew = [i for i in hGrid if i["label"] in hGridNewLabel]
-        endDefaultY = max([i["position"] for i in hGridNew])
-
-        endDefaultX = max([i["position"] for i in vGridNew])
+        try:
+            endDefaultY = max([i["position"] for i in hGridNew])
+        except ValueError:
+            endDefaultY = float("inf")
+        try:
+            endDefaultX = max([i["position"] for i in vGridNew])
+        except ValueError:
+            endDefaultX = float("inf")
 
         self.vGridNew = self.controlStartEnd(vGridNew, endDefaultY)
         self.hGridNew = self.controlStartEnd(hGridNew, endDefaultX)
@@ -233,40 +239,10 @@ class EditGrid:
             end = gridList["end"]
             if round(end, 2) == round(end_default, 2):
                 gridList["end"] = float("inf")
-
-            # if i < len(grid) - 1:
-            #     nextGrids = grid[i + 1:]
-            # else:
-            #     nextGrids = grid[:i]  # Behind
-            # void = False
-            # for j, OtherGrid in enumerate(grid):
-            #     if i != j:
-            #         positionNext = OtherGrid["position"]
-            #         if round(positionNext, 2) == round(position, 2):  # there is no second line or void
-            #             void = True
-            #             break
-            # if not void:
-            #     gridList["end"] = float("inf")
-            #     gridList["start"] = -float("inf")
-            # else:
-            #     void = True
-            #     behindGrids = grid[:i]
-            #     for behindGrid in behindGrids:
-            #         positionBehind = behindGrid["position"]
-            #         if round(positionBehind, 2) == round(position, 2):  # there is no second line or void
-            #             void = False
-            #             break
-            #     if not void:
-            #         gridList["end"] = float("inf")
-            #         gridList["start"] = -float("inf")
         return grid
 
     def output(self):
         return {"vertical": self.vGridNew, "horizontal": self.hGridNew}
-
-
-from dataclasses import dataclass
-from typing import List, Tuple, Optional
 
 
 @dataclass
@@ -349,18 +325,18 @@ class GridLineManager:
         return (line1.position + line2.position) / 2
 
 
-# Example usage:
-grid_lines = [
-    GridLine(position=1940, start=0, end=3000, name="A"),  # Line D
-    GridLine(position=1880, start=0, end=2270, name="B"),  # Line behind D (partial)
-    GridLine(position=1860, start=3500, end=4000, name="C"),  # Line behind D (partial)
-    GridLine(position=2400, start=0, end=4000, name="D"),  # Line in front of D
-]
-
-manager = GridLineManager(grid_lines)
-for i, line in enumerate(grid_lines):
-    perpendicular_ranges = manager.get_perpendicular_ranges(i)
-    print(f"Grid line at position {line.position} (start: {line.start}, end: {line.end}, name: {line.name}):")
-    for j, range in enumerate(perpendicular_ranges):
-        print(f"  Range {j + 1}: {range}")
-    print()
+# # Example usage:
+# grid_lines = [
+#     GridLine(position=1940, start=0, end=3000, name="A"),  # Line D
+#     GridLine(position=1880, start=0, end=2270, name="B"),  # Line behind D (partial)
+#     GridLine(position=1860, start=3500, end=4000, name="C"),  # Line behind D (partial)
+#     GridLine(position=2400, start=0, end=4000, name="D"),  # Line in front of D
+# ]
+#
+# manager = GridLineManager(grid_lines)
+# for i, line in enumerate(grid_lines):
+#     perpendicular_ranges = manager.get_perpendicular_ranges(i)
+#     print(f"Grid line at position {line.position} (start: {line.start}, end: {line.end}, name: {line.name}):")
+#     for j, range in enumerate(perpendicular_ranges):
+#         print(f"  Range {j + 1}: {range}")
+#     print()
