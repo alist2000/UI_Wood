@@ -247,17 +247,21 @@ class beam_control_support:
                         extra_support_index.append(i)
 
             # remove beam extra support (prirority between shearwall post and itself)
-            for i in range(len(shearWall_post_supports)):
-                for j, shearWall_post_support in enumerate(shearWall_post_supports):
-                    if i != j:
+            for i, shearWall_post_support_base in enumerate(shearWall_post_supports):
+                for j, shearWall_post_support in enumerate(shearWall_post_supports[i:]):
+                    if shearWall_post_support_base != shearWall_post_support:
                         post_cor = shearWall_post_support["coordinate"]
-                        dist = distance(post_cor, shearWall_post_supports[i]["coordinate"])
+                        dist = distance(post_cor, shearWall_post_support_base["coordinate"])
                         # if beam_supports[i]["coordinate"] == post_cor:
                         if dist < magnification_factor / 4:  # set a tolerance range min shear wall post width
                             extra_support_index_shearWall.append(i)
 
             extra_support_index = list(set(extra_support_index))
+            extra_support_index.sort()
+            extra_support_index.reverse()
             extra_support_index_shearWall = list(set(extra_support_index_shearWall))
+            extra_support_index_shearWall.sort()
+            extra_support_index_shearWall.reverse()
             for j in extra_support_index_shearWall:
                 try:
                     del shearWall_post_supports[j]
