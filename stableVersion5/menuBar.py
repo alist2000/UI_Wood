@@ -64,17 +64,27 @@ class Image(QMainWindow):
         if fileName:
             self.image_path = fileName
             try:
-                q_image = self.scale_image()
-                if q_image:
-                    image = QPixmap.fromImage(q_image)
+                pil_image = PILImage.open(fileName)
+                red_points = self.find_red_points(pil_image)
+
+                if len(red_points) == 2:
+                    q_image, scale = self.scale_image()
+                    if q_image:
+                        image = QPixmap.fromImage(q_image)
+                    else:
+                        image = QPixmap(fileName)
+
+                    # Calculate the offset to move the first red point (closest to 0,0) to (0,0)
+                    offset_x, offset_y = -red_points[0][0], -red_points[0][1]
+
+                    self.addImageToScene(image, offset_x * scale, offset_y * scale)
                 else:
-                    image = QPixmap(fileName)
-                self.addImageToScene(image)
+                    print("Error: Could not find two red points in the image")
 
             except Exception as e:
                 print(f"Error opening image: {str(e)}")
 
-    def addImageToScene(self, image):
+    def addImageToScene(self, image, offset_x, offset_y):
         if self.pixmapItem:
             self.scene.removeItem(self.pixmapItem)
             try:
@@ -84,6 +94,10 @@ class Image(QMainWindow):
 
         self.pixmapItem = PixmapItem(image)
         self.pixmapItem.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
+
+        # Set the position of the image based on the calculated offset
+        self.pixmapItem.setPos(offset_x, offset_y)
+
         self.scene.addItem(self.pixmapItem)
         self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
         self.slider.valueChanged.connect(self.pixmapItem.adjust_transparency)
@@ -121,7 +135,7 @@ class Image(QMainWindow):
             new_height = max(1, int(height * scale))
             resized_image = pil_image.resize((new_width, new_height), PILImage.LANCZOS)
 
-            return self.pil_to_qimage(resized_image)
+            return self.pil_to_qimage(resized_image), scale
         except Exception as e:
             print(f"Error in scale_image: {str(e)}")
             return None
@@ -170,8 +184,8 @@ class Image(QMainWindow):
                     cX = int(M["m10"] / M["m00"])
                     cY = int(M["m01"] / M["m00"])
                     red_points.append((cX, cY))
-
-            return red_points
+            red_points.sort(key=lambda p: p[0] ** 2 + p[1] ** 2)
+            return red_points[:2]
         except Exception as e:
             print(f"Error in find_red_points: {str(e)}")
             return []
