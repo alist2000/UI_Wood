@@ -1,6 +1,6 @@
 import sys
 
-from post_new import magnification_factor
+from UI_Wood.stableVersion5.post_new import magnification_factor
 from sympy import Point, Polygon, Segment, Line
 
 

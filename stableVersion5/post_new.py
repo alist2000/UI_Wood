@@ -3,9 +3,9 @@ from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem, QGraphicsProxyWidget
 
-from DeActivate import deActive
-from post_prop import PostProperties
-from dimension import CoordinateLabel
+from UI_Wood.stableVersion5.DeActivate import deActive
+from UI_Wood.stableVersion5.post_prop import PostProperties
+from UI_Wood.stableVersion5.dimension import CoordinateLabel
 
 import itertools
 
