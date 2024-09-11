@@ -1,0 +1,12 @@
+pyside6
+numpy
+pandas
+sympy
+plotly
+reportLab
+indeterminatebeam
+db-sqlite3
+opencv-python
+PyPDF2
+pdfmerge
+kaleido
