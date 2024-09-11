@@ -1,12 +1,13 @@
 import sqlite3
 from UI_Wood.stableVersion5.run.studWall import StudWallStoryBy
+from UI_Wood.stableVersion5.path import studWallOutputPath
+
 from PySide6.QtWidgets import QDialog
 
 
 class StudWallSync2:
     def __init__(self, GridClass, storyName):
-        StudWallOutput = "D://git/Wood/Output/stud_report.db"
-        outputDB = sqlite3.connect(StudWallOutput)
+        outputDB = sqlite3.connect(studWallOutputPath)
         self.cursorOutput = outputDB.cursor()
         data = self.exportWalls(storyName)
         for story, studWalls in enumerate(list(data.values())):

@@ -1,5 +1,5 @@
 import copy
-
+import os
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QCheckBox, QWidget, QTabWidget, QVBoxLayout, QPushButton, \
     QLabel, QSpacerItem, QSizePolicy, QDoubleSpinBox
 from PySide6.QtCore import Qt
@@ -14,6 +14,7 @@ from UI_Wood.stableVersion5.path import PathHandler, postInputPath, beamInputPat
 from Report_Lab.version3.main import Main
 from UI_Wood.stableVersion5.styles import TabWidgetStyle, ButtonCheck
 from UI_Wood.stableVersion5.report.backgroudImage import ImageSelector
+from UI_Wood.stableVersion5.path import PathHandler
 
 
 class ReportGeneratorTab(QWidget):
@@ -33,6 +34,12 @@ class ReportGeneratorTab(QWidget):
         self.option2 = QCheckBox("Summary")
         self.option3 = QCheckBox("Detail")
         self.generate = QPushButton("Generate")
+        path = PathHandler("images/check.png")
+        # Normalize the path to the current OS's format
+        check_image = os.path.normpath(path)
+
+        # Convert to forward slashes
+        check_image = check_image.replace("\\", "/")
 
         # Apply stylesheet to checkboxes
         stylesheet = """
@@ -44,9 +51,12 @@ class ReportGeneratorTab(QWidget):
                background: #FFFFFF;
            }
            QCheckBox::indicator:checked {
-               background: #A8DF8E;
-               image: url(D://git/Wood/UI_Wood/stableVersion5/images/check.png);
-           }
+               background: #A8DF8E;"""
+        stylesheet += f"""
+               image: url({check_image});
+           
+        """
+        stylesheet += """}
            QCheckBox::indicator:unchecked:hover {
                border: 1px solid #11111;
            }
