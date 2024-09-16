@@ -10,7 +10,7 @@ class Offset(QDialog):
 
         self.spinbox = QDoubleSpinBox()
         self.spinbox.setRange(-20, 20)
-        unit = QLabel("ft/m")
+        unit = QLabel("ft")
         layout = QVBoxLayout()
         h_layout = QHBoxLayout()
         # Create and add the OK and Cancel buttons
