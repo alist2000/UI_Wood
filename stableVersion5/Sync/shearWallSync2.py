@@ -12,13 +12,9 @@ class ShearWallSync2:
         data = self.exportWalls(storyName)
         for story, shearWalls in enumerate(list(data.values())):
             # storyName = list(data.keys())[story]
-            shearWallStoryDesigned = ShearWallStoryBy(shearWalls, GridClass, storyName)
+            self.shearWallStoryDesigned = ShearWallStoryBy(shearWalls, GridClass, storyName)
             if story == len(shearWalls) - 1:
                 self.report = True
-            if shearWallStoryDesigned.result == QDialog.Accepted:
-                continue
-            else:
-                break
 
     def exportWalls(self, story):
         shearWallTable2 = "shearwalldesign"

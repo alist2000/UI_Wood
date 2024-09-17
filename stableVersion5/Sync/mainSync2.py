@@ -326,6 +326,12 @@ class mainSync2(Data):
                     storySW = story + 1
                 dataInstance = ShearWallSync2(self.GridDrawClass, storySW)
                 j += 1
+                if dataInstance.shearWallStoryDesigned.result == QDialog.Accepted:
+                    print("continue clicked!")
+                    continue
+                else:
+                    print("break clicked!")
+                    break
         else:
 
             DropTables(shearWallOutputPath)
@@ -417,8 +423,14 @@ class mainSync2(Data):
                 shearWallTop = shearWall
                 heightTop = height_from_top[j]
                 dataInstance = ShearWallSync2(self.GridDrawClass, storySW)
-
                 j += 1
+
+                if dataInstance.shearWallStoryDesigned.result == QDialog.Accepted:
+                    print("continue clicked!")
+                    continue
+                else:
+                    print("break clicked!")
+                    break
 
             DeleteTransferred(self.beams)
             DeleteTransferred(self.shearWalls)
