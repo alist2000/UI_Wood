@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtGui import QFont, QColor, QUndoStack
 from PySide6.QtGui import QPen, QBrush
 from PySide6.QtWidgets import QDialog, QLabel, QWidget, QVBoxLayout, QPushButton, QHBoxLayout
 from PySide6.QtWidgets import QGraphicsProxyWidget, QGraphicsRectItem
@@ -9,7 +9,7 @@ from UI_Wood.stableVersion5.image import image_control
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.path import PathHandler
-
+from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsView
 
 class DrawJoist(QDialog):
     def __init__(self, GridClass, parent=None):
@@ -17,8 +17,11 @@ class DrawJoist(QDialog):
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()
-        self.view = QGraphicsView()
+        self.view = NavigationGraphicsView()
+        self.undoStack = QUndoStack()
         self.scene = QGraphicsScene()
+        self.view.scene = self.scene
+        self.view.setScene(self.scene)
         GridClass.Draw(self.scene)
         self.joist_width = magnification_factor / 2  # Set joist width
         self.dimension = None

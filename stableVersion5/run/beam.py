@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QGraphicsV
 from PySide6.QtGui import QPainterPath
 from PySide6.QtCore import Qt
 from PySide6.QtCore import Qt, Signal, QObject, QEvent, QPointF
-from PySide6.QtGui import QPen, QBrush, QColor
+from PySide6.QtGui import QPen, QBrush, QUndoStack
 from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem, QGraphicsProxyWidget
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, \
@@ -19,6 +19,7 @@ from UI_Wood.stableVersion5.pointer_control import control_post_range, range_pos
     control_selectable_beam_range
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
 import math
+from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsView
 
 
 class DrawBeam(QDialog):
@@ -27,8 +28,11 @@ class DrawBeam(QDialog):
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()
-        self.view = QGraphicsView()
+        self.view = NavigationGraphicsView()
+        self.undoStack = QUndoStack()
         self.scene = QGraphicsScene()
+        self.view.scene = self.scene
+        self.view.setScene(self.scene)
         GridClass.Draw(self.scene)
         self.current_rect = None
         self.start_pos = None

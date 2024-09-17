@@ -1,20 +1,17 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QGraphicsView, QGraphicsScene, QGraphicsTextItem
-from PySide6.QtGui import QPainterPath
 from PySide6.QtCore import Qt
-from PySide6.QtCore import Qt, QRect, QPoint, QSize
-from PySide6.QtGui import QPen, QBrush, QColor
-from PySide6.QtWidgets import QTabWidget, QGraphicsRectItem, QWidget, QPushButton, QDialog, QDialogButtonBox, \
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsItem, QGraphicsProxyWidget
+from PySide6.QtGui import QPen, QBrush, QUndoStack, QFont, QColor
 from PySide6.QtWidgets import QWidget, QGraphicsLineItem, QGraphicsProxyWidget, QLabel, QGraphicsPathItem, \
     QGraphicsRectItem
 from PySide6.QtGui import QFont, QColor
-from PySide6.QtWidgets import QGraphicsTextItem
 
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
     QTableWidget, QAbstractItemView
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
+
+from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsView
 
 
 class DrawStudWall(QDialog):
@@ -23,8 +20,12 @@ class DrawStudWall(QDialog):
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()
-        self.view = QGraphicsView()
+        self.view = NavigationGraphicsView()
+        self.undoStack = QUndoStack()
         self.scene = QGraphicsScene()
+        self.view.scene = self.scene
+        self.view.setScene(self.scene)
+
         GridClass.Draw(self.scene)
         self.current_rect = None
         self.studWall_width = magnification_factor / 3  # Set studWall width, magnification = 1 ft or 1 m
