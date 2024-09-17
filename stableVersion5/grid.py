@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QPen, QPainter, QBrush, QUndoCommand, QUndoStack
+from PySide6.QtCore import Qt, QEvent, QPointF, QRectF
+from PySide6.QtGui import QPen, QPainter, QBrush, QUndoCommand, QUndoStack, QWheelEvent, QKeyEvent, QMouseEvent
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsRectItem, QGraphicsSceneMouseEvent
 
 from Beam import beamDrawing
@@ -17,19 +17,22 @@ from snap import SnapLine, SnapPoint
 from menuBar import Image, visual
 from DeActivate import deActive
 from UI_Wood.stableVersion5.line import LineDrawHandler
+from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsView
 
 
-class GridWidget(QGraphicsView):
+class GridWidget(NavigationGraphicsView):
     def __init__(self, x_grid, y_grid, gridBase, post, joist, beam, shearWall, studWall, shapes, slider,
                  load, toolBar,
                  parent=None):
         super().__init__(parent)
-        self.scene = QGraphicsScene()
         self.undoStack = QUndoStack()
+        # Your specific initialization code here
+        self.scene = QGraphicsScene()
         self.setScene(self.scene)
-        self.setRenderHint(QPainter.Antialiasing)  # Corrected attribute
-        self.setInteractive(True)
-        self.setDragMode(QGraphicsView.RubberBandDrag)
+
+        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
+
         self.clickable_area_enabled = True
         # self.lastPanPoint = QPoint()
         self.menu = Image(self, slider, y_grid)
@@ -107,29 +110,16 @@ class GridWidget(QGraphicsView):
 
         return data.midline.midline_dict, self.lineLabels, self.boundaryLineLabels
 
-    def wheelEvent(self, event):
-        zoomInFactor = 1.25
-        zoomOutFactor = 1 / zoomInFactor
-
-        # Save the scene pos
-        oldPos = self.mapToScene(event.position().toPoint())
-
-        # Zoom
-        if event.angleDelta().y() > 0:
-            zoomFactor = zoomInFactor
-        else:
-            zoomFactor = zoomOutFactor
-        self.scale(zoomFactor, zoomFactor)
-
-        # Get the new position
-        newPos = self.mapToScene(event.position().toPoint())
-
-        # Move scene to old position
-        delta = newPos - oldPos
-        self.translate(delta.x(), delta.y())
-
     def mousePressEvent(self, event):
-
+        if event.button() == Qt.MiddleButton or (
+                event.button() == Qt.LeftButton and event.modifiers() & Qt.AltModifier):
+            self.pan_active = True
+            self.last_pan_point = event.position()
+            self.setCursor(Qt.ClosedHandCursor)
+            event.accept()
+        elif event.button() == Qt.LeftButton and event.modifiers() & Qt.ControlModifier:
+            self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+            event.accept()
         if self.beam_instance.beam_select_status:  # CONTROL BEAM
             # 1 (draw mode) and 2(delete mode)
             self.beam_instance.draw_beam_mousePress(self, event)
@@ -190,6 +180,12 @@ class GridWidget(QGraphicsView):
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        if self.pan_active:
+            delta = event.position() - self.last_pan_point
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - delta.x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
+            self.last_pan_point = event.position()
+            event.accept()
         if self.beam_instance.beam_select_status == 1:  # CONTROL BEAM
             self.beam_instance.draw_beam_mouseMove(self, event)
         elif self.joist_instance.joist_status == 1:
@@ -220,15 +216,14 @@ class GridWidget(QGraphicsView):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        self.setDragMode(QGraphicsView.NoDrag)
-        self.setCursor(Qt.ArrowCursor)
-        super().mouseReleaseEvent(event)
-
-    def keyReleaseEvent(self, event):
-        if event.key() == Qt.Key_Shift:
-            self.shift_pressed = False
-            print(self.shift_pressed)
-        super().keyReleaseEvent(event)
+        if event.button() == Qt.MiddleButton or (
+                event.button() == Qt.LeftButton):
+            self.pan_active = False
+            self.setCursor(Qt.ArrowCursor)
+            self.setDragMode(QGraphicsView.NoDrag)
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
 
     def edit_spacing(self):
         x = self.x
@@ -263,8 +258,21 @@ class GridWidget(QGraphicsView):
 
         if event.key() == Qt.Key_Shift:
             self.shift_pressed = True
-            print(self.shift_pressed)
+        if event.key() == Qt.Key_Control:
+            self.setDragMode(QGraphicsView.NoDrag)
+        elif event.key() == Qt.Key_Alt:
+            self.setDragMode(QGraphicsView.NoDrag)
         super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_Shift:
+            self.shift_pressed = False
+            print(self.shift_pressed)
+        if event.key() == Qt.Key_Control:
+            self.setDragMode(QGraphicsView.RubberBandDrag)
+        elif event.key() == Qt.Key_Alt:
+            self.setDragMode(QGraphicsView.RubberBandDrag)
+        super().keyReleaseEvent(event)
 
 
 class Rectangle(QGraphicsRectItem):

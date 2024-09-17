@@ -8,26 +8,35 @@ from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
 from UI_Wood.stableVersion5.grid import SelectCommand, DeselectCommand
+from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsView
 
 
-class ShearWallsView(QGraphicsView):
+class ShearWallsView(NavigationGraphicsView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.view = self
         self.scene = QGraphicsScene()
+        self.setScene(self.scene)
         self.undoStack = QUndoStack()
 
-    def resizeEvent(self, event):
-        # Call the base class implementation to handle the resize event
-        super(ShearWallsView, self).resizeEvent(event)
-
-        # Fit the view to the scene and center the contents
-        self.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
-        self.centerOn(self.scene.itemsBoundingRect().center())
+    # def resizeEvent(self, event):
+    #     # Call the base class implementation to handle the resize event
+    #     super(ShearWallsView, self).resizeEvent(event)
+    #
+    #     # Fit the view to the scene and center the contents
+    #     self.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+    #     self.centerOn(self.scene.itemsBoundingRect().center())
 
     def mousePressEvent(self, event):
-        print("hi mouse press")
-
+        if event.button() == Qt.MiddleButton or (
+                event.button() == Qt.LeftButton and event.modifiers() & Qt.AltModifier):
+            self.pan_active = True
+            self.last_pan_point = event.position()
+            self.setCursor(Qt.ClosedHandCursor)
+            event.accept()
+        elif event.button() == Qt.LeftButton and event.modifiers() & Qt.ControlModifier:
+            self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+            event.accept()
         if event.button() == Qt.LeftButton:
             self.view.setRenderHint(QPainter.Antialiasing)
             self.view.setRenderHint(QPainter.SmoothPixmapTransform)
@@ -59,11 +68,6 @@ class ShearWallsView(QGraphicsView):
                 return
 
         super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        self.setDragMode(QGraphicsView.NoDrag)
-        self.setCursor(Qt.ArrowCursor)
-        super().mouseReleaseEvent(event)
 
 
 class DrawShearWall(QDialog):
