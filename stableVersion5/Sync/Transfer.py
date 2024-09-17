@@ -81,6 +81,7 @@ class Transfer:
                             break
 
         for itemBottom in bottom:
+            itemBottom["v_abv"] += itemBottom["extra_shear"]
             label = itemBottom["label"]
             dataBasePath = PathHandler(shearWallInputPath)
             conn = sqlite3.connect(dataBasePath)
