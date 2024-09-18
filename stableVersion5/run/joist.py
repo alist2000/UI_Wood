@@ -11,9 +11,13 @@ from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.path import PathHandler
 from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsView
 
+
 class DrawJoist(QDialog):
     def __init__(self, GridClass, parent=None):
         super().__init__(parent)
+        self.setWindowFlags(
+            Qt.Window | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint | Qt.WindowMinMaxButtonsHint)
+
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()

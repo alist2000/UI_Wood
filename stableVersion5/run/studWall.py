@@ -17,6 +17,9 @@ from UI_Wood.stableVersion5.navigation_graphics_view import NavigationGraphicsVi
 class DrawStudWall(QDialog):
     def __init__(self, GridClass, parent=None):
         super().__init__(parent)
+        self.setWindowFlags(
+            Qt.Window | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint | Qt.WindowMinMaxButtonsHint)
+
         self.setWindowTitle("Continue or Break?")
 
         self.mainLayout = QVBoxLayout()

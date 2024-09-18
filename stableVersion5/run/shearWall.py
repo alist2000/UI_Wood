@@ -73,6 +73,9 @@ class ShearWallsView(NavigationGraphicsView):
 class DrawShearWall(QDialog):
     def __init__(self, GridClass, parent=None):
         super().__init__(parent)
+        self.setWindowFlags(
+            Qt.Window | Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint | Qt.WindowMinMaxButtonsHint)
+
         self.setWindowTitle("Continue or Break?")
         self.shearWalls = []
         self.selectedWalls = []
