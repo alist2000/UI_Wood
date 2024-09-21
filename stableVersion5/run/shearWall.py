@@ -34,9 +34,6 @@ class ShearWallsView(NavigationGraphicsView):
             self.last_pan_point = event.position()
             self.setCursor(Qt.ClosedHandCursor)
             event.accept()
-        elif event.button() == Qt.LeftButton and event.modifiers() & Qt.ControlModifier:
-            self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
-            event.accept()
         if event.button() == Qt.LeftButton:
             self.view.setRenderHint(QPainter.Antialiasing)
             self.view.setRenderHint(QPainter.SmoothPixmapTransform)
