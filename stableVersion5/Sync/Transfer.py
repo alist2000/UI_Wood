@@ -216,7 +216,7 @@ class Transfer:
         if top:
             transferList = self.transferListPost
             for post in top:
-                if post in transferList:
+                if post in transferList and post["load_transfer"]:
                     coordinateTop = post["coordinate"]
                     for beam in beams:
                         coordinateBeam = beam["coordinate"]
