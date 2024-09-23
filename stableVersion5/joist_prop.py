@@ -39,8 +39,8 @@ class JoistProperties(QDialog):
         self.create_geometry_tab()
         self.create_direction_tab()
         self.load_data = self.rect_prop[self.rectItem]["load"]["total_area"]
-        self.loadTab = JoistLoad(self.tab_widget, self.load_data)
-        self.loadTab_custom = JoistCustomLoad(self.tab_widget, self.rect_prop[self.rectItem], self.scene)
+        # self.loadTab = JoistLoad(self.tab_widget, self.load_data)
+        # self.loadTab_custom = JoistCustomLoad(self.tab_widget, self.rect_prop[self.rectItem], self.scene)
         # self.rect_prop[self.rectItem]["load"]["total_area"] = self.loadTab.load_data
         # self.rect_prop[self.rectItem]["load"]["custom_area"] = self.loadTab_custom.load_data
 
@@ -55,12 +55,12 @@ class JoistProperties(QDialog):
 
     # dialog.show()
     def closeEvent(self, event):
-        self.loadRect = self.loadTab_custom.rectangleList
-        for load in self.loadRect:
-            if load is not None:
-                print("deleting")
-                self.scene.removeItem(load)
-                # self.loadRect.remove(load)
+        # self.loadRect = self.loadTab_custom.rectangleList
+        # for load in self.loadRect:
+        #     if load is not None:
+        #         print("deleting")
+        #         self.scene.removeItem(load)
+        #         self.loadRect.remove(load)
         self.timer.stop()
         self.rectItem.setPen(QPen(Qt.black))
         self.rectItem.setBrush(QBrush(QColor.fromRgb(249, 155, 125, 100)))
@@ -75,15 +75,15 @@ class JoistProperties(QDialog):
         self.image.change_image(picture_path, self.scene)
         self.rect_prop[self.rectItem]["direction"] = self.final_direction
         self.accept()
-        self.loadTab.print_values()
-        self.loadTab_custom.print_values()
+        # self.loadTab.print_values()
+        # self.loadTab_custom.print_values()
 
-        self.loadRect = self.loadTab_custom.rectangleList
-        for load in self.loadRect:
-            if load is not None:
-                print("deleting")
-                self.scene.removeItem(load)
-                # self.loadRect.remove(load)
+        # self.loadRect = self.loadTab_custom.rectangleList
+        # for load in self.loadRect:
+        #     if load is not None:
+        #         print("deleting")
+        #         self.scene.removeItem(load)
+        #         self.loadRect.remove(load)
 
         print(self.rect_prop)
 
