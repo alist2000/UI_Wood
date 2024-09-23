@@ -1,10 +1,10 @@
-from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
-    QLabel, QWidget, QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QHBoxLayout, \
-    QTableWidget, QAbstractItemView
-from PySide6.QtGui import QPen, QBrush, QColor
+from PySide6.QtWidgets import (QTabWidget, QDialog, QDialogButtonBox, QLabel, QWidget,
+                               QVBoxLayout, QPushButton, QComboBox, QDoubleSpinBox,
+                               QHBoxLayout, QTableWidget, QAbstractItemView, QCheckBox,
+                               QToolTip)
+from PySide6.QtGui import QPen, QBrush, QColor, QIcon
 from PySide6.QtCore import Qt
 
-# from post_new import magnification_factor
 magnification_factor = 40
 
 
@@ -18,9 +18,9 @@ class PostProperties(QDialog):
         self.setMinimumSize(200, 400)
         self.wallWidth = None
         self.wallWidth_default = post_properties[rectItem]["wall_width"]
-        self.button_box = button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject_control)  # Change from dialog.reject to self.reject
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept_control)
+        self.button_box.rejected.connect(self.reject_control)
 
         v_layout = QVBoxLayout()
 
@@ -31,12 +31,8 @@ class PostProperties(QDialog):
         self.pointLoad = pointLoad(self.tab_widget, self.post_prop[self.rect])
 
         v_layout.addWidget(self.tab_widget)
-        v_layout.addWidget(button_box)
-        self.setLayout(v_layout)  # Change from dialog.setLayout to self.setLayout
-
-    # Rest of the code remains the same
-
-    # dialog.show()
+        v_layout.addWidget(self.button_box)
+        self.setLayout(v_layout)
 
     def create_geometry_tab(self):
         tab = QWidget()
@@ -85,6 +81,53 @@ class PostProperties(QDialog):
         tab.setLayout(v_layout)
 
     # SLOT
+    def create_assignment_tab(self):
+        tab = QWidget()
+        self.tab_widget.addTab(tab, "Assignments")
+
+        v_layout = QVBoxLayout()
+
+        # Wall Width
+        wall_width_group = QWidget()
+        h_layout1 = QHBoxLayout(wall_width_group)
+        label1 = QLabel("Wall Width")
+        self.wallWidth = QComboBox()
+        self.wallWidth.addItems(["6 in", "4 in"])
+        self.wallWidth.setCurrentText(self.post_prop[self.rect]["wall_width"])
+        self.wallWidth.currentTextChanged.connect(self.wall_width_control)
+        h_layout1.addWidget(label1)
+        h_layout1.addWidget(self.wallWidth)
+        v_layout.addWidget(wall_width_group)
+
+        v_layout.addSpacing(20)  # Add some vertical spacing
+
+        # Load Transfer
+        load_transfer_group = QWidget()
+        h_layout2 = QHBoxLayout(load_transfer_group)
+        self.load_transfer_checkbox = QCheckBox("Enable Load Transfer")
+        self.load_transfer_checkbox.setChecked(self.post_prop[self.rect].get("load_transfer", True))
+        self.load_transfer_checkbox.stateChanged.connect(self.load_transfer_control)
+
+        info_icon = QPushButton(icon=QIcon.fromTheme("dialog-information"))
+        info_icon.setFixedSize(20, 20)
+        info_icon.setToolTip("When enabled, this post will transfer loads from top to bottom. "
+                             "When disabled, the post acts only as support without transferring loads.")
+        info_icon.setStyleSheet("QPushButton { border: none; }")
+
+        h_layout2.addWidget(self.load_transfer_checkbox)
+        h_layout2.addWidget(info_icon)
+        h_layout2.addStretch(1)  # This pushes the checkbox and icon to the left
+        v_layout.addWidget(load_transfer_group)
+
+        tab.setLayout(v_layout)
+
+    def wall_width_control(self):
+        self.thickness_default = self.wallWidth.currentText()
+        self.post_prop[self.rect]["wall_width"] = self.thickness_default
+
+    def load_transfer_control(self, state):
+        self.post_prop[self.rect]["load_transfer"] = bool(state)
+
     def accept_control(self):
         self.pointLoad.print_values()
         self.accept()
@@ -95,34 +138,6 @@ class PostProperties(QDialog):
         self.reject()
         self.timer.stop()
         self.rect.setBrush(QBrush(QColor("#E76161"), Qt.SolidPattern))
-
-    def create_assignment_tab(self):
-        tab = QWidget()
-        self.tab_widget.addTab(tab, f"Assignments")
-        label1 = QLabel("Wall Width")
-        self.wallWidth = wallWidth = QComboBox()
-        wallWidth.addItems(["6 in", "4 in"])
-        self.wallWidth.setCurrentText(self.post_prop[self.rect]["wall_width"])
-        self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
-        self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
-        self.wallWidth.currentTextChanged.connect(self.wall_width_control)
-
-        # LAYOUT
-        h_layout1 = QHBoxLayout()
-        h_layout1.addWidget(label1)
-        h_layout1.addWidget(wallWidth)
-
-        v_layout = QVBoxLayout()
-        v_layout.addLayout(h_layout1)
-
-        tab.setLayout(v_layout)
-        # return self.direction
-
-        # SLOT
-
-    def wall_width_control(self):
-        self.thickness_default = self.wallWidth.currentText()
-        self.post_prop[self.rect]["wall_width"] = self.thickness_default
 
     def closeEvent(self, event):
         self.timer.stop()
