@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 
 class ShearWall:
     def __init__(self, name, left_top=None, right_bottom=None, pd_left=0, pd_right=0, pl_left=0, pl_right=0, pe_left=0,
-                 pe_right=0):
+                 pe_right=0, ps_left=0, ps_right=0):
         self.name = name
         self.left_top = left_top
         self.right_bottom = right_bottom
@@ -14,6 +14,8 @@ class ShearWall:
         self.pl_right = pl_right
         self.pe_left = pe_left
         self.pe_right = pe_right
+        self.ps_left = ps_left
+        self.ps_right = ps_right
 
 
 def distribute_loads(shear_walls: List[ShearWall]) -> List[ShearWall]:
