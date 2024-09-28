@@ -273,12 +273,13 @@ class ShearWall_output:
 
             # Set initial loads
             load_type = "reaction"
-            pl_right = 0
-            pl_left = 0
-            plr_right = 0
-            plr_left = 0
+
             if load_type in ShearWallItem["load"]:
                 for loads in ShearWallItem["load"][load_type]:
+                    pl_right = 0
+                    pl_left = 0
+                    plr_right = 0
+                    plr_left = 0
                     coordinate = abs((loads["start"][direction_index] / magnification_factor) - self.start)
                     side = self.side_control(coordinate, self.end, self.length)
                     for load in loads["load"]:
@@ -303,6 +304,12 @@ class ShearWall_output:
                                 plr_left += load_value
                             else:
                                 plr_right += load_value
+                        elif load["type"] == "Snow":
+                            if side == "left":
+                                sw.ps_left = load_value
+                            else:
+                                sw.ps_right += load_value
+
                     # set priority for live in roof or other.
                     if self.Story != "Roof":
                         if pl_right:
