@@ -249,6 +249,9 @@ class ControlTab:
             TransferInstance.StackControl(postTop, post, storySW, "post")
             print("This list should be transferred: ", TransferInstance.transferListShearWall)
 
+            # Delete Transferred items. This list is for check model
+            TransferInstance.DeleteTransferredItems(beam)
+
             # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
             TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop, "shearWall", storySWTop)
 
