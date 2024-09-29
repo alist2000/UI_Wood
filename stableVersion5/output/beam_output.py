@@ -68,6 +68,7 @@ class beam_output_handler:
             print("loadset line load", self.lineLoad.loadSet)
             self.finalDistributedLoad = CombineDistributes(self.distributedLoad.loadSet, self.lineLoad.loadSet,
                                                            decimal_number)
+            transfer_items = beamProp.get("transfer_item")
 
             self.beamProp_dict = {
                 "label": beamProp["label"],
@@ -82,7 +83,8 @@ class beam_output_handler:
                 "direction": self.direction,
                 "floor": beamProp["floor"],
                 "coordinate_main": beamProp["coordinate"],
-                "material": beamProp["material"]
+                "material": beamProp["material"],
+                "transfer_item": transfer_items
             }
         else:
             self.beamProp_dict = {}

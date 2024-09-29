@@ -139,6 +139,10 @@ class Transfer:
                             print("beam Range", beamRange)
                             print("shearWall Range", swRange)
                             if intersection and beamStart <= swStart and beamEnd >= swEnd:
+                                if beam.get("transfer_item"):
+                                    beam["transfer_item"].append({"item": itemName, "label": shearWall["label"]})
+                                else:
+                                    beam["transfer_item"] = [{"item": itemName, "label": shearWall["label"]}]
                                 # Load Map
                                 loadMapBottom = beam["load"]["joist_load"]["load_map"]
                                 loadMapTop = copy.deepcopy(shearWall["load"]["joist_load"]["load_map"])
@@ -238,6 +242,11 @@ class Transfer:
                         dist = abs(coordinateTop[constantIndexBeam] - constantCoordBeam)
                         if dist <= magnification_factor / 12 and beamStart <= coordinateTop[
                             constantIndexBeam - 1] <= beamEnd:  # distance till 1 inch is acceptable
+                            if beam.get("transfer_item"):
+                                beam["transfer_item"].append({"item": "post", "label": post["label"]})
+                            else:
+                                beam["transfer_item"] = [{"item": "post", "label": post["label"]}]
+
                             print("this post is transferred", post["label"], "on this beam", beam["label"])
                             pointLoads = post["load"]["point"]
                             reactionLoads = post["load"]["reaction"]
@@ -252,6 +261,11 @@ class Transfer:
                             # beam["load"]["point"].extend(
                             #
                             # )
+
+    def DeleteTransferredItems(self, beams):
+        for beam in beams:
+            if beam.get("transfer_item"):
+                beam["transfer_item"] = []
 
     @staticmethod
     def get_data_after_run(shearWalls, story):
