@@ -11,6 +11,7 @@ from UI_Wood.stableVersion5.Sync.data import Update
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.back.load_control import range_intersection
 from UI_Wood.stableVersion5.styles import TabWidgetStyle
+from UI_Wood.stableVersion5.back.beam_check import BeamCheck
 
 
 class checkModel(Update):
@@ -26,6 +27,7 @@ class checkModel(Update):
 
     def update(self, subject):
         self.tab = subject.data["tab"]
+        self.general_properties = subject.data["general_properties"]
         self.warnings = {}
         for tabNumber, tabItems in self.tab.items():
             self.shearWallLinesExist[tabNumber] = set()
@@ -80,7 +82,8 @@ class checkModel(Update):
 
         self.saveFunc()
         self.check_shear_wall_exist_boundary(boundaryLineLabels)
-        self.checkModelPage = CheckModel(self.warningPage, self.warnings)
+
+        self.checkModelPage = CheckModel(self.warningPage, self.warnings, self.tab, self.general_properties)
         self.checkModelPage.show()
         # self.warningPage = warningPage(self.warnings)
         # print(self.warnings)
@@ -548,10 +551,13 @@ class SelfClosingMessageBox(QMessageBox):
 
 
 class CheckModel(QWidget):
-    def __init__(self, WarningPage, warnings):
+    def __init__(self, WarningPage, warnings, tab, general_properties):
         super(CheckModel, self).__init__()
         self.warnings = warnings
         self.warningPage = WarningPage
+        self.tab = tab
+        self.general_properties = general_properties
+        self.beam_check_page = None
 
         # Set up UI components
         self.initUI()
@@ -618,6 +624,7 @@ class CheckModel(QWidget):
         self.infoBox.setText(message)
         self.infoBox.setWindowTitle("Check Started")
         self.infoBox.show()
+        self.beam_check_page = BeamCheck(self.tab, self.general_properties)
         # Example of starting a long-running task in a separate thread
         self.worker = CheckWorker(task_name)
         self.worker.task_completed.connect(self.on_task_completed)
