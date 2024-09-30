@@ -1,10 +1,13 @@
 from UI_Wood.stableVersion5.output.beam_output import beam_output
 from UI_Wood.stableVersion5.Sync.Transfer import Transfer, DeleteTransferred
 from UI_Wood.stableVersion5.Sync.mainSync import ControlGeneralProp
+from UI_Wood.stableVersion5.styles import TabWidgetStyle
 
-from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-                               QGroupBox, QScrollArea, QWidget, QPushButton)
-from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+                               QPushButton, QScrollArea, QTableWidget, QTableWidgetItem,
+                               QHeaderView, QStyledItemDelegate, QApplication, QDialog, QGroupBox)
+from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtGui import QColor, QFont, QPalette
 
 
 class BeamCheck:
@@ -67,14 +70,12 @@ class BeamCheck:
             heightTop = height_from_top[j]
             storySWTop = storySW
 
-
             j += 1
 
         print(beam_outputs)
         self.beam_check_page = BeamPropertiesWidget(beam_outputs)
         self.beam_check_page.show()
         DeleteTransferred(beams)
-
 
     @staticmethod
     def reverse_dict(Dict):
@@ -89,34 +90,71 @@ class BeamCheck:
         return newDict
 
 
-from PySide6.QtWidgets import (QApplication, QTabWidget, QWidget, QVBoxLayout,
-                               QHBoxLayout, QLabel, QPushButton, QScrollArea,
-                               QTableWidget, QTableWidgetItem, QHeaderView)
-from PySide6.QtCore import Qt, Signal
+class ColorDelegate(QStyledItemDelegate):
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        if index.row() % 2 == 0:
+            option.backgroundBrush = QColor(240, 240, 240)
+        else:
+            option.backgroundBrush = QColor(255, 255, 255)
 
 
 class BeamPropertiesWidget(QTabWidget):
-    show_beam_signal = Signal(str)  # Signal to emit when "Show Beam" is clicked
+    show_beam_signal = Signal(str)
 
     def __init__(self, beam_properties):
         super().__init__()
         self.beam_properties = beam_properties
         self.setup_ui()
+        self.setStyleSheet(TabWidgetStyle)
+        self.setWindowTitle("Beam Check")
+
+        # self.setStyleSheet("""
+        #     QTabWidget::pane {
+        #         border: 1px solid #cccccc;
+        #         background: white;
+        #         border-radius: 5px;
+        #     }
+        #     QTabWidget::tab-bar {
+        #         left: 5px;
+        #     }
+        #     QTabBar::tab {
+        #         background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+        #                                     stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+        #                                     stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+        #         border: 1px solid #C4C4C3;
+        #         border-bottom-color: #C2C7CB;
+        #         border-top-left-radius: 4px;
+        #         border-top-right-radius: 4px;
+        #         min-width: 8ex;
+        #         padding: 2px;
+        #     }
+        #     QTabBar::tab:selected, QTabBar::tab:hover {
+        #         background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+        #                                     stop: 0 #fafafa, stop: 0.4 #f4f4f4,
+        #                                     stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);
+        #     }
+        #     QTabBar::tab:selected {
+        #         border-color: #9B9B9B;
+        #         border-bottom-color: #C2C7CB;
+        #     }
+        # """)
 
     def setup_ui(self):
-        for story_index, story in enumerate(self.beam_properties):
-            if story_index == 0:
-                story_name = "Roof"
-            else:
-                story_name = len(self.beam_properties) - story_index
-
+        for story_index, story in enumerate(reversed(self.beam_properties)):
+            story_name = f"Story {story_index + 1}"
             story_widget = QWidget()
             story_layout = QVBoxLayout(story_widget)
 
             table = self.create_story_table(story)
             story_layout.addWidget(table)
 
-            self.addTab(story_widget, f"Story {story_name}")
+            self.addTab(story_widget, story_name)
+
+        # Set the size of the widget
+        self.resize(800, 600)
+        # Center the widget on the screen
+        self.center_on_screen()
 
     def create_story_table(self, story):
         table = QTableWidget()
@@ -124,12 +162,24 @@ class BeamPropertiesWidget(QTabWidget):
         table.setRowCount(len(story))
         table.setHorizontalHeaderLabels(["Label", "Length (ft)", "Number of Supports", "Detail", "Show Beam"])
 
+        # Set the delegate for alternating row colors
+        delegate = ColorDelegate(table)
+        table.setItemDelegate(delegate)
+
         # Remove grid lines
         table.setShowGrid(False)
 
         # Set column widths
         header = table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
+        header.setStyleSheet("""
+            QHeaderView::section {
+                background-color: #f0f0f0;
+                padding: 4px;
+                border: 1px solid #dcdcdc;
+                font-weight: bold;
+            }
+        """)
 
         for row, beam in enumerate(story):
             table.setItem(row, 0, QTableWidgetItem(beam['label']))
@@ -137,10 +187,43 @@ class BeamPropertiesWidget(QTabWidget):
             table.setItem(row, 2, QTableWidgetItem(str(len(beam['support']))))
 
             detail_button = QPushButton("Detail")
+            detail_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    border: none;
+                    color: white;
+                    padding: 5px 10px;
+                    text-align: center;
+                    text-decoration: none;
+                    font-size: 12px;
+                    margin: 4px 2px;
+                    border-radius: 3px;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+            """)
             detail_button.clicked.connect(lambda _, b=beam: self.show_detail(b))
             table.setCellWidget(row, 3, detail_button)
 
             show_beam_button = QPushButton("Show Beam")
+            show_beam_button.setEnabled(False)
+            show_beam_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #008CBA;
+                    border: none;
+                    color: white;
+                    padding: 5px 10px;
+                    text-align: center;
+                    text-decoration: none;
+                    font-size: 12px;
+                    margin: 4px 2px;
+                    border-radius: 3px;
+                }
+                QPushButton:hover {
+                    background-color: #007B9A;
+                }
+            """)
             show_beam_button.clicked.connect(lambda _, label=beam['label']: self.show_beam_signal.emit(label))
             table.setCellWidget(row, 4, show_beam_button)
 
@@ -149,6 +232,11 @@ class BeamPropertiesWidget(QTabWidget):
     def show_detail(self, beam):
         detail_dialog = BeamDetailDialog(beam, self)
         detail_dialog.exec()
+
+    def center_on_screen(self):
+        screen = QApplication.primaryScreen().geometry()
+        size = self.geometry()
+        self.move((screen.width() - size.width()) // 2, (screen.height() - size.height()) // 2)
 
 
 class BeamDetailDialog(QDialog):
