@@ -67,11 +67,14 @@ class BeamCheck:
             heightTop = height_from_top[j]
             storySWTop = storySW
 
+
             j += 1
 
         print(beam_outputs)
         self.beam_check_page = BeamPropertiesWidget(beam_outputs)
         self.beam_check_page.show()
+        DeleteTransferred(beams)
+
 
     @staticmethod
     def reverse_dict(Dict):
