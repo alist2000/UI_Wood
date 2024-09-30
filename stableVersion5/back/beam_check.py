@@ -177,8 +177,10 @@ class BeamDetailDialog(QDialog):
         # Load Properties
         load_group = self.create_group_box("Load Properties")
         load_layout = QVBoxLayout()
-        load_layout.addWidget(self.create_info_widget("Point Loads", self.format_point_loads()))
-        load_layout.addWidget(self.create_info_widget("Distributed Loads", self.format_distributed_loads()))
+        load_layout.addWidget(QLabel("Point Loads:"))
+        load_layout.addWidget(self.create_point_loads_table())
+        load_layout.addWidget(QLabel("Distributed Loads:"))
+        load_layout.addWidget(self.create_distributed_loads_table())
         load_group.setLayout(load_layout)
         scroll_layout.addWidget(load_group)
 
@@ -232,21 +234,64 @@ class BeamDetailDialog(QDialog):
     def format_supports(self):
         return ", ".join([f"({support[0]:.2f}, {support[1]})" for support in self.beam['support']])
 
-    def format_point_loads(self):
-        if not self.beam['load']['point']:
-            return "None"
-        return ", ".join([f"({load['start']:.2f}, {load['load']})" for load in self.beam['load']['point']])
+    def create_point_loads_table(self):
+        table = QTableWidget()
+        table.setColumnCount(3)
+        table.setHorizontalHeaderLabels(["Start", "Type", "Magnitude"])
 
-    def format_distributed_loads(self):
-        if not self.beam['load']['distributed']:
-            return "None"
-        loads = []
-        for dist_load in self.beam['load']['distributed']:
-            load_str = f"Start: {dist_load['start']:.2f}, End: {dist_load['end']:.2f}, "
-            load_str += ", ".join([f"{l['type']}: {l['magnitude']}" for l in dist_load['load']])
-            loads.append(load_str)
-        return "\n".join(loads)
+        point_loads = self.beam['load']['point']
+        point_load_numbers = 0
+        for point in point_loads:
+            for i in point["load"]:
+                point_load_numbers += 1
+        table.setRowCount(point_load_numbers)
+        row_main = 0
+        for row1, load in enumerate(point_loads):
+            table.setItem(row_main, 0, QTableWidgetItem(f"{load['start']:.2f}"))
+            for row, load_info in enumerate(load['load']):
+                table.setItem(row_main, 1, QTableWidgetItem(load_info['type']))
+                table.setItem(row_main, 2, QTableWidgetItem(f"{load_info['magnitude']}"))
+                row_main += 1
 
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+
+        if not point_loads:
+            table.setRowCount(1)
+            table.setSpan(0, 0, 1, 3)
+            table.setItem(0, 0, QTableWidgetItem("No point loads"))
+
+        return table
+
+    def create_distributed_loads_table(self):
+        table = QTableWidget()
+        table.setColumnCount(4)
+        table.setHorizontalHeaderLabels(["Start", "End", "Type", "Magnitude"])
+
+        distributed_loads = self.beam['load']['distributed']
+        total_rows = sum(len(load['load']) for load in distributed_loads)
+        table.setRowCount(total_rows)
+
+        row = 0
+        for dist_load in distributed_loads:
+            start = dist_load['start']
+            end = dist_load['end']
+            for load_info in dist_load['load']:
+                table.setItem(row, 0, QTableWidgetItem(f"{start:.2f}"))
+                table.setItem(row, 1, QTableWidgetItem(f"{end:.2f}"))
+                table.setItem(row, 2, QTableWidgetItem(load_info['type']))
+                table.setItem(row, 3, QTableWidgetItem(f"{load_info['magnitude']}"))
+                row += 1
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+
+        if not distributed_loads:
+            table.setRowCount(1)
+            table.setSpan(0, 0, 1, 4)
+            table.setItem(0, 0, QTableWidgetItem("No distributed loads"))
+
+        return table
 # Update the show_detail method in BeamPropertiesWidget
 
 
