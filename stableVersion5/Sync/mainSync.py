@@ -191,8 +191,8 @@ class ControlTab:
                 storySW = str(story + 1)
             storyNames.append(storySW)
             shearWall = Tab["shearWall"]
-            joist = Tab["joist"]
-            self.joists.append(joist)
+            # joist = Tab["joist"]
+            # self.joists.append(joist)
             self.shearWalls.append(shearWall)
             self.shearWallSync = ShearWallSync([shearWallTop, shearWall], [0, height_from_top[j]], storySW,
                                                shearWall_input_db, True, False)
@@ -203,8 +203,16 @@ class ControlTab:
         c = time.time()
 
         loadMapaArea, loadMapMag = LoadMapAreaNew(midLineDict)
+        self.joistArea = []
+        for key, value in midLineDict.items():
+            joist = 0
+            for line in value:
+                for lineName, load in line.items():
+                    for l in load:
+                        joist += l["area"]
+            self.joistArea.append(joist / 2)
 
-        self.joistArea = JoistSumArea(self.joists)
+        # self.joistArea = JoistSumArea(self.joists)
 
         # self.storyName = StoryName(self.joists)  # item that I sent is not important, every element is ok.
 
