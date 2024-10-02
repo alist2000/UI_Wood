@@ -4,7 +4,7 @@ import sqlite3
 
 
 # Function to copy and rename SQLite databases
-def copy_and_rename_databases(db1, db2, new_name1, new_name2):
+def copy_and_rename_databases(db1, new_name1):
     if not os.path.exists(new_name1):
         os.makedirs(new_name1)
 
