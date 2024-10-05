@@ -1,3 +1,5 @@
+import copy
+
 from PySide6.QtWidgets import QWidget, QPushButton, QDialog, QTabWidget, QListWidget, QGraphicsWidget, \
     QGraphicsScene, \
     QApplication, QVBoxLayout, QLabel, QListWidgetItem, QTableWidget, QHBoxLayout
@@ -280,22 +282,25 @@ class ShearWallSelection:
         end = self.transferredShearWall["coordinate"][1]
         self.dialog.finalize_rectangle_copy(start, end, self.transferredShearWall, self.transferredShearWall["label"],
                                             True)
-
+        primarySelectedShearWalls = copy.deepcopy(self.selectedWalls)
         self.selectedWalls = self.dialog.ShowTransfer(self.selectedWalls)
         self.transferredShearWall["transfer_to"] = []
         # self.dialog.show()
         self.result = self.dialog.exec()
+
         if self.result == QDialog.Accepted:
             print("accepted")
-            if self.selectedWalls:
-                self.button.setText("Check")
-                self.button.setStyleSheet(ButtonCheck)
-            else:
-                self.button.setText("Select")
-                self.button.setStyleSheet(TabWidgetStyle)
-
             for wall in self.selectedWalls:
                 self.transferredShearWall["transfer_to"].append({"label": wall["label"], "percent": wall["percent"]})
+        else:
+            self.selectedWalls = primarySelectedShearWalls
+
+        if self.selectedWalls:
+            self.button.setText("Check")
+            self.button.setStyleSheet(ButtonCheck)
+        else:
+            self.button.setText("Select")
+            self.button.setStyleSheet(TabWidgetStyle)
 
         print("selected walls: ", self.selectedWalls)
         print("Run clicked.")
