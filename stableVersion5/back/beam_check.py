@@ -52,7 +52,10 @@ class BeamCheck:
             TransferInstance.DeleteTransferredItems(beam)
 
             # Transfer Gravity and Earthquake loads from Transferred shearWalls to beams.
-            TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop, "shearWall", storySWTop)
+            try:
+                TransferInstance.TransferOtherLoads(shearWallTop, beam, heightTop, "shearWall", storySWTop)
+            except:
+                pass
 
             # Transfer Gravity loads from Transferred studWalls to beams.
             TransferInstance.TransferOtherLoads(studWallTop, beam, heightTop, "studWall")
