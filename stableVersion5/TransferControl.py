@@ -291,7 +291,7 @@ class ShearWallSelection:
         if self.result == QDialog.Accepted:
             print("accepted")
             for wall in self.selectedWalls:
-                self.transferredShearWall["transfer_to"].append({"label": wall["label"], "percent": wall["percent"]})
+                self.transferredShearWall["transfer_to"].append({"label": wall["label"], "percent": wall["percent"], "pe": wall["pe"]})
         else:
             self.selectedWalls = primarySelectedShearWalls
 
