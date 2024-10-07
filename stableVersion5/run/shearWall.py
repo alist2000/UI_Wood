@@ -3,7 +3,7 @@ from PySide6.QtGui import QFont, QColor, QPen, QBrush, QLinearGradient, QPainter
 
 from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QLabel, QWidget, QVBoxLayout, QPushButton, QGraphicsProxyWidget, QGraphicsRectItem, QHBoxLayout, \
-    QGraphicsView, QGraphicsScene, QGraphicsSceneMouseEvent, QListWidget, QListWidgetItem, QDoubleSpinBox
+    QGraphicsView, QGraphicsScene, QGraphicsSceneMouseEvent, QListWidget, QListWidgetItem, QDoubleSpinBox, QCheckBox
 
 from UI_Wood.stableVersion5.post_new import magnification_factor
 from UI_Wood.stableVersion5.layout.LineDraw import BeamLabel
@@ -78,6 +78,7 @@ class DrawShearWall(QDialog):
         self.selectedWalls = []
         self.labels = []
         self.percents = []
+        self.pe = []
         self.Story = None
         self.mainLayout = QVBoxLayout()
         self.view = ShearWallsView()
@@ -321,7 +322,8 @@ class DrawShearWall(QDialog):
             # Add labels
             label = QLabel("Label")
             story = QLabel("Percentage")
-            titles = [label, story]
+            pe_title = QLabel("Transfer PE?")
+            titles = [label, story, pe_title]
             for i in titles:
                 i.setStyleSheet("""
                             font-family: 'Arial';
@@ -339,6 +341,7 @@ class DrawShearWall(QDialog):
             # self.mainLayout.addWidget(list_widget)
             self.labels.clear()
             self.percents.clear()
+            self.pe.clear()
             for item in selectedWalls:
                 widget = QWidget()
                 layout = QHBoxLayout(widget)
@@ -348,8 +351,11 @@ class DrawShearWall(QDialog):
                 percent = QDoubleSpinBox()
                 percent.setRange(0, 100)
                 percent.setValue(item["percent"])
+                pe = QCheckBox()
+                pe.setChecked(item["pe"])
                 layout.addWidget(label)
                 layout.addWidget(percent)
+                layout.addWidget(pe)
                 list_item = QListWidgetItem(list_widget)
                 list_item.setSizeHint(widget.sizeHint())
 
@@ -358,6 +364,7 @@ class DrawShearWall(QDialog):
                 self.mainLayout.addWidget(list_widget)
                 self.labels.append(item["label"])
                 self.percents.append(percent)
+                self.pe.append(pe)
             self.selectedWalls = selectedWalls
             apply = QPushButton("Apply")
             apply.clicked.connect(self.apply)
@@ -388,7 +395,9 @@ class DrawShearWall(QDialog):
             # Add labels
             label = QLabel("Label")
             story = QLabel("Percentage")
-            titles = [label, story]
+            pe_title = QLabel("Transfer PE?")
+
+            titles = [label, story, pe_title]
         else:
             label = QLabel(f"No selected walls!")
             titles = [label]
@@ -409,6 +418,7 @@ class DrawShearWall(QDialog):
         self.mainLayout.addWidget(list_widget)
         self.labels.clear()
         self.percents.clear()
+        self.pe.clear()
         for item in self.selectedWalls:
             widget = QWidget()
             layout = QHBoxLayout(widget)
@@ -417,8 +427,11 @@ class DrawShearWall(QDialog):
             label = QLabel(item["label"])
             percent = QDoubleSpinBox()
             percent.setRange(0, 100)
+            pe = QCheckBox()
+            pe.setChecked(False)
             layout.addWidget(label)
             layout.addWidget(percent)
+            layout.addWidget(pe)
             list_item = QListWidgetItem(list_widget)
             list_item.setSizeHint(widget.sizeHint())
 
@@ -427,6 +440,8 @@ class DrawShearWall(QDialog):
             self.mainLayout.addWidget(list_widget)
             self.labels.append(item["label"])
             self.percents.append(percent)
+            self.pe.append(pe)
+            pe.checkStateChanged.connect(self.pe_check)
 
         apply = QPushButton("Apply")
         apply.clicked.connect(self.apply)
@@ -437,9 +452,24 @@ class DrawShearWall(QDialog):
     def apply(self):
         for i in range(len(self.labels)):
             self.selectedWalls[i]["percent"] = self.percents[i].value()
+            self.selectedWalls[i]["pe"] = self.pe[i].isChecked()
 
         print(self.selectedWalls)
         self.accept()
+
+    def pe_check(self):
+        is_there_check = False
+        for pe in self.pe:
+            if pe.isChecked():
+                is_there_check = True
+                break
+        if is_there_check:
+            for pe in self.pe:
+                if not pe.isChecked():
+                    pe.setEnabled(False)
+        else:
+            for pe in self.pe:
+                pe.setEnabled(True)
 
     def delete_widget(self):
         last_item = self.mainLayout.itemAt(self.mainLayout.count() - 1)
