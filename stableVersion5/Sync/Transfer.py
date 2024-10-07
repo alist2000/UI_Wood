@@ -85,6 +85,7 @@ class Transfer:
 
         for itemBottom in bottom:
             itemBottom["v_abv"] += itemBottom["extra_shear"]
+            itemBottom["pe_abv"] += itemBottom["extra_pe"]
             label = itemBottom["label"]
             dataBasePath = PathHandler(shearWallInputPath)
             conn = sqlite3.connect(dataBasePath)
