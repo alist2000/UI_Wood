@@ -166,7 +166,10 @@ class ShearWallLine:
 
             shearWall["line_label"] = lineLabel
             shearWall["direction"] = direction
-            shearWall["interior_exterior"] = intExt
+            if shearWall["int_ext"] == "Auto":
+                shearWall["interior_exterior"] = intExt
+            else:
+                shearWall["interior_exterior"] = shearWall["int_ext"].lower()
 
     @staticmethod
     def lineDetector(position, itemRange, lineProp):

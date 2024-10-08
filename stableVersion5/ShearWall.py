@@ -343,7 +343,8 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "thickness": "4 in",  # in
                                                        "load": {"point": [], "line": [], "reaction": []},
                                                        "extra_shear": 0,
-                                                       "extra_pe": 0
+                                                       "extra_pe": 0,
+                                                       "int_ext": "Auto"
 
                                                        }
         beam_line_creator(self.shearWall_rect_prop[self.current_rect])
@@ -442,6 +443,11 @@ class shearWallDrawing(QGraphicsRectItem):
         except KeyError:
             extra_pe = 0
 
+        try:
+            int_ext = prop["int_ext"]
+        except KeyError:
+            int_ext = "Auto"
+
         # After adding start_rect_item and end_rect_item to the scene
         self.shearWall_rect_prop[self.current_rect] = {"label": f"SW{self.shearWall_number}",
                                                        "coordinate": [start, end],
@@ -458,7 +464,8 @@ class shearWallDrawing(QGraphicsRectItem):
                                                        "load": {"point": prop["load"]["point"],
                                                                 "line": prop["load"]["line"], "reaction": []},
                                                        "extra_shear": extra_shear,
-                                                       "extra_pe": extra_pe
+                                                       "extra_pe": extra_pe,
+                                                       "int_ext": int_ext
 
                                                        }
         beam_line_creator(self.shearWall_rect_prop[self.current_rect])
@@ -576,9 +583,11 @@ class ShearWallProperties(QDialog):
         self.rectItem = rectItem
         self.rect_prop = rect_prop
         self.thickness = None
+        self.int_ext = None
         self.extra_shear = None
         self.extra_pe = None
         self.thickness_default = rect_prop[rectItem]["thickness"]
+        self.int_ext_default = rect_prop[rectItem]["int_ext"]
         self.extra_shear_default = rect_prop[rectItem]["extra_shear"]
         self.extra_pe_default = rect_prop[rectItem]["extra_pe"]
         print(rect_prop)
@@ -719,6 +728,11 @@ class ShearWallProperties(QDialog):
         self.thickness = thickness = QComboBox()
         thickness.addItems(["4 in", "6 in"])
         self.thickness.setCurrentText(self.rect_prop[self.rectItem]["thickness"])
+
+        label2 = QLabel("Interior/Exterior")
+        self.int_ext = int_ext = QComboBox()
+        int_ext.addItems(["Auto", "Interior", "Exterior"])
+        self.int_ext.setCurrentText(self.rect_prop[self.rectItem]["int_ext"])
         self.button_box.accepted.connect(self.accept_control)  # Change from dialog.accept to self.accept
         self.button_box.rejected.connect(self.reject)  # Change from dialog.reject to self.reject
         self.thickness.currentTextChanged.connect(self.thickness_control)
@@ -728,8 +742,13 @@ class ShearWallProperties(QDialog):
         h_layout1.addWidget(label1)
         h_layout1.addWidget(thickness)
 
+        h_layout2 = QHBoxLayout()
+        h_layout2.addWidget(label2)
+        h_layout2.addWidget(int_ext)
+
         v_layout = QVBoxLayout()
         v_layout.addLayout(h_layout1)
+        v_layout.addLayout(h_layout2)
 
         tab.setLayout(v_layout)
 
@@ -769,7 +788,9 @@ class ShearWallProperties(QDialog):
 
     def thickness_control(self):
         self.thickness_default = self.thickness.currentText()
+        self.int_ext_default = self.int_ext.currentText()
         self.rect_prop[self.rectItem]["thickness"] = self.thickness_default
+        self.rect_prop[self.rectItem]["int_ext"] = self.int_ext_default
 
     def extra_shear_control(self):
         self.extra_shear_default = self.extra_shear.value()
