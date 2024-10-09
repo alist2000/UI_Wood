@@ -27,3 +27,20 @@ def create_seismic_parameters(database):
         'Fa': Fa, 'Fv': Fv, 'I': I, 'R Factor': R, 'Regular Building': regular, 'Risk Category': risk,
         'S1': S1, 'Ss': Ss, 'T model': Tmodel
     }
+
+
+class ShearWallFromDataBase:
+    def __init__(self, database):
+        self.conn = sqlite3.connect(database)
+        self.cursor = self.conn.cursor()
+
+    def get_from_story(self, story):
+        self.cursor.execute(f"SELECT * FROM 'WallTable' WHERE Story = '{str(story)}'")
+        data = self.cursor.fetchall()
+        shearWalls = []
+        for shearWall in data:
+            shearWalls.append({
+                "label": shearWall["label"]
+            })
+
+        return shearWalls
