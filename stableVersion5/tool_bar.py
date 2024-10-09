@@ -9,7 +9,7 @@ from replicate import Replicate
 from delete import Delete
 from save import Save
 from Edit_properties import EditProperties
-from UI_Wood.stableVersion5.styles import menuStyle
+from UI_Wood.stableVersion5.styles import menuStyle, TabWidgetStyle
 
 
 class ToolBar:
@@ -21,7 +21,6 @@ class ToolBar:
         self.dialogPage4 = Delete(self)
         self.savePage = Save(self)
         self.EditProperties = EditProperties(self)
-
         self.spin_values = [0.75, 2.75, 0.1, 0.1, 0.1, 8, 6.5]
         self.combo_values = ["I & II", "Y"]
         self.create_tool_bar()
@@ -71,6 +70,7 @@ class load_seismic_dialog:
 
     def load_seismic_parameters(self):
         dialog = QDialog()
+        dialog.setStyleSheet(TabWidgetStyle)
         dialog.setWindowTitle("Seismic Parameters")
 
         layout = QVBoxLayout()

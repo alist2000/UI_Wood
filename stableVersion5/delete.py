@@ -1,5 +1,7 @@
 from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QCheckBox, QDialogButtonBox
 from UI_Wood.stableVersion5.replicate import CheckableComboBox
+from UI_Wood.stableVersion5.styles import TabWidgetStyle
+
 
 
 class Delete:
@@ -16,6 +18,7 @@ class Delete:
     def rep_exec(self):
         self.dialog = QDialog()
         self.dialog.setWindowTitle("Delete")
+        self.dialog.setStyleSheet(TabWidgetStyle)
 
         self.layout = QVBoxLayout()
 

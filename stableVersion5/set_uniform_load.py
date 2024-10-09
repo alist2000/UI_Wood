@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, \
     QTableWidget, QAbstractItemView, QCheckBox
 
 from path import PathHandler
+from UI_Wood.stableVersion5.styles import TabWidgetStyle
 
 import uuid
 
@@ -40,6 +41,7 @@ class set_uniform_load(QDialog):
         layout.addWidget(self.deleteButton)
         layout.addWidget(self.modifyButton)
         layout.addWidget(self.listWidget)
+        self.setStyleSheet(TabWidgetStyle)
         self.setLayout(layout)
 
     def open_add_dialog(self):
@@ -156,6 +158,7 @@ class UniformLoadDialog(QDialog):
         v_layout = QVBoxLayout()
         v_layout.addWidget(self.uniform_load)
         v_layout.addWidget(self.button_box)
+        self.setStyleSheet(TabWidgetStyle)
         self.setLayout(v_layout)
 
     # SLOT
@@ -262,7 +265,7 @@ class UniformLoad(QWidget):
 
     def delete_item(self):
         currentRow = self.tableWidget.currentRow()
-        if currentRow != 0:
+        if currentRow != 0 and currentRow != 1:
             self.tableWidget.removeRow(currentRow)
 
     def print_values(self):

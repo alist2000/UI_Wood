@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QCheckB
 from PySide6.QtGui import QStandardItem, QPalette, QFontMetrics
 from PySide6.QtWidgets import QComboBox, QStyledItemDelegate, QApplication
 from PySide6.QtCore import Qt, QEvent
+from UI_Wood.stableVersion5.styles import TabWidgetStyle
 
 
 class CheckableComboBox(QComboBox):
@@ -128,6 +129,7 @@ class Replicate:
     def rep_exec(self):
         self.dialog = QDialog()
         self.dialog.setWindowTitle("Replicate")
+        self.dialog.setStyleSheet(TabWidgetStyle)
 
         self.layout = QVBoxLayout()
 
