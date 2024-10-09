@@ -12,7 +12,7 @@ class tabWidget(QWidget):
         # Inputs for Report
         reportInputs = Inputs()
 
-        self.setWindowTitle("WOOD DESIGN APPLICATION")
+        self.setWindowTitle("WOOD STRUCTURE DESIGN APPLICATION")
 
         tab_widget = QTabWidget(self)
         self.setStyleSheet(TabWidgetStyle)
