@@ -1,9 +1,6 @@
 import copy
-
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QPushButton, QGraphicsView, QToolBar, \
     QMainWindow, QMenu, QMenuBar, QDialogButtonBox, QDialog, QLabel, QSpinBox, QDoubleSpinBox, QComboBox
-from PySide6.QtWidgets import QMainWindow, QGraphicsScene, QToolBar, QFileDialog, QApplication, QGraphicsView, \
-    QGraphicsPixmapItem, QGraphicsItem, QSlider, QVBoxLayout, QGraphicsOpacityEffect, QStackedLayout
 from PySide6.QtGui import QPixmap, QAction, QKeyEvent
 from PySide6.QtCore import Qt, QPoint
 
@@ -12,6 +9,8 @@ from replicate import Replicate
 from delete import Delete
 from save import Save
 from Edit_properties import EditProperties
+from UI_Wood.stableVersion5.styles import menuStyle
+
 
 class ToolBar:
     def __init__(self, mainPage):
@@ -28,41 +27,42 @@ class ToolBar:
         self.create_tool_bar()
 
     def create_tool_bar(self):
-        tool_bar = QToolBar("My Toolbar")
-        self.mainPage.addToolBar(tool_bar)
+        # Create menu bar
+        menu_bar = self.mainPage.menuBar()
+        menu_bar.setStyleSheet(menuStyle)
 
-        # Create a Seismic Parameter Action
-        seismic_parameters_action = QAction('Seismic Parameters', self.mainPage)
-        seismic_parameters_action.triggered.connect(self.dialogPage.load_seismic_parameters)
-        tool_bar.addAction(seismic_parameters_action)
+        # Create menus
+        file_menu = menu_bar.addMenu("File")
+        edit_menu = menu_bar.addMenu("Edit")
+        define_menu = menu_bar.addMenu("Define")
 
-        # Create Define Set Uniform Load Cases
-        seismic_parameters_action = QAction('Define Set Uniform Load', self.mainPage)
-        seismic_parameters_action.triggered.connect(self.dialogPage2.uniform_load_exe)
-        tool_bar.addAction(seismic_parameters_action)
-
-        # Create Define Set Uniform Load Cases
-        replicate = QAction('Replicate', self.mainPage)
-        replicate.triggered.connect(self.dialogPage3.rep_exec)
-        # replicate.triggered.connect(self.dialogPage3.rep_exec)
-        tool_bar.addAction(replicate)
-
-        # Create Define Set Uniform Load Cases
-        delete = QAction('Delete', self.mainPage)
-        delete.triggered.connect(self.dialogPage4.rep_exec)
-        tool_bar.addAction(delete)
-
-        # Create Save option
+        # File menu actions
         save_action = QAction('Save', self.mainPage)
         save_action.triggered.connect(self.savePage.save_clicked)
-        tool_bar.addAction(save_action)
+        file_menu.addAction(save_action)
 
-        # Create Edit option
+        # Edit menu actions
         edit_action = QAction('Edit Project', self.mainPage)
         edit_action.triggered.connect(self.EditProperties.show)
-        tool_bar.addAction(edit_action)
+        edit_menu.addAction(edit_action)
 
-        # saveAction.triggered.connect(self.save_tabs)
+        replicate_action = QAction('Replicate', self.mainPage)
+        replicate_action.triggered.connect(self.dialogPage3.rep_exec)
+        edit_menu.addAction(replicate_action)
+
+        delete_action = QAction('Delete', self.mainPage)
+        delete_action.triggered.connect(self.dialogPage4.rep_exec)
+        edit_menu.addAction(delete_action)
+
+        # View menu actions
+        seismic_parameters_action = QAction('Seismic Parameters', self.mainPage)
+        seismic_parameters_action.triggered.connect(self.dialogPage.load_seismic_parameters)
+        define_menu.addAction(seismic_parameters_action)
+
+        # Run menu actions
+        uniform_load_action = QAction('Define Set Uniform Load', self.mainPage)
+        uniform_load_action.triggered.connect(self.dialogPage2.uniform_load_exe)
+        define_menu.addAction(uniform_load_action)
 
 
 class load_seismic_dialog:
