@@ -64,7 +64,7 @@ class Widget_form(QWidget):
         unit.setFixedWidth(100)
         self.unit_combo = QComboBox()
         InformationSaver.unit_combo = self.unit_combo
-        self.unit_combo.addItems(["US", "Metric"])
+        self.unit_combo.addItems(["US"])  # "Metric" should be developed!
         h_l6 = h_layout_control(unit, self.unit_combo)
         self.unit_combo.activated.connect(self.unit_control)
 
